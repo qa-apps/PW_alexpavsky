@@ -82,8 +82,37 @@ def _hash_ip(ip):
     return hashlib.sha256((ip or "unknown").encode()).hexdigest()[:16]
 
 
-def _hash_pw(password):
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+_HAS_SCRYPT = hasattr(hashlib, "scrypt")
+
+
+def _hash_pw(password, salt=None):
+    """Hash password with scrypt (preferred) or PBKDF2-SHA256 fallback. Salt stored as hex prefix."""
+    if salt is None:
+        salt = os.urandom(16)
+    if _HAS_SCRYPT:
+        dk = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=16384, r=8, p=1, dklen=32)
+    else:
+        dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 260000, dklen=32)
+    return salt.hex() + ":" + dk.hex()
+
+
+def _verify_pw(password, stored_hash):
+    """Verify password against stored salted hash. Falls back to legacy SHA-256."""
+    if ":" in stored_hash:
+        salt_hex, dk_hex = stored_hash.split(":", 1)
+        salt = bytes.fromhex(salt_hex)
+        # Try scrypt first, then pbkdf2 (matches whichever method created the hash)
+        if _HAS_SCRYPT:
+            try:
+                dk = hashlib.scrypt(password.encode("utf-8"), salt=salt, n=16384, r=8, p=1, dklen=32)
+                if dk.hex() == dk_hex:
+                    return True
+            except Exception:
+                pass
+        dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 260000, dklen=32)
+        return dk.hex() == dk_hex
+    # Legacy SHA-256 fallback for existing accounts
+    return hashlib.sha256(password.encode("utf-8")).hexdigest() == stored_hash
 
 
 def _db():
@@ -659,11 +688,14 @@ class Handler(SimpleHTTPRequestHandler):
         password = body.get("password") or ""
         conn = _db()
         row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-        if not row or row["password_hash"] != _hash_pw(password):
+        if not row or not _verify_pw(password, row["password_hash"]):
             conn.close()
             self._json(401, {"error": "Invalid email or password."})
             return
         user = dict(row)
+        # Migrate legacy SHA-256 hash to scrypt on successful login
+        if ":" not in row["password_hash"]:
+            conn.execute("UPDATE users SET password_hash = ? WHERE id = ?", (_hash_pw(password), user["id"]))
         token = uuid.uuid4().hex
         conn.execute("INSERT INTO sessions (token, user_id, created_at) VALUES (?, ?, ?)", (token, user["id"], time.time()))
         conn.commit()
