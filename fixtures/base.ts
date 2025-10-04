@@ -3,12 +3,14 @@ import { HomePage } from '../pages/HomePage';
 import { LabPage } from '../pages/LabPage';
 import { ChallengePage } from '../pages/ChallengePage';
 import { ChatbotPage } from '../pages/ChatbotPage';
+import { AuthPage } from '../pages/AuthPage';
 
 type AppFixtures = {
   homePage: HomePage;
   labPage: LabPage;
   challengePage: ChallengePage;
   chatbotPage: ChatbotPage;
+  authPage: AuthPage;
 };
 
 export const test = base.extend<AppFixtures>({
@@ -27,6 +29,10 @@ export const test = base.extend<AppFixtures>({
   chatbotPage: async ({ page }, use) => {
     const chatbotPage = new ChatbotPage(page);
     await use(chatbotPage);
+  },
+  authPage: async ({ page }, use) => {
+    const authPage = new AuthPage(page);
+    await use(authPage);
   },
 });
 
