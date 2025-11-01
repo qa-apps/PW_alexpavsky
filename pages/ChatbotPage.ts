@@ -1,79 +1,92 @@
 import { Page, Locator } from '@playwright/test';
 
-/**
- * Page Object Model for interacting directly with the AI Chatbot interface.
- */
 export class ChatbotPage {
   readonly page: Page;
   readonly toggleBtn: Locator;
+  readonly widget: Locator;
+  readonly window: Locator;
+  readonly consentPanel: Locator;
   readonly consentCheckbox: Locator;
   readonly consentAgreeBtn: Locator;
+  readonly termsLink: Locator;
+  readonly termsPanel: Locator;
+  readonly termsBackBtn: Locator;
+  readonly chatForm: Locator;
   readonly chatInput: Locator;
   readonly sendBtn: Locator;
   readonly attachBtn: Locator;
+  readonly micBtn: Locator;
+  readonly clearInputBtn: Locator;
   readonly messages: Locator;
   readonly aiMessages: Locator;
   readonly userMessages: Locator;
   readonly resetBtn: Locator;
   readonly closeBtn: Locator;
 
-  /**
-   * Initializes all required Locators for the chatbot window, inputs, and toggles.
-   * @param page - Playwright Page object
-   */
   constructor(page: Page) {
     this.page = page;
     this.toggleBtn = page.locator('#chat-toggle');
+    this.widget = page.locator('#chat-widget');
+    this.window = page.locator('#chat-window');
+    this.consentPanel = page.locator('#chat-consent');
     this.consentCheckbox = page.locator('#chat-consent-cb');
     this.consentAgreeBtn = page.locator('#chat-consent-btn, button:has-text("Agree & Start Chat")');
+    this.termsLink = page.locator('#chat-terms-link');
+    this.termsPanel = page.locator('#chat-terms-panel');
+    this.termsBackBtn = page.locator('#chat-terms-back');
+    this.chatForm = page.locator('#chat-form');
     this.chatInput = page.locator('#chat-input');
-    this.sendBtn = page.locator('.chat-send-btn');
+    this.sendBtn = page.locator('#chat-send-btn, .chat-send-btn');
     this.attachBtn = page.locator('#chat-attach-btn');
-    this.messages = page.locator('.chat-message');
-    this.aiMessages = page.locator('.bot-message .message-content');
+    this.micBtn = page.locator('#chat-mic-btn');
+    this.clearInputBtn = page.locator('#chat-clear-input');
+    this.messages = page.locator('#chat-messages .chat-message');
+    this.aiMessages = page.locator('.bot-message .message-content, .bot-message .message-text');
     this.userMessages = page.locator('.user-message');
     this.resetBtn = page.locator('#chat-reset');
     this.closeBtn = page.locator('#chat-close');
   }
 
-  /**
-   * Navigates to the site, opens the chatbot, and accepts the consent form if presented.
-   */
   async openAndConsent() {
-    await this.page.goto('/');
-    await this.toggleBtn.click();
-    
-    if (await this.consentCheckbox.isVisible()) {
-      await this.consentCheckbox.check();
-      await this.consentAgreeBtn.click();
+    await this.page.goto('/', { waitUntil: 'domcontentloaded' });
+    await this.open();
+    await this.acceptConsentIfNeeded();
+  }
+
+  async open() {
+    if (!(await this.toggleBtn.isVisible())) {
+      await this.page.goto('/', { waitUntil: 'domcontentloaded' });
+    }
+    if (!(await this.window.isVisible())) {
+      await this.toggleBtn.click();
     }
   }
 
-  /**
-   * Sends a string message to the chatbot.
-   * @param text - The content of the message
-   */
-  async sendMessage(text: string) {
-    await this.chatInput.fill(text);
-    await this.sendBtn.click();
+  async acceptConsentIfNeeded() {
+    if (await this.consentCheckbox.isVisible()) {
+      await this.consentCheckbox.evaluate((element) => {
+        const input = element as HTMLInputElement;
+        input.checked = true;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      await this.consentAgreeBtn.click({ force: true });
+    }
   }
 
-  /**
-   * Extracts the text content of the most recent AI response bubble.
-   * @returns {Promise<string | null>} The text content, or null if no AI messages exist.
-   */
+  async sendMessage(text: string) {
+    await this.chatInput.fill(text);
+    await this.chatForm.evaluate((form) => {
+      (form as HTMLFormElement).requestSubmit();
+    });
+  }
+
   async getLastAiResponse(): Promise<string | null> {
-    // Wait for a new message to appear instead of hardcoded 1000ms
-    await this.page.waitForLoadState('networkidle');
-    await this.page.waitForTimeout(4000); // Give the LLM extra time to stream
+    await this.aiMessages.last().waitFor({ state: 'visible', timeout: 15_000 });
     const aiMsgs = await this.aiMessages.all();
     if (aiMsgs.length === 0) return null;
     return await aiMsgs[aiMsgs.length - 1].textContent();
   }
 
-  /**
-   * Resets the active chat session, clearing context.
-   */
   async resetChat() {
     await this.resetBtn.click();
   }
