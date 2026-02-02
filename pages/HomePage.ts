@@ -3,12 +3,10 @@ import { Page, Locator } from '@playwright/test';
 export class HomePage {
   readonly page: Page;
   readonly themeToggle: Locator;
-  readonly authBtn: Locator;
   readonly navLinks: Locator;
   readonly navMenuBtn: Locator;
   readonly mobileMenu: Locator;
   readonly heroSection: Locator;
-  readonly heroTicker: Locator;
   readonly tickerItems: Locator;
   readonly liveFeedSection: Locator;
   readonly feedGrid: Locator;
@@ -20,11 +18,6 @@ export class HomePage {
   readonly articleModalClose: Locator;
   readonly ytSection: Locator;
   readonly ytCards: Locator;
-  readonly ytCarouselTrack: Locator;
-  readonly ytArrowLeft: Locator;
-  readonly ytArrowRight: Locator;
-  readonly ytModal: Locator;
-  readonly ytModalClose: Locator;
   readonly principlesSection: Locator;
   readonly principleCards: Locator;
   readonly toolsSection: Locator;
@@ -34,19 +27,14 @@ export class HomePage {
   readonly newsletterSection: Locator;
   readonly newsletterForm: Locator;
   readonly newsletterEmail: Locator;
-  readonly newsletterBtn: Locator;
-  readonly newsletterMsg: Locator;
-  readonly chatWidget: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.themeToggle = page.locator('#theme-toggle, [aria-label*="theme"], .theme-toggle').first();
-    this.authBtn = page.locator('#auth-btn');
     this.navLinks = page.locator('nav .nav-link');
     this.navMenuBtn = page.locator('#nav-menu-btn');
     this.mobileMenu = page.locator('#mobile-menu');
     this.heroSection = page.locator('#hero, .hero').first();
-    this.heroTicker = page.locator('.ticker-bar, #ticker-track').first();
     this.tickerItems = page.locator('.ticker-item');
     this.liveFeedSection = page.locator('#feed');
     this.feedGrid = page.locator('#feed-grid');
@@ -58,11 +46,6 @@ export class HomePage {
     this.articleModalClose = page.locator('#article-modal-close');
     this.ytSection = page.locator('#yt-carousel, #videos').first();
     this.ytCards = page.locator('.yt-card');
-    this.ytCarouselTrack = page.locator('#yt-carousel-track');
-    this.ytArrowLeft = page.locator('#yt-arrow-left');
-    this.ytArrowRight = page.locator('#yt-arrow-right');
-    this.ytModal = page.locator('#yt-modal-overlay');
-    this.ytModalClose = page.locator('#yt-modal-close');
     this.principlesSection = page.locator('#explore');
     this.principleCards = page.locator('#explore .explore-card');
     this.toolsSection = page.locator('#tools');
@@ -72,9 +55,6 @@ export class HomePage {
     this.newsletterSection = page.locator('#digest');
     this.newsletterForm = page.locator('#newsletter-form');
     this.newsletterEmail = page.locator('#newsletter-email');
-    this.newsletterBtn = page.locator('#newsletter-btn');
-    this.newsletterMsg = page.locator('#newsletter-msg');
-    this.chatWidget = page.locator('#chat-widget');
   }
 
   async goto() {

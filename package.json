@@ -7,7 +7,9 @@
     "test:headed": "playwright test --headed",
     "test:chromium": "playwright test --project=chromium",
     "test:debug": "playwright test --debug",
-    "mcp:playwright": "playwright-mcp --headless --browser chrome --output-dir .playwright-mcp --save-trace --save-session"
+    "mcp:playwright": "playwright-mcp --headless --browser chrome --output-dir .playwright-mcp --save-trace --save-session",
+    "eval": "promptfoo eval",
+    "eval:view": "promptfoo view"
   },
   "repository": {
     "type": "git",
@@ -27,6 +29,7 @@
     "@types/node": "^25.5.0",
     "dotenv": "^17.3.1",
     "eslint": "^10.1.0",
+    "promptfoo": "^0.121.3",
     "typescript": "^5.9.3"
   }
 }

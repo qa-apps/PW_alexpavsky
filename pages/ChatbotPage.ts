@@ -3,7 +3,6 @@ import { Page, Locator } from '@playwright/test';
 export class ChatbotPage {
   readonly page: Page;
   readonly toggleBtn: Locator;
-  readonly widget: Locator;
   readonly window: Locator;
   readonly consentPanel: Locator;
   readonly consentCheckbox: Locator;
@@ -13,20 +12,13 @@ export class ChatbotPage {
   readonly termsBackBtn: Locator;
   readonly chatForm: Locator;
   readonly chatInput: Locator;
-  readonly sendBtn: Locator;
-  readonly attachBtn: Locator;
-  readonly micBtn: Locator;
-  readonly clearInputBtn: Locator;
-  readonly messages: Locator;
   readonly aiMessages: Locator;
   readonly userMessages: Locator;
   readonly resetBtn: Locator;
-  readonly closeBtn: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.toggleBtn = page.locator('#chat-toggle');
-    this.widget = page.locator('#chat-widget');
     this.window = page.locator('#chat-window');
     this.consentPanel = page.locator('#chat-consent');
     this.consentCheckbox = page.locator('#chat-consent-cb');
@@ -36,15 +28,9 @@ export class ChatbotPage {
     this.termsBackBtn = page.locator('#chat-terms-back');
     this.chatForm = page.locator('#chat-form');
     this.chatInput = page.locator('#chat-input');
-    this.sendBtn = page.locator('#chat-send-btn, .chat-send-btn');
-    this.attachBtn = page.locator('#chat-attach-btn');
-    this.micBtn = page.locator('#chat-mic-btn');
-    this.clearInputBtn = page.locator('#chat-clear-input');
-    this.messages = page.locator('#chat-messages .chat-message');
     this.aiMessages = page.locator('.bot-message .message-content, .bot-message .message-text');
     this.userMessages = page.locator('.user-message');
     this.resetBtn = page.locator('#chat-reset');
-    this.closeBtn = page.locator('#chat-close');
   }
 
   async openAndConsent() {

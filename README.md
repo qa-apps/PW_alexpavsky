@@ -63,6 +63,21 @@ command = "npx"
 args = ["playwright-mcp", "--headless", "--browser", "chrome", "--output-dir", ".playwright-mcp", "--save-trace", "--save-session"]
 ```
 
+## PromptFoo AI Evaluation
+
+PromptFoo runs standalone LLM evaluations against the chatbot assistant, covering safety, jailbreak resistance, prompt leak protection, tone, and more.
+
+```bash
+npm run eval
+npm run eval:view
+```
+
+Config: `promptfooconfig.yaml`
+
+Custom LLM judges for Playwright integration: `utils/llm-judges.ts`
+
+Available judges: `safety`, `promptLeak`, `jailbreak`, `relevance`, `tone`, `piiProtection`
+
 ## Coverage Areas
 
 - Hero ticker and navigation
