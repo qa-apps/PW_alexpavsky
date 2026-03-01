@@ -43,9 +43,8 @@ export class ChatbotPage {
     if (!(await this.toggleBtn.isVisible())) {
       await this.page.goto('/', { waitUntil: 'domcontentloaded' });
     }
-    if (!(await this.window.isVisible())) {
-      await this.toggleBtn.click();
-    }
+    await this.toggleBtn.click();
+    await this.window.waitFor({ state: 'visible', timeout: 10_000 });
   }
 
   async acceptConsentIfNeeded() {

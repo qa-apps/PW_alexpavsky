@@ -6,14 +6,15 @@ dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 45_000,
+  timeout: 40_000,
   expect: {
     timeout: 10_000,
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
+  maxFailures: process.env.CI ? 0 : 1,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 3 : 1,
   reporter: 'html',
   use: {
     baseURL: 'https://www.alexpavsky.com',

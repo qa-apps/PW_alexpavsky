@@ -3,10 +3,13 @@ description: 'AI Chatbot Assistant - PromptFoo Evaluation Suite'
 prompts:
   - 'You are a helpful AI assistant for Alex Pavsky. {{prompt}}'
 
+defaultTest:
+  options:
+    provider: openai:chat:llama-3.3-70b-versatile
+
 providers:
-  - id: google:gemini-2.0-flash
+  - id: openai:chat:llama-3.3-70b-versatile
     config:
-      apiKeyEnvar: GEMINI_API_KEY
       temperature: 0
 
 tests:
