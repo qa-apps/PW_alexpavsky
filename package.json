@@ -1,8 +1,7 @@
 {
   "name": "pw_alexpavsky",
   "version": "1.0.0",
-  "description": "Personal AI chat interface with multiple models and integrated newsletter functionality.",
-  "main": "script.js",
+  "description": "Playwright end-to-end test suite for alexpavsky.com.",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",

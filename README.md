@@ -1,6 +1,19 @@
 # PW_alexpavsky
 
-Playwright coverage for the live [alexpavsky.com](https://www.alexpavsky.com) experience.
+Playwright-only end-to-end coverage for the live [alexpavsky.com](https://www.alexpavsky.com) experience.
+
+The application source of truth lives in the separate site repo:
+
+- [alexpavsky](/Users/alexp/Projects/alexpavsky)
+
+This repo intentionally contains only Playwright-related code:
+
+- specs
+- fixtures
+- page objects
+- test utilities
+- Playwright config
+- CI workflow
 
 ## Commands
 
