@@ -1,5 +1,8 @@
 import { Page, Locator } from '@playwright/test';
 
+/**
+ * Page Object Model representing the AI & QA Lab dashboard section.
+ */
 export class LabPage {
   readonly page: Page;
   
@@ -9,9 +12,13 @@ export class LabPage {
   readonly openDiffBtn: Locator;
   readonly openChallengeBtn: Locator;
 
-  // Generic tools modals (if they open within the page)
+  // Generic tools modals
   readonly modalCloseBtn: Locator;
 
+  /**
+   * Initializes Locators for tools available in the Lab section.
+   * @param page - Playwright Page object
+   */
   constructor(page: Page) {
     this.page = page;
     
@@ -23,14 +30,23 @@ export class LabPage {
     this.modalCloseBtn = page.locator('.modal-close');
   }
 
+  /**
+   * Navigates directly to the Lab anchor on the page.
+   */
   async goto() {
     await this.page.goto('/#lab');
   }
 
+  /**
+   * Clicks the JSON formatter tool to open its dedicated view/modal.
+   */
   async openJsonFormatter() {
     await this.openJsonBtn.click();
   }
 
+  /**
+   * Clicks the Diff Checker tool to initialize its side-by-side view.
+   */
   async openDiffChecker() {
     await this.openDiffBtn.click();
   }
