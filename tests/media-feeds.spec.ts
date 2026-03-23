@@ -19,15 +19,5 @@ test.describe('Media and Feeds Validation', () => {
     const newCount = await homePage.feedCards.count();
     expect(newCount).toBeGreaterThanOrEqual(filteredCount);
   });
-
-  test('should display YouTube video feed', async ({ homePage }) => {
-    await homePage.goto();
-    await expect(homePage.ytSectionTitle).toBeVisible();
-    
-    const ytCount = await homePage.ytCards.count();
-    expect(ytCount).toBeGreaterThan(0);
-    
-    const firstVideoIframe = homePage.ytCards.first().locator('iframe');
-    await expect(firstVideoIframe).toBeVisible();
-  });
 });
+

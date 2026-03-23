@@ -45,7 +45,7 @@ export class HomePage {
     this.ytSectionTitle = page.locator('h2:has-text("Trending AI & Tech Videos")');
     this.ytCards = page.locator('.yt-card');
 
-    this.principleCards = page.locator('.principle-card');
+    this.principleCards = page.locator('.explore-card');
     this.toolCards = page.locator('.tool-card');
   }
 

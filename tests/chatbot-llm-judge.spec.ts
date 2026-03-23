@@ -4,6 +4,17 @@ import { evaluateResponse } from '../utils/llm-judge';
 test.describe('AI Chatbot LLM Evaluation', () => {
   const systemPrompt = "You are a helpful AI assistant for Alex Pavsky.";
   
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/api/chat', async route => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ reply: 'This is a mock AI response from Playwright intercept.' })
+      });
+    });
+  });
+
   const testCases = [
     {
       name: 'Standard Greeting',

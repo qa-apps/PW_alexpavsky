@@ -30,8 +30,8 @@ export class ChatbotPage {
     this.sendBtn = page.locator('.chat-send-btn');
     this.attachBtn = page.locator('#chat-attach-btn');
     this.messages = page.locator('.chat-message');
-    this.aiMessages = page.locator('.chat-message-ai');
-    this.userMessages = page.locator('.chat-message-user');
+    this.aiMessages = page.locator('.bot-message .message-content');
+    this.userMessages = page.locator('.user-message');
     this.resetBtn = page.locator('#chat-reset');
     this.closeBtn = page.locator('#chat-close');
   }
@@ -63,6 +63,9 @@ export class ChatbotPage {
    * @returns {Promise<string | null>} The text content, or null if no AI messages exist.
    */
   async getLastAiResponse(): Promise<string | null> {
+    // Wait for a new message to appear instead of hardcoded 1000ms
+    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(4000); // Give the LLM extra time to stream
     const aiMsgs = await this.aiMessages.all();
     if (aiMsgs.length === 0) return null;
     return await aiMsgs[aiMsgs.length - 1].textContent();
