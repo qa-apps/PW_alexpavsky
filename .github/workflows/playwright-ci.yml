@@ -1,0 +1,138 @@
+name: Playwright CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions cron runs in UTC. We trigger at both 02:00 and 03:00 UTC
+    # and gate the job so it only proceeds when the local New York time is 10 PM.
+    - cron: '0 2 * * *'
+    - cron: '0 3 * * *'
+
+concurrency:
+  group: playwright-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Gate nightly schedule to 10 PM New York time
+        id: nightly_gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          local_hour=$(TZ=America/New_York date +"%H")
+          if [[ "$local_hour" == "22" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node.js
+        if: steps.nightly_gate.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.nightly_gate.outputs.should_run == 'true'
+        run: npm ci
+
+      - name: Install Playwright browsers
+        if: steps.nightly_gate.outputs.should_run == 'true'
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        if: steps.nightly_gate.outputs.should_run == 'true'
+        run: npm test
+        env:
+          CI: true
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Upload Playwright report
+        if: always() && steps.nightly_gate.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload Playwright test results
+        if: always() && steps.nightly_gate.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Notify Slack
+        if: always() && steps.nightly_gate.outputs.should_run == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          JOB_STATUS: ${{ job.status }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR_NAME: ${{ github.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          if [[ -z "$SLACK_WEBHOOK_URL" ]]; then
+            echo "SLACK_WEBHOOK_URL is not configured. Skipping Slack notification."
+            exit 0
+          fi
+
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          status = os.environ["JOB_STATUS"]
+          color = {
+              "success": "good",
+              "failure": "danger",
+              "cancelled": "warning",
+          }.get(status, "#808080")
+
+          payload = {
+              "text": f"Playwright CI {status.upper()} for {os.environ['REPOSITORY']}",
+              "attachments": [
+                  {
+                      "color": color,
+                      "fields": [
+                          {"title": "Repository", "value": os.environ["REPOSITORY"], "short": True},
+                          {"title": "Branch", "value": os.environ["BRANCH_NAME"], "short": True},
+                          {"title": "Event", "value": os.environ["EVENT_NAME"], "short": True},
+                          {"title": "Actor", "value": os.environ["ACTOR_NAME"], "short": True},
+                          {"title": "Run", "value": os.environ["RUN_URL"], "short": False},
+                      ],
+                  }
+              ],
+          }
+
+          request = urllib.request.Request(
+              os.environ["SLACK_WEBHOOK_URL"],
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+          )
+          urllib.request.urlopen(request).read()
+          PY

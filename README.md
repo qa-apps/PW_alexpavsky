@@ -10,6 +10,28 @@ npm run test:headed
 npm run test:chromium
 ```
 
+## GitHub Actions CI
+
+This repo can run Playwright in GitHub Actions on:
+
+- every push to `master`
+- every pull request into `master`
+- manual runs via `workflow_dispatch`
+- nightly at `10:00 PM` New York time
+
+Required repository secret for Slack notifications:
+
+- `SLACK_WEBHOOK_URL`
+
+Optional repository secrets for live LLM judge runs:
+
+- `GROQ_API_KEY`
+- `OPENROUTER_API_KEY`
+- `GEMINI_API_KEY`
+
+The nightly schedule is implemented with two UTC cron entries and a New York
+time gate so it stays aligned with `10:00 PM` across DST changes.
+
 ## Playwright MCP
 
 This project includes `@playwright/mcp` so the browser can be attached to an AI orchestrator or agent client for live DOM inspection.
