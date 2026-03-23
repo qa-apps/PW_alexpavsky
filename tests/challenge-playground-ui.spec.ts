@@ -11,7 +11,7 @@ test.describe('Challenge playground UI states', () => {
     await expect(challengePage.systemPromptText).not.toHaveText(before || '', { timeout: 3_000 });
   });
 
-  const categories = ['Jailbreak', 'Hallucination', 'Prompt Injection', 'Data Extraction'];
+  const categories = ['Jailbreak', 'Hallucination', 'Prompt Injection', 'Bias Detection'];
 
   test('should cycle through all categories and highlight the active one', async ({ challengePage }) => {
     await challengePage.open();
