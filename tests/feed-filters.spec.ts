@@ -4,6 +4,7 @@ test.describe('Live feed category filters', () => {
   test.beforeEach(async ({ homePage }) => {
     await homePage.goto();
     await expect(homePage.liveFeedSection).toBeVisible();
+    await expect(homePage.feedCards.first()).toBeVisible({ timeout: 10_000 });
   });
 
   test('should render all four filter pills', async ({ homePage }) => {
@@ -17,9 +18,9 @@ test.describe('Live feed category filters', () => {
   test('should switch between categories without emptying the grid', async ({ homePage }) => {
     for (const label of ['AI & LLM', 'QA & Testing', 'Dev & Engineering', 'All']) {
       await homePage.filterFeedBy(label);
-      await homePage.page.waitForTimeout(500);
       await expect(homePage.filterBtns.filter({ hasText: label })).toHaveClass(/active/);
       await expect(homePage.feedGrid).toBeVisible();
+      await expect(homePage.feedCards.first()).toBeVisible({ timeout: 5_000 });
     }
   });
 });
