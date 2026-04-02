@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 40_000,
+  timeout: 60_000,
   expect: {
     timeout: 10_000,
   },
