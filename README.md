@@ -55,6 +55,8 @@ Run the local MCP server:
 npm run mcp:playwright
 ```
 
+For Windsurf, this repo includes a project workflow at `.windsurf/workflows/playwright-mcp.md` that describes how to start the MCP server and use it for agent-driven browser inspection and debugging.
+
 Example Codex MCP config:
 
 ```toml

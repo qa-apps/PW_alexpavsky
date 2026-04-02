@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "Playwright end-to-end test suite for alexpavsky.com.",
   "scripts": {
+    "init:agents": "playwright init-agents --loop=vscode --prompts",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:chromium": "playwright test --project=chromium",
     "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
     "mcp:playwright": "playwright-mcp --headless --browser chrome --output-dir .playwright-mcp --save-trace --save-session",
     "eval": "promptfoo eval",
     "eval:view": "promptfoo view"
