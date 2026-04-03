@@ -12,7 +12,6 @@ export default defineConfig({
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  maxFailures: process.env.CI ? 0 : 1,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 3 : 1,
   reporter: [['list'], ['html', { open: 'never' }]],
