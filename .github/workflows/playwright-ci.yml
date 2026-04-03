@@ -9,14 +9,14 @@ on:
       - master
   workflow_dispatch:
   schedule:
-    # GitHub Actions cron runs in UTC. We trigger at both 02:00 and 03:00 UTC
-    # and gate the job so it only proceeds when the local New York time is 10 PM.
+    # Run nightly at 10 PM EDT (02:00 UTC). No gate needed — GitHub cron
+    # delays make exact-hour checks unreliable; just let it run whenever
+    # the scheduler delivers it (usually within ±30 min of 10 PM EDT).
     - cron: '0 2 * * *'
-    - cron: '0 3 * * *'
 
 concurrency:
-  group: playwright-ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: playwright-ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
 
 jobs:
   playwright:
@@ -27,39 +27,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Gate nightly schedule to 10 PM New York time
-        id: nightly_gate
-        shell: bash
-        run: |
-          if [[ "${{ github.event_name }}" != "schedule" ]]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          local_hour=$(TZ=America/New_York date +"%H")
-          if [[ "$local_hour" == "22" ]]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Set up Node.js
-        if: steps.nightly_gate.outputs.should_run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
       - name: Install dependencies
-        if: steps.nightly_gate.outputs.should_run == 'true'
         run: npm ci
 
       - name: Install Playwright browsers
-        if: steps.nightly_gate.outputs.should_run == 'true'
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        if: steps.nightly_gate.outputs.should_run == 'true'
         run: npm test
         env:
           CI: true
@@ -68,7 +48,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Upload Playwright report
-        if: always() && steps.nightly_gate.outputs.should_run == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
@@ -76,7 +56,7 @@ jobs:
           retention-days: 14
 
       - name: Upload Playwright test results
-        if: always() && steps.nightly_gate.outputs.should_run == 'true'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
@@ -85,7 +65,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Notify Slack
-        if: always() && steps.nightly_gate.outputs.should_run == 'true'
+        if: always()
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           JOB_STATUS: ${{ job.status }}
@@ -136,3 +116,24 @@ jobs:
           )
           urllib.request.urlopen(request).read()
           PY
+
+      - name: Send email notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.MAIL_SERVER }}
+          server_port: ${{ secrets.MAIL_PORT || 587 }}
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          to: ${{ secrets.MAIL_TO }}
+          from: Playwright CI <${{ secrets.MAIL_USERNAME }}>
+          subject: "[${{ job.status == 'success' && '✅ PASS' || '❌ FAIL' }}] Playwright CI — ${{ github.repository }} (${{ github.ref_name }})"
+          body: |
+            Playwright CI finished with status: ${{ job.status }}
+
+            Repository : ${{ github.repository }}
+            Branch     : ${{ github.ref_name }}
+            Event      : ${{ github.event_name }}
+            Triggered by: ${{ github.actor }}
+            Run URL    : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
