@@ -38,8 +38,19 @@ export class CommonPage {
   }
 
   async goto(path = '/') {
-    await this.page.goto(path, { waitUntil: 'domcontentloaded' });
-    await this.page.waitForLoadState('domcontentloaded');
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        await this.page.goto(path, { waitUntil: 'domcontentloaded' });
+        await this.page.waitForLoadState('domcontentloaded');
+        return;
+      } catch (error) {
+        lastError = error;
+        if (attempt === 2) break;
+        await this.page.waitForTimeout(1000 * (attempt + 1));
+      }
+    }
+    throw lastError;
   }
 
   async getBodyClass(): Promise<string | null> {

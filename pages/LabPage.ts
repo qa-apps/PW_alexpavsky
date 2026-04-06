@@ -62,7 +62,7 @@ export class LabPage extends CommonPage {
     this.pitestScanBtn = page.locator('#pitest-scan-btn');
     this.pitestOutput = page.locator('#pitest-output');
     this.challengeModal = page.locator('#challenge-modal');
-    this.modalCloseBtns = page.locator('.modal-close, #chat-close');
+    this.modalCloseBtns = page.locator('.json-modal.active .modal-close, .diff-modal.active .modal-close, .modal-close, #chat-close');
     this.principlesCategories = page.locator('.principles-category-btn');
     this.principlesContent = page.locator('.principles-content');
     this.jsonDiffLeft = page.locator('#json-diff-left');
@@ -167,11 +167,22 @@ export class LabPage extends CommonPage {
   }
 
   async closeTopModal() {
+    await this.page.keyboard.press('Escape');
+    const activeModal = this.page.locator('.json-modal.active, .diff-modal.active').last();
+    const activeModalCount = await activeModal.count();
+    if (activeModalCount === 0) return;
+
+    const activeCloseBtn = activeModal.locator('.modal-close, [aria-label="Close"]').first();
+    if (await activeCloseBtn.count()) {
+      await activeCloseBtn.click({ force: true });
+      return;
+    }
+
     const count = await this.modalCloseBtns.count();
     for (let i = 0; i < count; i += 1) {
       const button = this.modalCloseBtns.nth(i);
       if (await button.isVisible()) {
-        await button.click();
+        await button.click({ force: true });
         return;
       }
     }
