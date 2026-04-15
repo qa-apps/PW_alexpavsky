@@ -88,6 +88,6 @@ export class ChatbotPage extends CommonPage {
   }
 
   async close() {
-    await this.closeBtn.click();
+    await this.closeBtn.click({ force: true });
   }
 }

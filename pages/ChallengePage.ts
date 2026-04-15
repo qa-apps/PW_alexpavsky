@@ -37,10 +37,10 @@ export class ChallengePage extends CommonPage {
     this.mitigationText = page.locator('#verdict-mitigation');
     this.judgeModel = page.locator('#verdict-judge-model');
     this.playgroundHeading = page.locator('h1').first();
-    this.playgroundInput = page.locator('input, textarea').first();
-    this.playgroundSubmitBtn = page.locator('button[type="submit"]').first();
-    this.playgroundResult = page.locator('.result').first();
-    this.playgroundLabsLink = page.locator('a[href="/labs"]').first();
+    this.playgroundInput = page.locator('#challenge-input');
+    this.playgroundSubmitBtn = page.locator('#challenge-submit-btn');
+    this.playgroundResult = page.locator('#challenge-results');
+    this.playgroundLabsLink = page.locator('a[href="#lab"], a[href="/#lab"], #open-challenge-btn').first();
   }
 
   async open() {
@@ -67,7 +67,7 @@ export class ChallengePage extends CommonPage {
   }
 
   async gotoPlayground() {
-    await this.goto('/labs/challenge-playground');
+    await this.open();
   }
 
   async submitPlaygroundPrompt(prompt: string) {
