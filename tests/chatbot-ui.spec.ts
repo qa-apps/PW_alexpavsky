@@ -54,7 +54,7 @@ test.describe('AI assistant widget UI', () => {
 
   test('should close chatbot panel', async ({ chatbotPage }) => {
     await chatbotPage.openAndConsent();
-    await chatbotPage.closeBtn.click();
-    await expect(chatbotPage.chatInput).not.toBeVisible();
+    await chatbotPage.close();
+    await expect(chatbotPage.window).not.toHaveClass(/active/);
   });
 });
