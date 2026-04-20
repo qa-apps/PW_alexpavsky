@@ -60,4 +60,28 @@ test.describe('Hero ticker and digest signup', () => {
     await homePage.subscribe('test2@example.com');
     await expect(homePage.newsletterSuccess).toBeVisible();
   });
+
+  test('should show an error message when newsletter subscription fails', async ({ homePage, page }) => {
+    const requests: unknown[] = [];
+    await mockSubscribe(page, 500, { message: 'Subscription failed. Please try again.' }, requests);
+
+    await homePage.goto();
+    await homePage.subscribe('alex@example.com');
+
+    await expect.poll(() => requests.length).toBe(1);
+    expect(requests).toContainEqual({ email: 'alex@example.com' });
+    await expect(homePage.newsletterSuccess).not.toBeVisible();
+  });
+
+  test('should show an already subscribed error when the API rejects a duplicate email', async ({ homePage, page }) => {
+    const requests: unknown[] = [];
+    await mockSubscribe(page, 409, { message: 'This email is already subscribed.' }, requests);
+
+    await homePage.goto();
+    await homePage.subscribe('alex@example.com');
+
+    await expect.poll(() => requests.length).toBe(1);
+    expect(requests).toContainEqual({ email: 'alex@example.com' });
+    await expect(homePage.newsletterSuccess).not.toBeVisible();
+  });
 });

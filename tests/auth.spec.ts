@@ -69,6 +69,47 @@ test.describe('Authentication', () => {
       await expect(authPage.userMenu).toBeVisible();
       await expect(authPage.userDisplayName).toContainText('Alex');
     });
+
+    test('should show an error for invalid mocked login credentials', async ({ authPage, page }) => {
+      await page.route('**/api/auth/login', async (route) => {
+        await route.fulfill({
+          status: 401,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Invalid credentials' }),
+        });
+      });
+
+      await authPage.open();
+      await authPage.submitLogin('alex@example.com', 'wrong-password');
+      await expect(authPage.loginError).toBeVisible();
+      await expect(authPage.loginError).toContainText(/invalid credentials/i);
+    });
+
+    test('should require a valid email in the register form', async ({ authPage }) => {
+      await authPage.open();
+      await authPage.switchToRegister();
+      await authPage.registerName.fill('Alex Tester');
+      await authPage.registerEmail.fill('invalid-email');
+      await authPage.registerPassword.fill('Secret123!');
+      await authPage.registerPasswordConfirm.fill('Secret123!');
+      await expect
+        .poll(() => authPage.registerEmail.evaluate((input) => (input as HTMLInputElement).validity.valid))
+        .toBe(false);
+    });
+
+    test('should require matching passwords in the register form', async ({ authPage }) => {
+      await authPage.open();
+      await authPage.switchToRegister();
+      await authPage.registerName.fill('Alex Tester');
+      await authPage.registerEmail.fill('alex@example.com');
+      await authPage.registerPassword.fill('Secret123!');
+      await authPage.registerPasswordConfirm.fill('Secret321!');
+      const passwordsMatch = await authPage.registerPasswordConfirm.evaluate((input) => {
+        const element = input as HTMLInputElement;
+        return element.value === (document.querySelector('#reg-password') as HTMLInputElement)?.value;
+      });
+      expect(passwordsMatch).toBe(false);
+    });
   });
 
   test.describe('Dashboard flow', () => {

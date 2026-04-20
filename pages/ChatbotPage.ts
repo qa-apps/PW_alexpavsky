@@ -37,20 +37,32 @@ export class ChatbotPage extends CommonPage {
     this.finishedAiMessage = page.locator('.bot-message:last-child .message-content:not(.typing-indicator)');
   }
 
+  /**
+   * Opens the chatbot and accepts consent if the prompt is shown.
+   */
   async openAndConsent() {
     await this.goto('/');
     await this.open();
     await this.acceptConsentIfNeeded();
   }
 
+  /**
+   * Opens the chatbot window from the floating toggle.
+   */
   async open() {
     if (!(await this.toggleBtn.isVisible())) {
       await this.goto('/');
     }
-    await this.toggleBtn.click();
+    if (await this.window.isVisible()) {
+      return;
+    }
+    await this.toggleBtn.click({ force: true });
     await this.window.waitFor({ state: 'visible', timeout: 10_000 });
   }
 
+  /**
+   * Accepts the chatbot consent prompt when it is present.
+   */
   async acceptConsentIfNeeded() {
     if (await this.consentCheckbox.isVisible()) {
       await this.consentCheckbox.evaluate((element) => {
@@ -62,6 +74,9 @@ export class ChatbotPage extends CommonPage {
     }
   }
 
+  /**
+   * Sends a user message through the chatbot form.
+   */
   async sendMessage(text: string) {
     await this.chatInput.fill(text);
     await this.chatForm.evaluate((form) => {
@@ -69,6 +84,9 @@ export class ChatbotPage extends CommonPage {
     });
   }
 
+  /**
+   * Sends a message and waits for the final assistant response text.
+   */
   async sendAndGetResponse(text: string): Promise<string> {
     await this.openAndConsent();
     await this.sendMessage(text);
@@ -76,6 +94,9 @@ export class ChatbotPage extends CommonPage {
     return (await this.finishedAiMessage.textContent()) || '';
   }
 
+  /**
+   * Returns the text of the last visible assistant message.
+   */
   async getLastAiResponse(): Promise<string | null> {
     await this.aiMessages.last().waitFor({ state: 'visible', timeout: 15_000 });
     const aiMsgs = await this.aiMessages.all();
@@ -83,10 +104,16 @@ export class ChatbotPage extends CommonPage {
     return await aiMsgs[aiMsgs.length - 1].textContent();
   }
 
+  /**
+   * Resets the current chatbot conversation.
+   */
   async resetChat() {
     await this.resetBtn.click();
   }
 
+  /**
+   * Closes the chatbot window.
+   */
   async close() {
     await this.closeBtn.click({ force: true });
   }
