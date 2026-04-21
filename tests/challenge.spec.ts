@@ -60,45 +60,41 @@ test.describe('AI challenge', () => {
     }
   });
 
-  test.describe.skip('unpublished Break AI route', () => {
-    test('should show Break AI challenges', async ({ labPage }) => {
-      await labPage.gotoBreakAI();
-      const cards = await labPage.breakAIScenarioCards.all();
-      expect(cards.length).toBeGreaterThan(0);
+  test.describe('challenge modal controls', () => {
+    test('should show challenge categories', async ({ challengePage }) => {
+      await challengePage.open();
+      await expect(challengePage.categorySelector).toHaveCount(4);
     });
 
-    test('should select a challenge scenario', async ({ labPage }) => {
-      await labPage.gotoBreakAI();
-      const cards = await labPage.breakAIScenarioCards.all();
-      if (cards.length > 0) await cards[0].click();
-      await expect(labPage.breakAIDescription).toBeVisible();
+    test('should select a challenge category', async ({ challengePage }) => {
+      await challengePage.open();
+      await challengePage.selectCategory('Jailbreak');
+      await expect(challengePage.categorySelector.filter({ hasText: 'Jailbreak' })).toHaveClass(/active/);
     });
 
-    test('should submit challenge input', async ({ labPage }) => {
-      await labPage.gotoBreakAI();
-      await labPage.breakAIInput.fill('test input');
-      await labPage.breakAISubmitBtn.click();
-      await expect(labPage.breakAIResult).toBeVisible();
+    test('should enable submit after challenge input', async ({ challengePage }) => {
+      await challengePage.open();
+      await expect(challengePage.submitBtn).toBeDisabled();
+      await challengePage.promptInput.fill('test input');
+      await expect(challengePage.submitBtn).toBeEnabled();
     });
 
-    test('should show challenge result', async ({ labPage }) => {
-      await labPage.gotoBreakAI();
-      await labPage.breakAIInput.fill('challenge');
-      await labPage.breakAISubmitBtn.click();
-      await expect(labPage.breakAIResult).toContainText('Result');
+    test('should show challenge stats', async ({ challengePage }) => {
+      await challengePage.open();
+      await expect(challengePage.page.locator('#challenge-stats')).toBeVisible();
     });
 
-    test('should handle empty challenge input', async ({ labPage }) => {
-      await labPage.gotoBreakAI();
-      await labPage.breakAISubmitBtn.click();
-      await expect(labPage.breakAIInput).toBeVisible();
+    test('should keep empty challenge submit disabled', async ({ challengePage }) => {
+      await challengePage.open();
+      await challengePage.promptInput.fill('');
+      await expect(challengePage.submitBtn).toBeDisabled();
     });
   });
 
-  test.describe.skip('unpublished challenge playground route', () => {
+  test.describe('challenge playground modal', () => {
     test('should show playground UI', async ({ challengePage }) => {
       await challengePage.gotoPlayground();
-      await expect(challengePage.playgroundHeading).toBeVisible();
+      await expect(challengePage.page.locator('#challenge-playground')).toBeVisible();
     });
 
     test('should have input field', async ({ challengePage }) => {
@@ -113,13 +109,17 @@ test.describe('AI challenge', () => {
 
     test('should show results after submit', async ({ challengePage }) => {
       await challengePage.gotoPlayground();
-      await challengePage.submitPlaygroundPrompt('test');
+      await Promise.all([
+        challengePage.page.waitForResponse('**/api/challenge'),
+        challengePage.submitPlaygroundPrompt('test'),
+      ]);
       await expect(challengePage.playgroundResult).toBeVisible();
     });
 
-    test('should have navigation back to labs', async ({ challengePage }) => {
+    test('should close playground modal', async ({ challengePage }) => {
       await challengePage.gotoPlayground();
-      await expect(challengePage.playgroundLabsLink).toBeVisible();
+      await challengePage.page.locator('#challenge-modal-close').click();
+      await expect(challengePage.page.locator('#challenge-modal')).not.toHaveClass(/active/);
     });
   });
 });

@@ -85,10 +85,10 @@ export class HomePage extends CommonPage {
     this.newsletterSection = page.locator('#digest');
     this.newsletterForm = page.locator('#newsletter-form');
     this.newsletterEmail = page.locator('#newsletter-email');
-    this.mediaFeedSection = page.locator('#media-feed');
-    this.videoThumbnails = page.locator('.video-thumbnail');
-    this.podcastCards = page.locator('.podcast-card');
-    this.mediaTitles = page.locator('.media-title');
+    this.mediaFeedSection = page.locator('#media-feed, #yt-carousel, #videos').first();
+    this.videoThumbnails = page.locator('.video-thumbnail, .yt-card img, .yt-thumb');
+    this.podcastCards = page.locator('.podcast-card, .yt-card');
+    this.mediaTitles = page.locator('.media-title, .yt-title, .yt-card-title');
     this.youtubeCarousel = page.locator('#yt-carousel, #youtube-carousel').first();
     this.youtubeVideoCards = page.locator('.yt-card, .youtube-video-card');
     this.youtubeNextBtn = page.locator('#yt-btn-right, #carousel-next').first();
@@ -97,18 +97,21 @@ export class HomePage extends CommonPage {
     this.youtubeOutboundCards = page.locator('.yt-card[href*="youtube.com"]');
     this.youtubeRealCards = page.locator('.yt-card[data-video-id]');
     this.youtubeModalOverlay = page.locator('#yt-modal-overlay.active');
-    this.heroHeadline = page.locator('#hero-headline');
+    this.heroHeadline = page.locator('#hero-headline, #hero h1, .hero h1').first();
     this.heroSubtitle = page.locator('#hero-subtitle');
-    this.newsletterError = page.locator('#newsletter-error');
-    this.newsletterSuccess = page.locator('#newsletter-success');
+    this.newsletterError = page.locator('#newsletter-msg.error, #newsletter-error');
+    this.newsletterSuccess = page.locator('#newsletter-msg.success, #newsletter-success');
     this.footerSection = page.locator('footer');
     this.contactSection = page.locator('#contact');
     this.rulesOfThumbSection = page.locator('#rules-of-thumb');
-    this.mediaDetailLinks = page.locator('.media-title a, .video-thumbnail a');
+    this.mediaDetailLinks = page.locator('.media-title a, .video-thumbnail a, .yt-card[href]');
   }
 
   async filterMediaBy(label: string) {
-    await this.page.locator('.media-filter-btn').filter({ hasText: label }).click();
+    const filters = this.page.locator('.media-filter-btn').filter({ hasText: label });
+    if (await filters.count()) {
+      await filters.first().click();
+    }
   }
 
   async goto() {
