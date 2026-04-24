@@ -10,7 +10,11 @@
     "test:debug": "playwright test --debug",
     "report": "playwright show-report",
     "mcp:playwright": "playwright-mcp --headless --browser chrome --output-dir .playwright-mcp --save-trace --save-session",
-    "eval": "promptfoo eval",
+    "performance": "k6 run performance/site.js",
+    "performance:load": "k6 run -e PERFORMANCE_SCENARIO=load performance/site.js",
+    "performance:spike:slow": "k6 run -e PERFORMANCE_SCENARIO=spike-slow performance/site.js",
+    "performance:spike:instant": "k6 run -e PERFORMANCE_SCENARIO=spike-instant performance/site.js",
+    "eval": "promptfoo eval --no-cache",
     "eval:view": "promptfoo view"
   },
   "repository": {
