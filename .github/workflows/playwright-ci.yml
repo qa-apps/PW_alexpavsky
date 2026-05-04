@@ -12,7 +12,8 @@ on:
     # Run nightly at 10 PM EDT (02:00 UTC). No gate needed — GitHub cron
     # delays make exact-hour checks unreliable; just let it run whenever
     # the scheduler delivers it (usually within ±30 min of 10 PM EDT).
-    - cron: '0 2 * * *'
+    - cron: '0 2 * * *'    # nightly at 10 PM EDT
+    - cron: '0 10 * * 1'   # weekly on Monday 10:00 UTC — model registry refresh
 
 concurrency:
   group: playwright-ci-${{ github.ref }}-${{ github.event_name }}
@@ -30,7 +31,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Set up k6
@@ -49,6 +50,7 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
       - name: Run k6 performance profile
         run: npm run performance
@@ -127,7 +129,7 @@ jobs:
           PY
 
       - name: Send email notification
-        if: always()
+        if: always() && secrets.MAIL_TO != ''
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.MAIL_SERVER }}
