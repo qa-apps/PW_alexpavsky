@@ -129,22 +129,50 @@ jobs:
           PY
 
       - name: Send email notification
-        if: always() && secrets.MAIL_TO != ''
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.MAIL_SERVER }}
-          server_port: ${{ secrets.MAIL_PORT || 587 }}
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          to: ${{ secrets.MAIL_TO }}
-          from: Playwright CI <${{ secrets.MAIL_USERNAME }}>
-          subject: "[${{ job.status == 'success' && '✅ PASS' || '❌ FAIL' }}] Playwright CI — ${{ github.repository }} (${{ github.ref_name }})"
-          body: |
-            Playwright CI finished with status: ${{ job.status }}
+        if: always()
+        env:
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          JOB_STATUS: ${{ job.status }}
+          REPOSITORY: ${{ github.repository }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR_NAME: ${{ github.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          if [[ -z "$MAIL_TO" || -z "$MAIL_SERVER" ]]; then
+            echo "Email secrets not configured. Skipping email notification."
+            exit 0
+          fi
 
-            Repository : ${{ github.repository }}
-            Branch     : ${{ github.ref_name }}
-            Event      : ${{ github.event_name }}
-            Triggered by: ${{ github.actor }}
-            Run URL    : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        continue-on-error: true
+          python - <<'PY'
+          import smtplib, os
+          from email.mime.text import MIMEText
+
+          status   = os.environ["JOB_STATUS"]
+          icon     = "✅ PASS" if status == "success" else "❌ FAIL"
+          subject  = f"[{icon}] Playwright CI — {os.environ['REPOSITORY']} ({os.environ['BRANCH_NAME']})"
+          body     = (
+              f"Playwright CI finished with status: {status}\n\n"
+              f"Repository  : {os.environ['REPOSITORY']}\n"
+              f"Branch      : {os.environ['BRANCH_NAME']}\n"
+              f"Event       : {os.environ['EVENT_NAME']}\n"
+              f"Triggered by: {os.environ['ACTOR_NAME']}\n"
+              f"Run URL     : {os.environ['RUN_URL']}\n"
+          )
+
+          msg = MIMEText(body)
+          msg["Subject"] = subject
+          msg["From"]    = f"Playwright CI <{os.environ['MAIL_USERNAME']}>"
+          msg["To"]      = os.environ["MAIL_TO"]
+
+          port = int(os.environ.get("MAIL_PORT") or 587)
+          with smtplib.SMTP(os.environ["MAIL_SERVER"], port) as smtp:
+              smtp.starttls()
+              smtp.login(os.environ["MAIL_USERNAME"], os.environ["MAIL_PASSWORD"])
+              smtp.send_message(msg)
+          PY
