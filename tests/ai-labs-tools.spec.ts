@@ -1,16 +1,16 @@
 import { test, expect } from '../fixtures/base';
 
 test.describe('AI Labs Standard Tools', () => {
-  test('should open JSON formatter', async ({ labPage }) => {
+  test('should open Attack Generator', async ({ labPage }) => {
     await labPage.goto();
-    await labPage.openJsonFormatter();
-    await expect(labPage.jsonModal).toBeVisible();
+    await labPage.openAttackGenerator();
+    await expect(labPage.attackgenModal).toBeVisible();
   });
 
-  test('should open Diff Checker', async ({ labPage }) => {
+  test('should open Hallucination Analyzer', async ({ labPage }) => {
     await labPage.goto();
-    await labPage.openDiffChecker();
-    await expect(labPage.diffModal).toBeVisible();
+    await labPage.openHallucinationAnalyzer();
+    await expect(labPage.hallucinationModal).toBeVisible();
   });
 
   test('should open Chat UI from Lab', async ({ labPage }) => {

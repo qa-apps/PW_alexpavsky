@@ -3,71 +3,51 @@ import { Page, Locator } from '@playwright/test';
 export class LabPage {
   readonly page: Page;
   readonly openChatBtn: Locator;
-  readonly openJsonBtn: Locator;
-  readonly openDiffBtn: Locator;
-  readonly openAiVsHumanBtn: Locator;
+  readonly openAttackGenBtn: Locator;
+  readonly openHallucinationBtn: Locator;
+  readonly openPitestBtn: Locator;
   readonly openChallengeBtn: Locator;
-  readonly jsonModal: Locator;
-  readonly jsonInput: Locator;
-  readonly jsonFormatBtn: Locator;
-  readonly jsonOutput: Locator;
-  readonly diffModal: Locator;
-  readonly diffLeft: Locator;
-  readonly diffRight: Locator;
-  readonly diffCompareBtn: Locator;
-  readonly diffOutput: Locator;
-  readonly aiVsHumanModal: Locator;
-  readonly aiVsHumanChoices: Locator;
-  readonly aiVsHumanRound: Locator;
-  readonly aiVsHumanScore: Locator;
-  readonly aiVsHumanFeedback: Locator;
-  readonly aiVsHumanExplanation: Locator;
-  readonly aiVsHumanNextBtn: Locator;
-  readonly challengePanel: Locator;
+  readonly attackgenModal: Locator;
+  readonly hallucinationModal: Locator;
+  readonly pitestModal: Locator;
+  readonly pitestInput: Locator;
+  readonly pitestScanBtn: Locator;
+  readonly pitestOutput: Locator;
+  readonly challengeModal: Locator;
   readonly modalCloseBtns: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.openChatBtn = page.locator('#open-chat-btn');
-    this.openJsonBtn = page.locator('#open-json-btn');
-    this.openDiffBtn = page.locator('#open-diff-btn');
-    this.openAiVsHumanBtn = page.locator('#open-aivshu-btn');
+    this.openAttackGenBtn = page.locator('#open-attackgen-btn');
+    this.openHallucinationBtn = page.locator('#open-hallucination-btn');
+    this.openPitestBtn = page.locator('#open-pitest-btn');
     this.openChallengeBtn = page.locator('#open-challenge-btn');
-    this.jsonModal = page.locator('#json-modal');
-    this.jsonInput = page.locator('#json-input');
-    this.jsonFormatBtn = page.locator('#json-format-btn');
-    this.jsonOutput = page.locator('#json-output');
-    this.diffModal = page.locator('#diff-modal');
-    this.diffLeft = page.locator('#diff-left');
-    this.diffRight = page.locator('#diff-right');
-    this.diffCompareBtn = page.locator('#diff-compare-btn');
-    this.diffOutput = page.locator('#diff-output');
-    this.aiVsHumanModal = page.locator('#aivshu-modal');
-    this.aiVsHumanChoices = page.locator('#aivshu-buttons button');
-    this.aiVsHumanRound = page.locator('#aivshu-round');
-    this.aiVsHumanScore = page.locator('#aivshu-score');
-    this.aiVsHumanFeedback = page.locator('#aivshu-feedback-text');
-    this.aiVsHumanExplanation = page.locator('#aivshu-explanation');
-    this.aiVsHumanNextBtn = page.locator('#aivshu-next-btn');
-    this.challengePanel = page.locator('#challenge-playground');
+    this.attackgenModal = page.locator('#attackgen-modal');
+    this.hallucinationModal = page.locator('#hallucination-modal');
+    this.pitestModal = page.locator('#pitest-modal');
+    this.pitestInput = page.locator('#pitest-input');
+    this.pitestScanBtn = page.locator('#pitest-scan-btn');
+    this.pitestOutput = page.locator('#pitest-output');
+    this.challengeModal = page.locator('#challenge-modal');
     this.modalCloseBtns = page.locator('.modal-close, #chat-close');
   }
 
   async goto() {
     await this.page.goto('/#lab', { waitUntil: 'domcontentloaded' });
-    await this.openJsonBtn.waitFor({ state: 'visible' });
+    await this.openAttackGenBtn.waitFor({ state: 'visible' });
   }
 
-  async openJsonFormatter() {
-    await this.openJsonBtn.click();
+  async openAttackGenerator() {
+    await this.openAttackGenBtn.click();
   }
 
-  async openDiffChecker() {
-    await this.openDiffBtn.click();
+  async openHallucinationAnalyzer() {
+    await this.openHallucinationBtn.click();
   }
 
-  async openAiVsHuman() {
-    await this.openAiVsHumanBtn.click();
+  async openPromptInjectionScanner() {
+    await this.openPitestBtn.click();
   }
 
   async openChallenge() {
