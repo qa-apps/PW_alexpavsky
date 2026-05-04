@@ -1,12 +1,13 @@
 import { request } from '@playwright/test';
+import { resolveBestProvider, getModelRegistry, getProviderSummary } from './model-registry';
 
-interface JudgeVerdict {
+export interface JudgeVerdict {
   passed: boolean;
   score: number;
   reasoning: string;
 }
 
-interface JudgeConfig {
+export interface JudgeConfig {
   name: string;
   description: string;
   systemPrompt: string;
@@ -187,14 +188,14 @@ export async function evaluateResponse(
   botResponse: string,
   criteria: string,
 ): Promise<{ passed: boolean; reasoning: string }> {
-  const apiKey = process.env.GROQ_API_KEY || process.env.OPENROUTER_API_KEY || process.env.GEMINI_API_KEY;
+  const { baseUrl, model, headers, providerName } = await resolveBestProvider('M');
 
-  if (!apiKey) {
-    console.warn('No LLM API Key found. Returning mock success for evaluation.');
+  if (!baseUrl) {
+    console.warn('No LLM provider configured. Returning mock success for evaluation.');
     return { passed: true, reasoning: 'Mock passed (No API Key configured in Environment)' };
   }
 
-  const { baseUrl, model, headers } = resolveProvider(apiKey);
+  console.log(`[llm-judge] evaluateResponse via ${providerName}:${model}`);
   const prompt = `You are an expert AI test evaluator.
 Target Bot System Prompt: ${systemPrompt}
 User Query: ${userPrompt}
@@ -261,13 +262,14 @@ export async function runJudge(
     return { passed: false, score: 0, reasoning: `Unknown judge: ${judgeName}` };
   }
 
-  const apiKey = process.env.GROQ_API_KEY || process.env.OPENROUTER_API_KEY || process.env.GEMINI_API_KEY;
-  const { baseUrl, model, headers } = resolveProvider(apiKey);
+  const { baseUrl, model, headers, providerName } = await resolveBestProvider('M');
 
-  if (!apiKey) {
-    console.warn(`No LLM API key found. Returning mock pass for judge "${judge.name}".`);
+  if (!baseUrl) {
+    console.warn(`No LLM provider configured. Returning mock pass for judge "${judge.name}".`);
     return { passed: true, score: 10, reasoning: 'Mock pass — no API key configured.' };
   }
+
+  console.log(`[llm-judge] runJudge(${judge.name}) via ${providerName}:${model}`);
 
   const evaluationPrompt = buildPrompt(judge, botSystemPrompt, userPrompt, botResponse);
 
@@ -324,43 +326,9 @@ export async function runJudges(
   return Object.fromEntries(results);
 }
 
-function resolveProvider(apiKey: string | undefined) {
-  if (process.env.GROQ_API_KEY) {
-    return {
-      baseUrl: 'https://api.groq.com/openai/v1/chat/completions',
-      model: 'llama-3.3-70b-versatile',
-      headers: {
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    };
-  }
-  if (process.env.OPENROUTER_API_KEY) {
-    return {
-      baseUrl: 'https://openrouter.ai/api/v1/chat/completions',
-      model: 'meta-llama/llama-3.3-70b-instruct:free',
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    };
-  }
-  if (process.env.GEMINI_API_KEY) {
-    return {
-      baseUrl: `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`,
-      model: 'gemini-2.0-flash',
-      headers: {
-        Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    };
-  }
-  return {
-    baseUrl: '',
-    model: '',
-    headers: { Authorization: '', 'Content-Type': 'application/json' },
-  };
-}
+// resolveProvider replaced by model-registry.ts → resolveBestProvider()
+// Use getModelRegistry() to inspect the full list, getProviderSummary() for a debug overview.
+export { getModelRegistry, getProviderSummary };
 
 function buildPrompt(
   judge: JudgeConfig,

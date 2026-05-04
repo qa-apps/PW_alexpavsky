@@ -5,7 +5,7 @@ import { ChallengePage } from '../pages/ChallengePage';
 import { ChatbotPage } from '../pages/ChatbotPage';
 import { AuthPage } from '../pages/AuthPage';
 
-type AppFixtures = {
+export type AppFixtures = {
   homePage: HomePage;
   labPage: LabPage;
   challengePage: ChallengePage;

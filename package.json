@@ -8,14 +8,18 @@
     "test:headed": "playwright test --headed",
     "test:chromium": "playwright test --project=chromium",
     "test:debug": "playwright test --debug",
+    "test:smoke": "playwright test tests/smoke/ --workers=1",
+    "test:smoke:headed": "playwright test tests/smoke/ --workers=1 --headed",
     "report": "playwright show-report",
     "mcp:playwright": "playwright-mcp --headless --browser chrome --output-dir .playwright-mcp --save-trace --save-session",
     "performance": "k6 run performance/site.js",
     "performance:load": "k6 run -e PERFORMANCE_SCENARIO=load performance/site.js",
     "performance:spike:slow": "k6 run -e PERFORMANCE_SCENARIO=spike-slow performance/site.js",
     "performance:spike:instant": "k6 run -e PERFORMANCE_SCENARIO=spike-instant performance/site.js",
-    "eval": "promptfoo eval --no-cache",
-    "eval:view": "promptfoo view"
+    "eval": "promptfoo eval --no-cache --max-concurrency 1",
+    "eval:static": "promptfoo eval --no-cache --max-concurrency 1",
+    "eval:view": "promptfoo view",
+    "providers:refresh": "ts-node scripts/refresh-promptfoo-providers.ts"
   },
   "repository": {
     "type": "git",

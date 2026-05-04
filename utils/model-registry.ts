@@ -1,0 +1,377 @@
+/**
+ * model-registry.ts
+ *
+ * Dynamic LLM model registry for the judge framework.
+ * Mirrors the model-selection logic from alexpavsky/chat_server.py:
+ *   - Static fallback list (Groq + OpenRouter + HuggingFace)
+ *   - Live fetch from OpenRouter /api/v1/models (free models only)
+ *   - Live fetch from HuggingFace /api/models (top text-generation)
+ *   - Live fetch from Groq /openai/v1/models
+ *   - Models sorted by `created` timestamp → newest first
+ *   - Disk cache: refreshed every 7 days (matches the server's sync loop)
+ *   - Tier classification: S (small/fast) · M (medium) · H (heavy/best)
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
+import * as https from 'https';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type ModelTier = 'S' | 'M' | 'H';
+export type ProviderName = 'groq' | 'openrouter' | 'huggingface' | 'gemini';
+
+export interface ModelEntry {
+  id: string;
+  label: string;
+  provider: ProviderName;
+  tier: ModelTier;
+  free?: boolean;
+  vision?: boolean;
+  coding?: boolean;
+  reasoning?: boolean;
+  created?: number; // unix timestamp — used for "newest first" sort
+}
+
+export interface ResolvedProvider {
+  baseUrl: string;
+  model: string;
+  headers: Record<string, string>;
+  providerName: ProviderName;
+}
+
+// ─── Cache ────────────────────────────────────────────────────────────────────
+
+const CACHE_FILE = path.join(process.cwd(), '.model-registry-cache.json');
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days — same as chat_server.py
+
+interface RegistryCache {
+  fetchedAt: number;
+  models: ModelEntry[];
+}
+
+function readCache(): RegistryCache | null {
+  try {
+    if (!fs.existsSync(CACHE_FILE)) return null;
+    const data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf-8')) as RegistryCache;
+    if (Date.now() - data.fetchedAt > CACHE_TTL_MS) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(models: ModelEntry[]): void {
+  try {
+    const cache: RegistryCache = { fetchedAt: Date.now(), models };
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2), 'utf-8');
+  } catch (e) {
+    console.warn('[model-registry] Failed to write cache:', e);
+  }
+}
+
+// ─── Static fallback models (mirrors _STATIC_MODELS in chat_server.py) ────────
+
+const STATIC_MODELS: ModelEntry[] = [
+  // Groq
+  { id: 'llama-3.1-8b-instant',                          label: 'Llama 3.1 8B Instant',     provider: 'groq', tier: 'S' },
+  { id: 'llama-3.3-70b-versatile',                       label: 'Llama 3.3 70B Versatile',  provider: 'groq', tier: 'M' },
+  { id: 'meta-llama/llama-4-scout-17b-16e-instruct',     label: 'Llama 4 Scout 17B',        provider: 'groq', tier: 'M' },
+  { id: 'meta-llama/llama-4-maverick-17b-128e-instruct', label: 'Llama 4 Maverick 17B',     provider: 'groq', tier: 'M' },
+  { id: 'qwen/qwen3-32b',                                label: 'Qwen 3 32B',               provider: 'groq', tier: 'H', coding: true },
+  { id: 'moonshotai/kimi-k2-instruct',                   label: 'Kimi K2 Instruct',         provider: 'groq', tier: 'H' },
+  { id: 'openai/gpt-oss-120b',                           label: 'GPT-OSS 120B',             provider: 'groq', tier: 'H' },
+  // OpenRouter (free)
+  { id: 'google/gemma-3-27b-it:free',                    label: 'Gemma 3 27B',              provider: 'openrouter', free: true, tier: 'S' },
+  { id: 'mistralai/mistral-small-3.1-24b-instruct:free', label: 'Mistral Small 24B',        provider: 'openrouter', free: true, tier: 'S' },
+  { id: 'meta-llama/llama-3.3-70b-instruct:free',        label: 'Llama 3.3 70B',            provider: 'openrouter', free: true, tier: 'M' },
+  { id: 'deepseek/deepseek-r1-0528:free',                label: 'DeepSeek R1',              provider: 'openrouter', free: true, tier: 'H', reasoning: true },
+  { id: 'qwen/qwen3-coder:free',                         label: 'Qwen 3 Coder 480B',        provider: 'openrouter', free: true, tier: 'H', coding: true },
+  { id: 'nousresearch/hermes-3-llama-3.1-405b:free',     label: 'Hermes 3 405B',            provider: 'openrouter', free: true, tier: 'H' },
+];
+
+// ─── HTTP helper ──────────────────────────────────────────────────────────────
+
+function fetchJson<T>(url: string, headers: Record<string, string> = {}): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { headers: { 'User-Agent': 'PW_alexpavsky/1.0', ...headers } }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => (data += chunk));
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch (e) { reject(new Error(`JSON parse error from ${url}: ${e}`)); }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(15000, () => { req.destroy(); reject(new Error(`Timeout fetching ${url}`)); });
+  });
+}
+
+// ─── Tier classifier (mirrors chat_server.py logic) ──────────────────────────
+
+function classifyTier(id: string, contextLength = 0): ModelTier {
+  const lower = id.toLowerCase();
+  if (contextLength >= 64000 || /70b|72b|120b|405b|r1/.test(lower)) return 'H';
+  if (contextLength >= 16000 || /27b|32b|34b|14b/.test(lower)) return 'M';
+  return 'S';
+}
+
+function annotateModel(id: string, name: string): Pick<ModelEntry, 'vision' | 'coding' | 'reasoning'> {
+  const lower = id.toLowerCase();
+  return {
+    vision:    /vision/.test(lower) ? true : undefined,
+    coding:    /coder|code/.test(lower) ? true : undefined,
+    reasoning: /r1|reason|think/.test(lower) ? true : undefined,
+  };
+}
+
+// ─── Dynamic fetchers ─────────────────────────────────────────────────────────
+
+async function fetchOpenRouterModels(): Promise<ModelEntry[]> {
+  try {
+    const data = await fetchJson<{ data: any[] }>('https://openrouter.ai/api/v1/models');
+    const models: ModelEntry[] = [];
+    for (const m of data.data || []) {
+      const pricing = m.pricing || {};
+      if (pricing.prompt !== '0' || pricing.completion !== '0') continue;
+      const lower = (m.id as string).toLowerCase();
+      if (/test|experimental/.test(lower)) continue;
+      models.push({
+        id:      m.id,
+        label:   m.name || m.id,
+        provider: 'openrouter',
+        free:    true,
+        created: parseInt(m.created || '0', 10),
+        tier:    classifyTier(m.id, parseInt(m.context_length || '0', 10)),
+        ...annotateModel(m.id, m.name || ''),
+      });
+    }
+    console.log(`[model-registry] OpenRouter: fetched ${models.length} free models`);
+    return models;
+  } catch (e) {
+    console.warn('[model-registry] OpenRouter fetch failed:', e);
+    return [];
+  }
+}
+
+async function fetchHuggingFaceModels(): Promise<ModelEntry[]> {
+  try {
+    const data = await fetchJson<any[]>(
+      'https://huggingface.co/api/models?pipeline_tag=text-generation&sort=downloads&direction=-1&limit=30',
+    );
+    const models: ModelEntry[] = [];
+    for (const m of data) {
+      const id: string = m.id || '';
+      const lower = id.toLowerCase();
+      if (/test|experimental|gpt2|\\bopt\\b/.test(lower)) continue;
+      let created = 0;
+      if (m.createdAt) {
+        try { created = Math.floor(new Date(m.createdAt).getTime() / 1000); } catch {}
+      }
+      models.push({
+        id,
+        label:   `HF ${id.split('/').pop()}`,
+        provider: 'huggingface',
+        free:    true,
+        created,
+        tier:    classifyTier(id),
+        ...annotateModel(id, ''),
+      });
+    }
+    console.log(`[model-registry] HuggingFace: fetched ${models.length} models`);
+    return models;
+  } catch (e) {
+    console.warn('[model-registry] HuggingFace fetch failed:', e);
+    return [];
+  }
+}
+
+async function fetchGroqModels(): Promise<ModelEntry[]> {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) return [];
+  try {
+    const data = await fetchJson<{ data: any[] }>(
+      'https://api.groq.com/openai/v1/models',
+      { Authorization: `Bearer ${key}` },
+    );
+    const models: ModelEntry[] = [];
+    for (const m of data.data || []) {
+      const id: string = m.id || '';
+      if (/whisper|tts|guard|vision/.test(id.toLowerCase())) continue; // skip non-chat models
+      models.push({
+        id,
+        label:   m.id,
+        provider: 'groq',
+        free:    false,
+        created: parseInt(m.created || '0', 10),
+        tier:    classifyTier(id),
+        ...annotateModel(id, ''),
+      });
+    }
+    console.log(`[model-registry] Groq: fetched ${models.length} models`);
+    return models;
+  } catch (e) {
+    console.warn('[model-registry] Groq fetch failed:', e);
+    return [];
+  }
+}
+
+// ─── Main registry function ───────────────────────────────────────────────────
+
+let _inMemoryModels: ModelEntry[] | null = null;
+
+/**
+ * Returns the full model list, sorted by `created` descending (newest first).
+ * Uses disk cache (7-day TTL) then falls back to static list.
+ */
+export async function getModelRegistry(forceRefresh = false): Promise<ModelEntry[]> {
+  if (_inMemoryModels && !forceRefresh) return _inMemoryModels;
+
+  // Try disk cache first
+  if (!forceRefresh) {
+    const cached = readCache();
+    if (cached) {
+      _inMemoryModels = cached.models;
+      return _inMemoryModels;
+    }
+  }
+
+  // Fetch dynamically from all three providers in parallel
+  const [orModels, hfModels, groqModels] = await Promise.all([
+    fetchOpenRouterModels(),
+    fetchHuggingFaceModels(),
+    fetchGroqModels(),
+  ]);
+
+  // Merge: static first, then dynamic (dedup by id)
+  const merged = [...STATIC_MODELS];
+  const seenIds = new Set(merged.map((m) => m.id));
+  for (const m of [...orModels, ...hfModels, ...groqModels]) {
+    if (!seenIds.has(m.id)) {
+      merged.push(m);
+      seenIds.add(m.id);
+    }
+  }
+
+  // Sort newest first (mirrors _update_global_models in chat_server.py)
+  merged.sort((a, b) => (b.created ?? 0) - (a.created ?? 0));
+
+  writeCache(merged);
+  _inMemoryModels = merged;
+  console.log(`[model-registry] Registry ready: ${merged.length} total models`);
+  return merged;
+}
+
+// ─── Provider resolution ──────────────────────────────────────────────────────
+
+/**
+ * Returns the best available judge provider with the newest capable model.
+ * Priority: Groq → OpenRouter → HuggingFace → Gemini
+ * Within each provider, prefers Tier H → M → S, then newest by created.
+ */
+export async function resolveBestProvider(
+  preferTier: ModelTier = 'M',
+): Promise<ResolvedProvider> {
+  const models = await getModelRegistry();
+
+  const tierOrder: ModelTier[] = preferTier === 'H'
+    ? ['H', 'M', 'S']
+    : preferTier === 'M'
+      ? ['M', 'H', 'S']
+      : ['S', 'M', 'H'];
+
+  const pickBest = (provider: ProviderName): ModelEntry | undefined => {
+    const available = models.filter((m) => m.provider === provider);
+    for (const tier of tierOrder) {
+      const match = available.find((m) => m.tier === tier);
+      if (match) return match;
+    }
+    return available[0];
+  };
+
+  // Groq
+  if (process.env.GROQ_API_KEY) {
+    const m = pickBest('groq');
+    if (m) {
+      return {
+        baseUrl: 'https://api.groq.com/openai/v1/chat/completions',
+        model: m.id,
+        headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        providerName: 'groq',
+      };
+    }
+  }
+
+  // OpenRouter
+  if (process.env.OPENROUTER_API_KEY) {
+    const m = pickBest('openrouter');
+    if (m) {
+      return {
+        baseUrl: 'https://openrouter.ai/api/v1/chat/completions',
+        model: m.id,
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://github.com/PW_alexpavsky',
+          'X-Title': 'PW AlexPavsky CI',
+        },
+        providerName: 'openrouter',
+      };
+    }
+  }
+
+  // HuggingFace (via Inference API)
+  if (process.env.HF_TOKEN) {
+    const m = pickBest('huggingface');
+    if (m) {
+      return {
+        baseUrl: `https://api-inference.huggingface.co/models/${m.id}/v1/chat/completions`,
+        model: m.id,
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        providerName: 'huggingface',
+      };
+    }
+  }
+
+  // Gemini (OpenAI-compatible endpoint)
+  if (process.env.GEMINI_API_KEY) {
+    return {
+      baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+      model: 'gemini-2.0-flash',
+      headers: {
+        Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      providerName: 'gemini',
+    };
+  }
+
+  // No provider configured
+  return { baseUrl: '', model: '', headers: { Authorization: '', 'Content-Type': 'application/json' }, providerName: 'groq' };
+}
+
+/**
+ * Returns a summary of available providers and their best model.
+ * Useful for debugging / logging in CI.
+ */
+export async function getProviderSummary(): Promise<string> {
+  const models = await getModelRegistry();
+  const providers: ProviderName[] = ['groq', 'openrouter', 'huggingface', 'gemini'];
+  const lines: string[] = ['[model-registry] Provider summary:'];
+  for (const p of providers) {
+    const pModels = models.filter((m) => m.provider === p);
+    const best = pModels[0];
+    const hasKey = p === 'groq' ? !!process.env.GROQ_API_KEY
+      : p === 'openrouter' ? !!process.env.OPENROUTER_API_KEY
+      : p === 'huggingface' ? !!process.env.HF_TOKEN
+      : !!process.env.GEMINI_API_KEY;
+    lines.push(`  ${p.padEnd(12)} key=${hasKey ? 'OK' : 'MISSING'} models=${pModels.length} best=${best?.id ?? 'none'}`);
+  }
+  return lines.join('\n');
+}
