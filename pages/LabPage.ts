@@ -1,7 +1,7 @@
 import { Page, Locator } from '@playwright/test';
+import { CommonPage } from './CommonPage';
 
-export class LabPage {
-  readonly page: Page;
+export class LabPage extends CommonPage {
   readonly openChatBtn: Locator;
   readonly openAttackGenBtn: Locator;
   readonly openHallucinationBtn: Locator;
@@ -41,9 +41,15 @@ export class LabPage {
   readonly gptCards: Locator;
   readonly promptInjectionInput: Locator;
   readonly aiOrHumanTitle: Locator;
+  readonly attackgenIndustry: Locator;
+  readonly attackgenTarget: Locator;
+  readonly attackgenRunBtn: Locator;
+  readonly chatWindow: Locator;
+  readonly principleTitles: Locator;
+  readonly labsBackLink: Locator;
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.openChatBtn = page.locator('#open-chat-btn');
     this.openAttackGenBtn = page.locator('#open-attackgen-btn');
     this.openHallucinationBtn = page.locator('#open-hallucination-btn');
@@ -80,13 +86,19 @@ export class LabPage {
     this.jsonDiffTool = page.locator('#json-diff-tool');
     this.breakAISection = page.locator('#break-ai-section');
     this.closeBtn = page.locator('#modal-close, .modal-close').first();
-    this.gptCards = page.locator('#gpt-simulator .card, .gpt-card, [data-testid="gpt-card"]');
+    this.gptCards = page.locator('#lab .lab-card, #gpt-simulator .card, .gpt-card, [data-testid="gpt-card"]');
     this.promptInjectionInput = this.pitestInput;
     this.aiOrHumanTitle = page.locator('#ai-or-human-section h2, [data-testid="ai-or-human-title"]').first();
+    this.attackgenIndustry = page.locator('#attackgen-industry');
+    this.attackgenTarget = page.locator('#attackgen-target');
+    this.attackgenRunBtn = page.locator('#attackgen-run-btn');
+    this.chatWindow = page.locator('#chat-window');
+    this.principleTitles = page.locator('.principle-title');
+    this.labsBackLink = page.locator('a[href="/labs"]').first();
   }
 
   async goto() {
-    await this.page.goto('/#lab', { waitUntil: 'domcontentloaded' });
+    await super.goto('/#lab');
     await this.openAttackGenBtn.waitFor({ state: 'visible' });
   }
 
@@ -110,26 +122,50 @@ export class LabPage {
     await this.openChallengeBtn.click();
   }
 
+  async openChat() {
+    await this.openChatBtn.click();
+  }
 
   async gotoPrinciples() {
-    await this.page.goto('/labs/principles');
+    await super.goto('/labs/principles');
   }
 
   async gotoJSONDiff() {
-    await this.page.goto('/labs/json-diff');
+    await super.goto('/labs/json-diff');
   }
 
   async gotoBreakAI() {
-    await this.page.goto('/labs/break-ai');
+    await super.goto('/labs/break-ai');
   }
 
   async gotoAIOrHuman() {
-    await this.page.goto('/labs/ai-or-human');
+    await super.goto('/labs/ai-or-human');
   }
 
   async gotoAICapabilities() {
-    await this.page.goto('/labs/ai-capabilities');
+    await super.goto('/labs/ai-capabilities');
   }
+
+  async selectBreakAIScenario(index = 0) {
+    await this.breakAIScenarioCards.nth(index).click();
+  }
+
+  async submitBreakAI(text: string) {
+    await this.breakAIInput.fill(text);
+    await this.breakAISubmitBtn.click();
+  }
+
+  async analyzeAIOrHuman(text?: string) {
+    if (text !== undefined) {
+      await this.aiOrHumanInput.fill(text);
+    }
+    await this.aiOrHumanAnalyzeBtn.click();
+  }
+
+  async navigateBackToLabs() {
+    await this.labsBackLink.click();
+  }
+
   async closeTopModal() {
     const count = await this.modalCloseBtns.count();
     for (let i = 0; i < count; i += 1) {

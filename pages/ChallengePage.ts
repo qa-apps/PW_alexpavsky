@@ -1,7 +1,7 @@
 import { Page, Locator } from '@playwright/test';
+import { CommonPage } from './CommonPage';
 
-export class ChallengePage {
-  readonly page: Page;
+export class ChallengePage extends CommonPage {
   readonly openChallengeBtn: Locator;
   readonly categorySelector: Locator;
   readonly systemPromptDisplay: Locator;
@@ -15,9 +15,14 @@ export class ChallengePage {
   readonly analysisText: Locator;
   readonly mitigationText: Locator;
   readonly judgeModel: Locator;
+  readonly playgroundHeading: Locator;
+  readonly playgroundInput: Locator;
+  readonly playgroundSubmitBtn: Locator;
+  readonly playgroundResult: Locator;
+  readonly playgroundLabsLink: Locator;
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.openChallengeBtn = page.locator('#open-challenge-btn');
     this.categorySelector = page.locator('.challenge-cat-btn');
     this.systemPromptDisplay = page.locator('#challenge-system-prompt');
@@ -31,10 +36,15 @@ export class ChallengePage {
     this.analysisText = page.locator('#verdict-analysis');
     this.mitigationText = page.locator('#verdict-mitigation');
     this.judgeModel = page.locator('#verdict-judge-model');
+    this.playgroundHeading = page.locator('h1').first();
+    this.playgroundInput = page.locator('input, textarea').first();
+    this.playgroundSubmitBtn = page.locator('button[type="submit"]').first();
+    this.playgroundResult = page.locator('.result').first();
+    this.playgroundLabsLink = page.locator('a[href="/labs"]').first();
   }
 
   async open() {
-    await this.page.goto('/#lab', { waitUntil: 'domcontentloaded' });
+    await this.goto('/#lab');
     await this.openChallengeBtn.waitFor({ state: 'visible' });
     await this.openChallengeBtn.evaluate((element) => {
       (element as HTMLButtonElement).click();
@@ -54,5 +64,14 @@ export class ChallengePage {
 
   async getVerdictAnalysis(): Promise<string | null> {
     return await this.analysisText.textContent();
+  }
+
+  async gotoPlayground() {
+    await this.goto('/labs/challenge-playground');
+  }
+
+  async submitPlaygroundPrompt(prompt: string) {
+    await this.playgroundInput.fill(prompt);
+    await this.playgroundSubmitBtn.click();
   }
 }

@@ -4,8 +4,10 @@ import { LabPage } from '../pages/LabPage';
 import { ChallengePage } from '../pages/ChallengePage';
 import { ChatbotPage } from '../pages/ChatbotPage';
 import { AuthPage } from '../pages/AuthPage';
+import { CommonPage } from '../pages/CommonPage';
 
 export type AppFixtures = {
+  commonPage: CommonPage;
   homePage: HomePage;
   labPage: LabPage;
   challengePage: ChallengePage;
@@ -14,6 +16,10 @@ export type AppFixtures = {
 };
 
 export const test = base.extend<AppFixtures>({
+  commonPage: async ({ page }, use) => {
+    const commonPage = new CommonPage(page);
+    await use(commonPage);
+  },
   homePage: async ({ page }, use) => {
     const homePage = new HomePage(page);
     await use(homePage);

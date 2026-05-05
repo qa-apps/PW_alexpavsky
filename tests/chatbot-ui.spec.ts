@@ -28,9 +28,9 @@ test.describe('AI assistant widget UI', () => {
     await expect(chatbotPage.aiMessages.last()).toContainText('Playwright widget mock response.');
   });
 
-  test('should show chatbot toggle button', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('#chat-toggle').first()).toBeVisible();
+  test('should show chatbot toggle button', async ({ chatbotPage }) => {
+    await chatbotPage.goto();
+    await expect(chatbotPage.toggleBtn).toBeVisible();
   });
 
   test('should open chatbot panel', async ({ chatbotPage }) => {

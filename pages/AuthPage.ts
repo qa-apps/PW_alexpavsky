@@ -1,7 +1,7 @@
 import { Locator, Page } from '@playwright/test';
+import { CommonPage } from './CommonPage';
 
-export class AuthPage {
-  readonly page: Page;
+export class AuthPage extends CommonPage {
   readonly authBtn: Locator;
   readonly overlay: Locator;
   readonly closeBtn: Locator;
@@ -18,9 +18,15 @@ export class AuthPage {
   readonly registerPasswordConfirm: Locator;
   readonly registerSubmit: Locator;
   readonly loginError: Locator;
+  readonly userMenu: Locator;
+  readonly userDisplayName: Locator;
+  readonly dashboardLink: Locator;
+  readonly dashboardOverlay: Locator;
+  readonly dashboardUserMeta: Locator;
+  readonly logoutLink: Locator;
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.authBtn = page.locator('#auth-btn');
     this.overlay = page.locator('#auth-overlay');
     this.closeBtn = page.locator('#auth-modal-close');
@@ -37,13 +43,17 @@ export class AuthPage {
     this.registerPasswordConfirm = page.locator('#reg-password2');
     this.registerSubmit = page.locator('#register-form button[type="submit"], #register-form button:has-text("Create Account")').first();
     this.loginError = page.locator('#login-error');
+    this.userMenu = page.locator('#user-menu');
+    this.userDisplayName = page.locator('#user-display-name');
+    this.dashboardLink = page.locator('#user-dashboard-link');
+    this.dashboardOverlay = page.locator('#user-dashboard-overlay');
+    this.dashboardUserMeta = page.locator('#dashboard-user-meta');
+    this.logoutLink = page.locator('#user-logout-link');
   }
 
   async open() {
-    await this.page.goto('/', { waitUntil: 'domcontentloaded' });
-    await this.authBtn.evaluate((element) => {
-      (element as HTMLButtonElement).click();
-    });
+    await this.goto('/');
+    await this.authBtn.click();
   }
 
   async switchToRegister() {
@@ -52,5 +62,25 @@ export class AuthPage {
 
   async switchToLogin() {
     await this.loginTab.click();
+  }
+
+  async submitLogin(email: string, password: string) {
+    await this.loginEmail.fill(email);
+    await this.loginPassword.fill(password);
+    await this.loginSubmit.click();
+  }
+
+  async openUserMenu() {
+    await this.userMenu.click();
+  }
+
+  async openDashboard() {
+    await this.openUserMenu();
+    await this.dashboardLink.click();
+  }
+
+  async logout() {
+    await this.openUserMenu();
+    await this.logoutLink.click();
   }
 }
