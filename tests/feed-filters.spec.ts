@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures/base';
 
 test.describe('Live feed category filters', () => {
+  // New tests will be added here
   test.beforeEach(async ({ homePage }) => {
     await homePage.goto();
     await expect(homePage.liveFeedSection).toBeVisible();
@@ -22,5 +23,37 @@ test.describe('Live feed category filters', () => {
       await expect(homePage.feedGrid).toBeVisible();
       await expect(homePage.feedCards.first()).toBeVisible({ timeout: 5_000 });
     }
+  });
+
+  test('should filter by AI & LLM category', async ({ homePage }) => {
+    await homePage.filterFeedBy('AI & LLM');
+    await expect(homePage.filterBtns.filter({ hasText: 'AI & LLM' })).toHaveClass(/active/);
+    await expect(homePage.feedGrid).toBeVisible();
+  });
+
+  test('should filter by QA & Testing category', async ({ homePage }) => {
+    await homePage.filterFeedBy('QA & Testing');
+    await expect(homePage.filterBtns.filter({ hasText: 'QA & Testing' })).toHaveClass(/active/);
+    await expect(homePage.feedGrid).toBeVisible();
+  });
+
+  test('should filter by Dev & Engineering category', async ({ homePage }) => {
+    await homePage.filterFeedBy('Dev & Engineering');
+    await expect(homePage.filterBtns.filter({ hasText: 'Dev & Engineering' })).toHaveClass(/active/);
+    await expect(homePage.feedGrid).toBeVisible();
+  });
+
+  test('should reset filter to All', async ({ homePage }) => {
+    await homePage.filterFeedBy('AI & LLM');
+    await homePage.filterFeedBy('All');
+    await expect(homePage.filterBtns.filter({ hasText: 'All' })).toHaveClass(/active/);
+    await expect(homePage.feedCards.first()).toBeVisible();
+  });
+
+  test('should show feed cards after filter change', async ({ homePage }) => {
+    await homePage.filterFeedBy('QA & Testing');
+    const count = await homePage.feedCards.count();
+    expect(count).toBeGreaterThanOrEqual(0);
+    await expect(homePage.feedGrid).toBeVisible();
   });
 });

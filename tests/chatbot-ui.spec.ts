@@ -27,4 +27,34 @@ test.describe('AI assistant widget UI', () => {
     await expect(chatbotPage.userMessages.last()).toContainText('Give me a quick AI testing tip.');
     await expect(chatbotPage.aiMessages.last()).toContainText('Playwright widget mock response.');
   });
+
+  test('should show chatbot toggle button', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('#chat-toggle').first()).toBeVisible();
+  });
+
+  test('should open chatbot panel', async ({ chatbotPage }) => {
+    await chatbotPage.openAndConsent();
+    await expect(chatbotPage.chatInput).toBeVisible();
+  });
+
+  test('should send message in chatbot', async ({ chatbotPage }) => {
+    await chatbotPage.openAndConsent();
+    await chatbotPage.chatInput.fill('Hello');
+    await chatbotPage.chatInput.press('Enter');
+    await expect(chatbotPage.userMessages.last()).toContainText('Hello');
+  });
+
+  test('should show AI response', async ({ chatbotPage }) => {
+    await chatbotPage.openAndConsent();
+    await chatbotPage.chatInput.fill('What is Playwright?');
+    await chatbotPage.chatInput.press('Enter');
+    await expect(chatbotPage.aiMessages.last()).toBeVisible();
+  });
+
+  test('should close chatbot panel', async ({ chatbotPage }) => {
+    await chatbotPage.openAndConsent();
+    await chatbotPage.closeBtn.click();
+    await expect(chatbotPage.chatInput).not.toBeVisible();
+  });
 });

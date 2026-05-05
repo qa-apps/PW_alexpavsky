@@ -21,4 +21,31 @@ test.describe('Challenge playground UI states', () => {
       await expect(challengePage.systemPromptText).not.toBeEmpty();
     }
   });
+
+  test('should show playground UI', async ({ page }) => {
+    await page.goto('/labs/challenge-playground');
+    await expect(page.locator('h1')).toBeVisible();
+  });
+
+  test('should have input field', async ({ page }) => {
+    await page.goto('/labs/challenge-playground');
+    await expect(page.locator('input, textarea').first()).toBeVisible();
+  });
+
+  test('should have submit button', async ({ page }) => {
+    await page.goto('/labs/challenge-playground');
+    await expect(page.locator('button[type="submit"]').first()).toBeVisible();
+  });
+
+  test('should show results after submit', async ({ page }) => {
+    await page.goto('/labs/challenge-playground');
+    await page.locator('input, textarea').first().fill('test');
+    await page.locator('button[type="submit"]').first().click();
+    await expect(page.locator('.result').first()).toBeVisible();
+  });
+
+  test('should have navigation back to labs', async ({ page }) => {
+    await page.goto('/labs/challenge-playground');
+    await expect(page.locator('a[href="/labs"]').first()).toBeVisible();
+  });
 });

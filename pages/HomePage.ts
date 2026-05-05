@@ -27,6 +27,22 @@ export class HomePage {
   readonly newsletterSection: Locator;
   readonly newsletterForm: Locator;
   readonly newsletterEmail: Locator;
+  readonly mediaFeedSection: Locator;
+  readonly videoThumbnails: Locator;
+  readonly podcastCards: Locator;
+  readonly mediaTitles: Locator;
+  readonly youtubeCarousel: Locator;
+  readonly youtubeVideoCards: Locator;
+  readonly youtubeNextBtn: Locator;
+  readonly youtubePrevBtn: Locator;
+  readonly youtubeVideoLinks: Locator;
+  readonly heroHeadline: Locator;
+  readonly heroSubtitle: Locator;
+  readonly newsletterError: Locator;
+  readonly newsletterSuccess: Locator;
+  readonly footerSection: Locator;
+  readonly contactSection: Locator;
+  readonly rulesOfThumbSection: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -55,6 +71,26 @@ export class HomePage {
     this.newsletterSection = page.locator('#digest');
     this.newsletterForm = page.locator('#newsletter-form');
     this.newsletterEmail = page.locator('#newsletter-email');
+    this.mediaFeedSection = page.locator('#media-feed');
+    this.videoThumbnails = page.locator('.video-thumbnail');
+    this.podcastCards = page.locator('.podcast-card');
+    this.mediaTitles = page.locator('.media-title');
+    this.youtubeCarousel = page.locator('#youtube-carousel');
+    this.youtubeVideoCards = page.locator('.youtube-video-card');
+    this.youtubeNextBtn = page.locator('#carousel-next');
+    this.youtubePrevBtn = page.locator('#carousel-prev');
+    this.youtubeVideoLinks = page.locator('.youtube-video-card a');
+    this.heroHeadline = page.locator('#hero-headline');
+    this.heroSubtitle = page.locator('#hero-subtitle');
+    this.newsletterError = page.locator('#newsletter-error');
+    this.newsletterSuccess = page.locator('#newsletter-success');
+    this.footerSection = page.locator('footer');
+    this.contactSection = page.locator('#contact');
+    this.rulesOfThumbSection = page.locator('#rules-of-thumb');
+  }
+
+  async filterMediaBy(label: string) {
+    await this.page.locator('.media-filter-btn:has-text("' + label + '")').click();
   }
 
   async goto() {

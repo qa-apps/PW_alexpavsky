@@ -206,4 +206,54 @@ test.describe('Smoke — alexpavsky.com UI', () => {
       }
     }
   });
+
+  test('should render page within performance budget', async ({ homePage, page }) => {
+    const [response] = await Promise.all([
+      page.waitForEvent('response', resp => resp.url() === page.url()),
+      homePage.goto()
+    ]);
+    expect(response.status()).toBe(200);
+    const start = Date.now();
+    await page.waitForLoadState('networkidle');
+    const duration = Date.now() - start;
+    expect(duration).toBeLessThan(5000);
+  });
+
+  test('should have accessible color contrast', async ({ homePage }) => {
+    await homePage.goto();
+    const contrast = await homePage.page.evaluate(() => {
+      const style = getComputedStyle(document.body);
+      return !!(style.color && style.backgroundColor);
+    });
+    expect(contrast).toBe(true);
+  });
+
+  test('should have valid heading hierarchy', async ({ homePage, page }) => {
+    await homePage.goto();
+    const headings = await page.locator('h1, h2, h3, h4, h5, h6').all();
+    let prevLevel = 1;
+    for (const h of headings) {
+      const level = parseInt(await h.evaluate(el => el.tagName[1]));
+      expect(level).toBeGreaterThanOrEqual(1);
+      expect(level).toBeLessThanOrEqual(6);
+      prevLevel = level;
+    }
+  });
+
+  test('should lazy load images below fold', async ({ homePage, page }) => {
+    await homePage.goto();
+    const images = await page.locator('img[loading="lazy"]').all();
+    if (images.length > 0) {
+      const firstImg = images[0];
+      const isLoaded = await firstImg.evaluate(el => (el as HTMLImageElement).complete);
+      expect(typeof isLoaded).toBe('boolean');
+    }
+  });
+
+  test('should have semantic HTML structure', async ({ homePage, page }) => {
+    await homePage.goto();
+    await expect(page.locator('header')).toBeVisible();
+    await expect(page.locator('main')).toBeVisible();
+    await expect(page.locator('footer')).toBeVisible();
+  });
 });

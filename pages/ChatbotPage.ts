@@ -15,6 +15,7 @@ export class ChatbotPage {
   readonly aiMessages: Locator;
   readonly userMessages: Locator;
   readonly resetBtn: Locator;
+  readonly closeBtn: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -31,6 +32,7 @@ export class ChatbotPage {
     this.aiMessages = page.locator('.bot-message .message-content, .bot-message .message-text');
     this.userMessages = page.locator('.user-message');
     this.resetBtn = page.locator('#chat-reset');
+    this.closeBtn = page.locator('#chat-close, .chatbot-close-btn, [data-testid="chatbot-close-btn"]').first();
   }
 
   async openAndConsent() {

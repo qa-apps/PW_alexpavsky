@@ -21,4 +21,36 @@ test.describe('Trending AI and tech videos', () => {
     await homePage.page.keyboard.press('Escape');
     await expect(homePage.page.locator('#yt-modal-overlay.active')).not.toBeVisible();
   });
+
+  test('should show YouTube carousel', async ({ homePage }) => {
+    await homePage.goto();
+    await homePage.youtubeCarousel.scrollIntoViewIfNeeded();
+    await expect(homePage.youtubeCarousel).toBeVisible();
+  });
+
+  test('should have video cards', async ({ homePage }) => {
+    await homePage.goto();
+    const cards = await homePage.youtubeVideoCards.all();
+    expect(cards.length).toBeGreaterThan(0);
+  });
+
+  test('should navigate to next slide', async ({ homePage }) => {
+    await homePage.goto();
+    await homePage.youtubeCarousel.scrollIntoViewIfNeeded();
+    await homePage.youtubeNextBtn.click();
+    await expect(homePage.youtubeCarousel).toBeVisible();
+  });
+
+  test('should navigate to previous slide', async ({ homePage }) => {
+    await homePage.goto();
+    await homePage.youtubeCarousel.scrollIntoViewIfNeeded();
+    await homePage.youtubePrevBtn.click();
+    await expect(homePage.youtubeCarousel).toBeVisible();
+  });
+
+  test('should have video links', async ({ homePage }) => {
+    await homePage.goto();
+    const links = await homePage.youtubeVideoLinks.all();
+    expect(links.length).toBeGreaterThan(0);
+  });
 });

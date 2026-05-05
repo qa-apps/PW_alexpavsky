@@ -26,4 +26,31 @@ test.describe('General UI and Navigation', () => {
       expect(href?.length).toBeGreaterThan(0);
     }
   });
+
+  test('should have navigation menu', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('nav').first()).toBeVisible();
+  });
+
+  test('should have site logo', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.site-logo, [data-testid="site-logo"]').first()).toBeVisible();
+  });
+
+  test('should navigate to about page', async ({ page }) => {
+    await page.goto('/about');
+    await expect(page.locator('h1').first()).toBeVisible();
+  });
+
+  test('should have consistent branding', async ({ page }) => {
+    await page.goto('/');
+    const title = await page.title();
+    expect(title).toContain('Alex');
+  });
+
+  test('should have favicon', async ({ page }) => {
+    await page.goto('/');
+    const favicon = await page.locator('link[rel="icon"], link[rel="shortcut icon"]').first();
+    await expect(favicon).toHaveAttribute('href');
+  });
 });

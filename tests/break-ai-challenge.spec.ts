@@ -39,4 +39,37 @@ test.describe('Can You Break This AI Challenge', () => {
     await expect(challengePage.verdictTitle).toBeVisible();
     await expect(challengePage.analysisText).toContainText('Mock successfully analyzed attack');
   });
+
+  test('should show Break AI challenges', async ({ labPage }) => {
+    await labPage.gotoBreakAI();
+    const cards = await labPage.breakAIScenarioCards.all();
+    expect(cards.length).toBeGreaterThan(0);
+  });
+
+  test('should select a challenge scenario', async ({ labPage }) => {
+    await labPage.gotoBreakAI();
+    const cards = await labPage.breakAIScenarioCards.all();
+    if (cards.length > 0) await cards[0].click();
+    await expect(labPage.breakAIDescription).toBeVisible();
+  });
+
+  test('should submit challenge input', async ({ labPage }) => {
+    await labPage.gotoBreakAI();
+    await labPage.breakAIInput.fill('test input');
+    await labPage.breakAISubmitBtn.click();
+    await expect(labPage.breakAIResult).toBeVisible();
+  });
+
+  test('should show challenge result', async ({ labPage }) => {
+    await labPage.gotoBreakAI();
+    await labPage.breakAIInput.fill('challenge');
+    await labPage.breakAISubmitBtn.click();
+    await expect(labPage.breakAIResult).toContainText('Result');
+  });
+
+  test('should handle empty challenge input', async ({ labPage }) => {
+    await labPage.gotoBreakAI();
+    await labPage.breakAISubmitBtn.click();
+    await expect(labPage.breakAIInput).toBeVisible();
+  });
 });

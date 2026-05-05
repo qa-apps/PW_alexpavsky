@@ -22,4 +22,34 @@ test.describe('Principles and QA Tools Validation', () => {
     const deepEvalCard = homePage.toolCards.filter({ hasText: 'DeepEval' });
     await expect(deepEvalCard).toBeVisible();
   });
+
+  test('should show principles categories', async ({ labPage }) => {
+    await labPage.gotoPrinciples();
+    const cats = await labPage.principlesCategories.all();
+    expect(cats.length).toBeGreaterThan(0);
+  });
+
+  test('should switch principle category', async ({ labPage }) => {
+    await labPage.gotoPrinciples();
+    const cats = await labPage.principlesCategories.all();
+    if (cats.length > 1) await cats[1].click();
+    await expect(labPage.principlesContent).toBeVisible();
+  });
+
+  test('should show principle content', async ({ labPage }) => {
+    await labPage.gotoPrinciples();
+    await expect(labPage.principlesContent).toBeVisible();
+  });
+
+  test('should have principle titles', async ({ labPage }) => {
+    await labPage.gotoPrinciples();
+    const titles = await labPage.page.locator('.principle-title').all();
+    expect(titles.length).toBeGreaterThan(0);
+  });
+
+  test('should navigate back to labs', async ({ labPage }) => {
+    await labPage.gotoPrinciples();
+    await labPage.page.locator('a[href="/labs"]').first().click();
+    await expect(labPage.page).toHaveURL(/\/labs\//);
+  });
 });

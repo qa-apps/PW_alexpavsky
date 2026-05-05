@@ -11,6 +11,43 @@ test.describe('Authentication modal flows', () => {
     await expect(authPage.overlay).not.toHaveClass(/open/);
   });
 
+  test('should show login form fields', async ({ authPage }) => {
+    await authPage.open();
+    await expect(authPage.loginEmail).toBeVisible();
+    await expect(authPage.loginPassword).toBeVisible();
+    await expect(authPage.loginSubmit).toBeVisible();
+  });
+
+  test('should show register form fields after switch', async ({ authPage }) => {
+    await authPage.open();
+    await authPage.switchToRegister();
+    await expect(authPage.registerForm).toBeVisible();
+  });
+
+  test('should close modal on close button click', async ({ authPage }) => {
+    await authPage.open();
+    await expect(authPage.overlay).toBeVisible();
+    await authPage.closeBtn.click();
+    await expect(authPage.overlay).not.toHaveClass(/open/);
+  });
+
+  test('should not submit login with empty fields', async ({ authPage }) => {
+    await authPage.open();
+    await authPage.loginEmail.fill('');
+    await authPage.loginPassword.fill('');
+    await authPage.loginSubmit.click();
+    await expect(authPage.loginEmail).toBeVisible();
+  });
+
+  test('should maintain form state after switching tabs', async ({ authPage }) => {
+    await authPage.open();
+    await authPage.loginEmail.fill('test@example.com');
+    await authPage.switchToRegister();
+    await authPage.switchToLogin();
+    const value = await authPage.loginEmail.inputValue();
+    expect(value).toBe('test@example.com');
+  });
+
   test('should submit mocked login and update auth button state', async ({ authPage, page }) => {
     await page.route('**/api/auth/login', async (route) => {
       await route.fulfill({
