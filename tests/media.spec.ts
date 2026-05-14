@@ -5,7 +5,7 @@ test.describe('Media', () => {
     await homePage.goto();
   });
 
-  test.describe.skip('legacy media feed section', () => {
+  test.describe('media feed section', () => {
     test('should show media feed section', async ({ homePage }) => {
       await homePage.mediaFeedSection.scrollIntoViewIfNeeded();
       await expect(homePage.mediaFeedSection).toBeVisible();

@@ -9,9 +9,10 @@ test.describe('API Test Cases', () => {
     expect(response.headers()['content-type']).toContain('text/html');
   });
 
-  test('should return 200 for lab page', async ({ request }) => {
-    const response = await request.get(BASE_URL + '/lab');
+  test('should serve the lab section from the homepage route', async ({ request }) => {
+    const response = await request.get(BASE_URL + '/');
     expect(response.status()).toBe(200);
+    expect(await response.text()).toContain('id="lab"');
   });
 
   test('should return 405 for login without body', async ({ request }) => {

@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures/base';
 
-test.describe.skip('Inspect alexpavsky.com DOM', () => {
+test.describe('Inspect alexpavsky.com DOM', () => {
   test('capture homepage structure', async ({ page }) => {
     await page.goto('https://alexpavsky.com');
     await page.waitForLoadState('networkidle');
@@ -13,10 +13,10 @@ test.describe.skip('Inspect alexpavsky.com DOM', () => {
       return all.map(el => ({
         tag: el.tagName,
         text: (el.textContent || '').trim().slice(0, 100),
-        class: el.className?.slice(0, 100),
+        class: String(el.className || '').slice(0, 100),
         id: el.id,
         testid: el.getAttribute('data-testid'),
-        href: (el as HTMLAnchorElement).href,
+        href: String((el as HTMLAnchorElement).href || '').slice(0, 100),
       }));
     });
 
@@ -41,9 +41,9 @@ test.describe.skip('Inspect alexpavsky.com DOM', () => {
       return Array.from(document.querySelectorAll('a, button, input, [role="button"], header *, nav *')).map(el => ({
         tag: el.tagName,
         text: (el.textContent || '').trim().slice(0, 100),
-        class: el.className?.slice(0, 100),
+        class: String(el.className || '').slice(0, 100),
         id: el.id,
-        href: (el as HTMLAnchorElement).href?.slice(0, 100),
+        href: String((el as HTMLAnchorElement).href || '').slice(0, 100),
       })).filter(e => e.text.length > 0 || e.id || e.class.length > 0);
     });
 

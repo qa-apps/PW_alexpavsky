@@ -111,7 +111,19 @@ export class LabPage extends CommonPage {
   }
 
   async openPromptInjectionScanner() {
-    await this.openPitestBtn.click();
+    await this.openPitestBtn.waitFor({ state: 'visible' });
+    await this.openPitestBtn.scrollIntoViewIfNeeded();
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await this.openPitestBtn.click();
+      try {
+        await this.pitestModal.waitFor({ state: 'visible', timeout: 3_000 });
+        return;
+      } catch (error) {
+        if (attempt === 2) throw error;
+        await this.page.waitForTimeout(250);
+      }
+    }
   }
 
   async openPromptInjectionModal() {

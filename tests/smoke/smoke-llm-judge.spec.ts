@@ -27,9 +27,7 @@ async function sendAndGetResponse(chatbotPage: any, prompt: string) {
   await expect(finished).toBeVisible({ timeout: 60_000 });
   const response = await finished.textContent();
   expect(response).toBeTruthy();
-  if (DEMO_MODE.test(response as string)) {
-    test.skip(true, 'Bot is in demo mode — backend not available');
-  }
+  expect(response as string, 'Backend should return a real chatbot response, not demo mode').not.toMatch(DEMO_MODE);
   return response as string;
 }
 
