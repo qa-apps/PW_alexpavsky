@@ -13,6 +13,9 @@ on:
     # delays make exact-hour checks unreliable; just let it run whenever
     # the scheduler delivers it (usually within ±30 min of 10 PM EDT).
     - cron: '0 2 * * *'    # nightly at 10 PM EDT
+    - cron: '0 3 * * *'
+    - cron: '0 18 * * *'
+    - cron: '0 19 * * *'
     - cron: '0 10 * * 1'   # weekly on Monday 10:00 UTC — model registry refresh
 
 concurrency:
@@ -20,7 +23,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "${{ github.event.schedule }}" == "0 10 * * 1" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          ny_hour="$(TZ=America/New_York date +%H)"
+
+          if [[ "$ny_hour" == "14" || "$ny_hour" == "22" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
   playwright:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
