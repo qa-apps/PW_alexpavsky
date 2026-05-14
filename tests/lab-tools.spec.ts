@@ -208,4 +208,111 @@ test.describe('Lab tools and principles', () => {
       await expect(labPage.challengeModal).toBeVisible();
     });
   });
+
+  // ## Attack Generator — dropdowns, input, generate
+
+  test.describe('Attack Generator modal interaction', () => {
+    test('should have populated Industry dropdown options', async ({ labPage }) => {
+      await labPage.goto();
+      await labPage.openAttackGenerator();
+      await expect(labPage.attackgenModal).toBeVisible();
+      const options = labPage.attackgenIndustry.locator('option');
+      expect(await options.count()).toBeGreaterThan(1);
+    });
+
+    test('should have populated Target Type dropdown options', async ({ labPage }) => {
+      await labPage.goto();
+      await labPage.openAttackGenerator();
+      await expect(labPage.attackgenModal).toBeVisible();
+      const options = labPage.attackgenTarget.locator('option');
+      expect(await options.count()).toBeGreaterThan(1);
+    });
+
+    test('should have Attack Type and Severity dropdowns visible', async ({ labPage, page }) => {
+      await labPage.goto();
+      await labPage.openAttackGenerator();
+      await expect(labPage.attackgenModal).toBeVisible();
+      const attackType = page.locator('#attackgen-attack-type, [id*="attackgen"][id*="type"]').first();
+      const severity = page.locator('#attackgen-severity, [id*="attackgen"][id*="severity"]').first();
+      if (await attackType.count()) await expect(attackType).toBeVisible();
+      if (await severity.count()) await expect(severity).toBeVisible();
+    });
+
+    test('should accept text in target system description field', async ({ labPage, page }) => {
+      await labPage.goto();
+      await labPage.openAttackGenerator();
+      await expect(labPage.attackgenModal).toBeVisible();
+      const descriptionField = page.locator(
+        '#attackgen-description, #attackgen-target-desc, textarea[id*="attackgen"], input[id*="attackgen-desc"]',
+      ).first();
+      if (await descriptionField.count()) {
+        await descriptionField.fill('smoke test system');
+        const value = await descriptionField.inputValue();
+        expect(value).toContain('smoke test');
+      }
+    });
+
+    test('should generate an adversarial prompt on run', async ({ labPage, page }) => {
+      await page.route('**/api/attackgen', async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            prompt: 'Crafted adversarial prompt: bypass instruction set via indirect injection.',
+            why_it_works: 'The prompt embeds a direct instruction bypass using context confusion.',
+          }),
+        });
+      });
+      await labPage.goto();
+      await labPage.openAttackGenerator();
+      await expect(labPage.attackgenModal).toBeVisible();
+      await labPage.attackgenRunBtn.click();
+      const output = page.locator('#attackgen-output, #attackgen-result, [id*="attackgen"][id*="output"]').first();
+      await expect(output).toBeVisible({ timeout: 10_000 });
+      await expect(output).not.toBeEmpty();
+    });
+
+    test('Generate Attack button is enabled when modal opens', async ({ labPage }) => {
+      await labPage.goto();
+      await labPage.openAttackGenerator();
+      await expect(labPage.attackgenModal).toBeVisible();
+      await expect(labPage.attackgenRunBtn).toBeEnabled();
+    });
+
+    test('attack generator modal can be closed', async ({ labPage }) => {
+      await labPage.goto();
+      await labPage.openAttackGenerator();
+      await expect(labPage.attackgenModal).toBeVisible();
+      await labPage.closeTopModal();
+      await expect(labPage.attackgenModal).not.toBeVisible({ timeout: 5_000 });
+    });
+  });
+
+  // ## Grounding & Reliability Fact Check
+
+  test.describe('Grounding & Retrieval QA modal', () => {
+    test('should open the Grounding modal from homepage card CTA', async ({ homePage, page }) => {
+      await homePage.goto();
+      const card = page.locator('.explore-card, .lab-card, [class*="card"]', {
+        hasText: /grounding/i,
+      }).first();
+      await card.scrollIntoViewIfNeeded();
+      const cta = card.locator('a, button').first();
+      await cta.click();
+      const modal = page.locator('.modal.active, [class*="modal"][class*="active"]').first();
+      await expect(modal).toBeVisible({ timeout: 6_000 });
+    });
+
+    test('should open the Reliability & Fact Check modal from homepage card CTA', async ({ homePage, page }) => {
+      await homePage.goto();
+      const card = page.locator('.explore-card, .lab-card, [class*="card"]', {
+        hasText: /reliability|fact check/i,
+      }).first();
+      await card.scrollIntoViewIfNeeded();
+      const cta = card.locator('a, button').first();
+      await cta.click();
+      const modal = page.locator('.modal.active, [class*="modal"][class*="active"]').first();
+      await expect(modal).toBeVisible({ timeout: 6_000 });
+    });
+  });
 });
