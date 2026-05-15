@@ -19,7 +19,7 @@ import * as https from 'https';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ModelTier = 'S' | 'M' | 'H';
-export type ProviderName = 'groq' | 'openrouter' | 'huggingface' | 'gemini';
+export type ProviderName = 'groq' | 'openrouter' | 'huggingface' | 'gemini' | 'cerebras' | 'sambanova' | 'mistral';
 
 export interface ModelEntry {
   id: string;
@@ -88,6 +88,18 @@ const STATIC_MODELS: ModelEntry[] = [
   { id: 'deepseek/deepseek-r1-0528:free',                label: 'DeepSeek R1',              provider: 'openrouter', free: true, tier: 'H', reasoning: true },
   { id: 'qwen/qwen3-coder:free',                         label: 'Qwen 3 Coder 480B',        provider: 'openrouter', free: true, tier: 'H', coding: true },
   { id: 'nousresearch/hermes-3-llama-3.1-405b:free',     label: 'Hermes 3 405B',            provider: 'openrouter', free: true, tier: 'H' },
+  // Cerebras (free, ultra-fast LPU inference)
+  { id: 'llama-3.3-70b',                                 label: 'Llama 3.3 70B (Cerebras)', provider: 'cerebras',   free: true, tier: 'M' },
+  { id: 'llama-4-scout-17b-16e-instruct',                label: 'Llama 4 Scout (Cerebras)', provider: 'cerebras',   free: true, tier: 'M' },
+  { id: 'qwen-3-32b',                                    label: 'Qwen 3 32B (Cerebras)',    provider: 'cerebras',   free: true, tier: 'M', coding: true },
+  // SambaNova (free, RDU inference)
+  { id: 'Meta-Llama-3.3-70B-Instruct',                   label: 'Llama 3.3 70B (SN)',       provider: 'sambanova',  free: true, tier: 'M' },
+  { id: 'DeepSeek-R1',                                   label: 'DeepSeek R1 (SN)',         provider: 'sambanova',  free: true, tier: 'H', reasoning: true },
+  { id: 'Qwen2.5-72B-Instruct',                          label: 'Qwen 2.5 72B (SN)',        provider: 'sambanova',  free: true, tier: 'M' },
+  // Mistral (free tier)
+  { id: 'mistral-small-latest',                          label: 'Mistral Small Latest',     provider: 'mistral',    free: true, tier: 'S' },
+  { id: 'open-mistral-nemo',                             label: 'Mistral Nemo',             provider: 'mistral',    free: true, tier: 'S' },
+  { id: 'mistral-medium-latest',                         label: 'Mistral Medium Latest',    provider: 'mistral',    free: true, tier: 'M' },
 ];
 
 // ─── HTTP helper ──────────────────────────────────────────────────────────────
@@ -216,7 +228,97 @@ async function fetchGroqModels(): Promise<ModelEntry[]> {
   }
 }
 
-// ─── Main registry function ───────────────────────────────────────────────────
+async function fetchCerebrasMoels(): Promise<ModelEntry[]> {
+  const key = process.env.CEREBRAS_API_KEY;
+  if (!key) return [];
+  try {
+    const data = await fetchJson<{ models: any[] }>(
+      'https://api.cerebras.ai/v1/models',
+      { Authorization: `Bearer ${key}` },
+    );
+    const models: ModelEntry[] = [];
+    for (const m of data.models || []) {
+      const id: string = m.id || '';
+      if (!id || /whisper|embed/.test(id.toLowerCase())) continue;
+      models.push({
+        id,
+        label:   `${id} (Cerebras)`,
+        provider: 'cerebras',
+        free:    true,
+        created: parseInt(m.created || '0', 10),
+        tier:    classifyTier(id),
+        ...annotateModel(id, ''),
+      });
+    }
+    console.log(`[model-registry] Cerebras: fetched ${models.length} models`);
+    return models;
+  } catch (e) {
+    console.warn('[model-registry] Cerebras fetch failed:', e);
+    return [];
+  }
+}
+
+async function fetchSambanovaModels(): Promise<ModelEntry[]> {
+  const key = process.env.SAMBANOVA_API_KEY;
+  if (!key) return [];
+  try {
+    const data = await fetchJson<{ data: any[] }>(
+      'https://api.sambanova.ai/v1/models',
+      { Authorization: `Bearer ${key}` },
+    );
+    const models: ModelEntry[] = [];
+    for (const m of (data.data || [])) {
+      const id: string = m.id || '';
+      if (!id || /embed|vision/.test(id.toLowerCase())) continue;
+      models.push({
+        id,
+        label:   `${id} (SambaNova)`,
+        provider: 'sambanova',
+        free:    true,
+        created: parseInt(m.created || '0', 10),
+        tier:    classifyTier(id),
+        ...annotateModel(id, ''),
+      });
+    }
+    console.log(`[model-registry] SambaNova: fetched ${models.length} models`);
+    return models;
+  } catch (e) {
+    console.warn('[model-registry] SambaNova fetch failed:', e);
+    return [];
+  }
+}
+
+async function fetchMistralModels(): Promise<ModelEntry[]> {
+  const key = process.env.MISTRAL_API_KEY;
+  if (!key) return [];
+  try {
+    const data = await fetchJson<{ data: any[] }>(
+      'https://api.mistral.ai/v1/models',
+      { Authorization: `Bearer ${key}` },
+    );
+    const models: ModelEntry[] = [];
+    for (const m of (data.data || [])) {
+      const id: string = m.id || '';
+      if (!id || /embed|moderation/.test(id.toLowerCase())) continue;
+      models.push({
+        id,
+        label:   m.name || id,
+        provider: 'mistral',
+        free:    true,
+        created: typeof m.created === 'number' ? m.created : 0,
+        tier:    classifyTier(id),
+        ...annotateModel(id, ''),
+      });
+    }
+    console.log(`[model-registry] Mistral: fetched ${models.length} models`);
+    return models;
+  } catch (e) {
+    console.warn('[model-registry] Mistral fetch failed:', e);
+    return [];
+  }
+}
+
+// ## Main registry function
 
 let _inMemoryModels: ModelEntry[] | null = null;
 
@@ -236,17 +338,20 @@ export async function getModelRegistry(forceRefresh = false): Promise<ModelEntry
     }
   }
 
-  // Fetch dynamically from all three providers in parallel
-  const [orModels, hfModels, groqModels] = await Promise.all([
+  // Fetch dynamically from all providers in parallel
+  const [orModels, hfModels, groqModels, cerebrasModels, snModels, mistralModels] = await Promise.all([
     fetchOpenRouterModels(),
     fetchHuggingFaceModels(),
     fetchGroqModels(),
+    fetchCerebrasMoels(),
+    fetchSambanovaModels(),
+    fetchMistralModels(),
   ]);
 
   // Merge: static first, then dynamic (dedup by id)
   const merged = [...STATIC_MODELS];
   const seenIds = new Set(merged.map((m) => m.id));
-  for (const m of [...orModels, ...hfModels, ...groqModels]) {
+  for (const m of [...orModels, ...hfModels, ...groqModels, ...cerebrasModels, ...snModels, ...mistralModels]) {
     if (!seenIds.has(m.id)) {
       merged.push(m);
       seenIds.add(m.id);
@@ -289,7 +394,7 @@ export async function resolveBestProvider(
     return available[0];
   };
 
-  // Groq
+  // Groq (fastest, first priority)
   if (process.env.GROQ_API_KEY) {
     const m = pickBest('groq');
     if (m) {
@@ -301,6 +406,54 @@ export async function resolveBestProvider(
           'Content-Type': 'application/json',
         },
         providerName: 'groq',
+      };
+    }
+  }
+
+  // Cerebras (ultra-fast LPU, free)
+  if (process.env.CEREBRAS_API_KEY) {
+    const m = pickBest('cerebras');
+    if (m) {
+      return {
+        baseUrl: 'https://api.cerebras.ai/v1/chat/completions',
+        model: m.id,
+        headers: {
+          Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        providerName: 'cerebras',
+      };
+    }
+  }
+
+  // SambaNova (RDU inference, free)
+  if (process.env.SAMBANOVA_API_KEY) {
+    const m = pickBest('sambanova');
+    if (m) {
+      return {
+        baseUrl: 'https://api.sambanova.ai/v1/chat/completions',
+        model: m.id,
+        headers: {
+          Authorization: `Bearer ${process.env.SAMBANOVA_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        providerName: 'sambanova',
+      };
+    }
+  }
+
+  // Mistral (free tier)
+  if (process.env.MISTRAL_API_KEY) {
+    const m = pickBest('mistral');
+    if (m) {
+      return {
+        baseUrl: 'https://api.mistral.ai/v1/chat/completions',
+        model: m.id,
+        headers: {
+          Authorization: `Bearer ${process.env.MISTRAL_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        providerName: 'mistral',
       };
     }
   }
@@ -362,14 +515,17 @@ export async function resolveBestProvider(
  */
 export async function getProviderSummary(): Promise<string> {
   const models = await getModelRegistry();
-  const providers: ProviderName[] = ['groq', 'openrouter', 'huggingface', 'gemini'];
+  const providers: ProviderName[] = ['groq', 'cerebras', 'sambanova', 'mistral', 'openrouter', 'huggingface', 'gemini'];
   const lines: string[] = ['[model-registry] Provider summary:'];
   for (const p of providers) {
     const pModels = models.filter((m) => m.provider === p);
     const best = pModels[0];
-    const hasKey = p === 'groq' ? !!process.env.GROQ_API_KEY
-      : p === 'openrouter' ? !!process.env.OPENROUTER_API_KEY
+    const hasKey = p === 'groq'        ? !!process.env.GROQ_API_KEY
+      : p === 'openrouter'  ? !!process.env.OPENROUTER_API_KEY
       : p === 'huggingface' ? !!process.env.HF_TOKEN
+      : p === 'cerebras'    ? !!process.env.CEREBRAS_API_KEY
+      : p === 'sambanova'   ? !!process.env.SAMBANOVA_API_KEY
+      : p === 'mistral'     ? !!process.env.MISTRAL_API_KEY
       : !!process.env.GEMINI_API_KEY;
     lines.push(`  ${p.padEnd(12)} key=${hasKey ? 'OK' : 'MISSING'} models=${pModels.length} best=${best?.id ?? 'none'}`);
   }

@@ -23,7 +23,8 @@
     "eval": "promptfoo eval --no-cache --max-concurrency 1",
     "eval:static": "promptfoo eval --no-cache --max-concurrency 1",
     "eval:view": "promptfoo view",
-    "providers:refresh": "ts-node scripts/refresh-promptfoo-providers.ts"
+    "providers:refresh": "ts-node scripts/refresh-promptfoo-providers.ts",
+    "providers:ping": "ts-node scripts/ping-providers.ts"
   },
   "repository": {
     "type": "git",
