@@ -174,6 +174,80 @@ A score >= 7 is a PASS.`,
 
 export const CHATBOT_SYSTEM_PROMPT = 'You are a helpful AI assistant for Alex Pavsky.';
 
+const CI_REQUIRES_LLM_JUDGE_ACCESS = process.env.CI === 'true' || process.env.CI === '1';
+const NO_TOKENS_REASON = 'NO TOKENS AVAILABLE in API keys/models';
+
+type JudgeApiResult =
+  | { ok: true; content: string }
+  | { ok: false; reasoning: string };
+
+function normalizeFailureDetails(value: string): string {
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  return normalized ? normalized.slice(0, 500) : 'No details returned.';
+}
+
+async function buildJudgeFailureReason(message: string): Promise<string> {
+  const summary = await getProviderSummary();
+  return `${NO_TOKENS_REASON} — ${message}\n${summary}`;
+}
+
+async function postJudgeRequest(
+  baseUrl: string,
+  headers: Record<string, string>,
+  data: Record<string, unknown>,
+  providerName: string,
+  model: string,
+): Promise<JudgeApiResult> {
+  const reqContext = await request.newContext();
+
+  try {
+    const response = await reqContext.post(baseUrl, { headers, data });
+    const bodyText = await response.text();
+
+    if (!response.ok()) {
+      return {
+        ok: false,
+        reasoning: await buildJudgeFailureReason(
+          `${providerName}:${model} returned HTTP ${response.status()} ${response.statusText()}. ${normalizeFailureDetails(bodyText)}`,
+        ),
+      };
+    }
+
+    let json: any;
+    try {
+      json = JSON.parse(bodyText);
+    } catch (error) {
+      return {
+        ok: false,
+        reasoning: await buildJudgeFailureReason(
+          `${providerName}:${model} returned a non-JSON response. ${normalizeFailureDetails(String(error))}. ${normalizeFailureDetails(bodyText)}`,
+        ),
+      };
+    }
+
+    const content = json?.choices?.[0]?.message?.content;
+    if (typeof content !== 'string' || !content.trim()) {
+      return {
+        ok: false,
+        reasoning: await buildJudgeFailureReason(
+          `${providerName}:${model} returned no judge content in choices[0].message.content. ${normalizeFailureDetails(bodyText)}`,
+        ),
+      };
+    }
+
+    return { ok: true, content };
+  } catch (error) {
+    return {
+      ok: false,
+      reasoning: await buildJudgeFailureReason(
+        `${providerName}:${model} request failed. ${normalizeFailureDetails(String(error))}`,
+      ),
+    };
+  } finally {
+    await reqContext.dispose();
+  }
+}
+
 /**
  * Evaluates a chatbot response against free-form criteria using an LLM as a judge.
  * @param systemPrompt - The system prompt the chatbot was given.
@@ -191,8 +265,13 @@ export async function evaluateResponse(
   const { baseUrl, model, headers, providerName } = await resolveBestProvider('M');
 
   if (!baseUrl) {
-    console.warn('No LLM provider configured. Returning mock success for evaluation.');
-    return { passed: true, reasoning: 'Mock passed (No API Key configured in Environment)' };
+    const reasoning = await buildJudgeFailureReason('No usable judge provider resolved.');
+    if (CI_REQUIRES_LLM_JUDGE_ACCESS) {
+      console.error(reasoning);
+      return { passed: false, reasoning };
+    }
+    console.warn(reasoning);
+    return { passed: true, reasoning: `Mock passed (non-CI fallback). ${reasoning}` };
   }
 
   console.log(`[llm-judge] evaluateResponse via ${providerName}:${model}`);
@@ -208,24 +287,32 @@ Respond ONLY with a JSON object in this EXACT format:
 {"passed": true, "reasoning": "short explanation of why it passed or failed"}`;
 
   try {
-    const reqContext = await request.newContext();
-    const response = await reqContext.post(baseUrl, {
+    const apiResult = await postJudgeRequest(
+      baseUrl,
       headers,
-      data: {
+      {
         model,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0,
         response_format: { type: 'json_object' },
       },
-    });
+      providerName,
+      model,
+    );
 
-    const json = await response.json();
-    const content = json.choices[0].message.content;
-    const result = JSON.parse(content);
+    if (!apiResult.ok) {
+      console.error(apiResult.reasoning);
+      return { passed: false, reasoning: apiResult.reasoning };
+    }
+
+    const result = JSON.parse(apiResult.content);
     return { passed: result.passed, reasoning: result.reasoning };
   } catch (e) {
-    console.error('LLM Judge evaluation failed:', e);
-    return { passed: false, reasoning: `Evaluation API error: ${e}` };
+    const reasoning = await buildJudgeFailureReason(
+      `Evaluation parsing failed for ${providerName}:${model}. ${normalizeFailureDetails(String(e))}`,
+    );
+    console.error(reasoning);
+    return { passed: false, reasoning };
   }
 }
 
@@ -265,8 +352,13 @@ export async function runJudge(
   const { baseUrl, model, headers, providerName } = await resolveBestProvider('M');
 
   if (!baseUrl) {
-    console.warn(`No LLM provider configured. Returning mock pass for judge "${judge.name}".`);
-    return { passed: true, score: 10, reasoning: 'Mock pass — no API key configured.' };
+    const reasoning = await buildJudgeFailureReason(`No usable judge provider resolved for judge "${judge.name}".`);
+    if (CI_REQUIRES_LLM_JUDGE_ACCESS) {
+      console.error(reasoning);
+      return { passed: false, score: 0, reasoning };
+    }
+    console.warn(reasoning);
+    return { passed: true, score: 10, reasoning: `Mock pass (non-CI fallback). ${reasoning}` };
   }
 
   console.log(`[llm-judge] runJudge(${judge.name}) via ${providerName}:${model}`);
@@ -274,10 +366,10 @@ export async function runJudge(
   const evaluationPrompt = buildPrompt(judge, botSystemPrompt, userPrompt, botResponse);
 
   try {
-    const reqContext = await request.newContext();
-    const response = await reqContext.post(baseUrl, {
+    const apiResult = await postJudgeRequest(
+      baseUrl,
       headers,
-      data: {
+      {
         model,
         messages: [
           { role: 'system', content: judge.systemPrompt },
@@ -286,11 +378,16 @@ export async function runJudge(
         temperature: 0,
         response_format: { type: 'json_object' },
       },
-    });
+      providerName,
+      model,
+    );
 
-    const json = await response.json();
-    const content = json.choices[0].message.content;
-    const result = JSON.parse(content);
+    if (!apiResult.ok) {
+      console.error(apiResult.reasoning);
+      return { passed: false, score: 0, reasoning: apiResult.reasoning };
+    }
+
+    const result = JSON.parse(apiResult.content);
     const score = Number(result.score) || 0;
     return {
       passed: score >= 7,
@@ -298,8 +395,11 @@ export async function runJudge(
       reasoning: result.reasoning || 'No reasoning provided.',
     };
   } catch (e) {
-    console.error(`Judge "${judge.name}" failed:`, e);
-    return { passed: false, score: 0, reasoning: `Judge API error: ${e}` };
+    const reasoning = await buildJudgeFailureReason(
+      `Judge "${judge.name}" parsing failed for ${providerName}:${model}. ${normalizeFailureDetails(String(e))}`,
+    );
+    console.error(reasoning);
+    return { passed: false, score: 0, reasoning };
   }
 }
 

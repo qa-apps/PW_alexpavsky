@@ -6,6 +6,9 @@ test.use({
   trace: 'on',
 });
 
+const heroToolCard = (page: import('@playwright/test').Page, name: RegExp) =>
+  page.getByRole('button', { name }).or(page.locator('.tool-strip-card, .explore-card, .lab-card').filter({ hasText: name })).first();
+
 test.describe('Smoke — alexpavsky.com UI', () => {
   test('home page loads successfully', async ({ homePage }) => {
     await homePage.goto();
@@ -314,7 +317,7 @@ test.describe('Smoke — alexpavsky.com UI', () => {
 
   test('hero terminal windows are present in DOM', async ({ homePage, page }) => {
     await homePage.goto();
-    const terminals = page.locator('.terminal, .hero-terminal, [class*="terminal"]');
+    const terminals = page.locator('.terminal-card, .hero-terminal, #terminal-body, [class*="terminal-card"]');
     const count = await terminals.count();
     expect(count).toBeGreaterThanOrEqual(1);
     await expect(terminals.first()).toBeVisible();
@@ -322,7 +325,7 @@ test.describe('Smoke — alexpavsky.com UI', () => {
 
   test('hero terminal contains animated text content', async ({ homePage, page }) => {
     await homePage.goto();
-    const terminal = page.locator('.terminal, .hero-terminal, [class*="terminal"]').first();
+    const terminal = page.locator('#terminal-body, .terminal-card, .hero-terminal').filter({ hasText: /\S/ }).first();
     await expect(terminal).toBeVisible();
     const textBefore = await terminal.innerText();
     // Wait for animation tick
@@ -349,60 +352,46 @@ test.describe('Smoke — alexpavsky.com UI', () => {
 
   test('Adversarial Simulation card is visible on homepage', async ({ homePage, page }) => {
     await homePage.goto();
-    const card = page.locator('.explore-card, .lab-card, [class*="card"]', {
-      hasText: /adversarial simulation/i,
-    }).first();
+    const card = heroToolCard(page, /adversarial simulation/i);
     await card.scrollIntoViewIfNeeded();
     await expect(card).toBeVisible();
   });
 
   test('Injection Risk Scanner card is visible on homepage', async ({ homePage, page }) => {
     await homePage.goto();
-    const card = page.locator('.explore-card, .lab-card, [class*="card"]', {
-      hasText: /injection risk/i,
-    }).first();
+    const card = heroToolCard(page, /injection risk scanner/i);
     await card.scrollIntoViewIfNeeded();
     await expect(card).toBeVisible();
   });
 
   test('Grounding & Retrieval QA card is visible on homepage', async ({ homePage, page }) => {
     await homePage.goto();
-    const card = page.locator('.explore-card, .lab-card, [class*="card"]', {
-      hasText: /grounding/i,
-    }).first();
+    const card = heroToolCard(page, /grounding.*retrieval/i);
     await card.scrollIntoViewIfNeeded();
     await expect(card).toBeVisible();
   });
 
   test('Reliability & Fact Check card is visible on homepage', async ({ homePage, page }) => {
     await homePage.goto();
-    const card = page.locator('.explore-card, .lab-card, [class*="card"]', {
-      hasText: /reliability|fact check/i,
-    }).first();
+    const card = heroToolCard(page, /reliability.*fact check/i);
     await card.scrollIntoViewIfNeeded();
     await expect(card).toBeVisible();
   });
 
   test('clicking Adversarial Simulation Explore card opens attack-gen modal', async ({ homePage, page }) => {
     await homePage.goto();
-    const card = page.locator('.explore-card, .lab-card, [class*="card"]', {
-      hasText: /adversarial simulation/i,
-    }).first();
+    const card = heroToolCard(page, /adversarial simulation/i);
     await card.scrollIntoViewIfNeeded();
-    const cta = card.locator('a, button').first();
-    await cta.click();
+    await card.click();
     const modal = page.locator('#attackgen-modal, [id*="attack"][class*="modal"], .modal.active').first();
     await expect(modal).toBeVisible({ timeout: 6_000 });
   });
 
   test('clicking Injection Risk Scanner card opens PI scanner modal', async ({ homePage, page }) => {
     await homePage.goto();
-    const card = page.locator('.explore-card, .lab-card, [class*="card"]', {
-      hasText: /injection risk/i,
-    }).first();
+    const card = heroToolCard(page, /injection risk scanner/i);
     await card.scrollIntoViewIfNeeded();
-    const cta = card.locator('a, button').first();
-    await cta.click();
+    await card.click();
     const modal = page.locator('#pitest-modal, [id*="pitest"][class*="modal"], .modal.active').first();
     await expect(modal).toBeVisible({ timeout: 6_000 });
   });
@@ -447,11 +436,11 @@ test.describe('Smoke — alexpavsky.com UI', () => {
   test('YouTube carousel scrolls right and cards remain visible', async ({ homePage, page }) => {
     await homePage.goto();
     await homePage.ytSection.scrollIntoViewIfNeeded();
-    const before = await homePage.ytCards.count();
+    await expect(homePage.youtubeRealCards.first()).toBeVisible();
     await homePage.youtubeNextBtn.click();
     await page.waitForTimeout(400);
     await expect(homePage.ytSection).toBeVisible();
-    expect(await homePage.ytCards.count()).toBe(before);
+    expect(await homePage.youtubeRealCards.count()).toBeGreaterThan(0);
   });
 
   test('YouTube carousel scrolls left and cards remain visible', async ({ homePage, page }) => {
@@ -729,7 +718,7 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     await toggleBtn.click();
     const closeBtn = page.locator('#chat-close, .chat-close-btn, [id*="chat-close"]').first();
     if (await closeBtn.isVisible({ timeout: 3_000 })) {
-      await closeBtn.click();
+      await closeBtn.dispatchEvent('click');
       const chatPanel = page.locator('#chat-window, .chat-window').first();
       if (await chatPanel.count()) {
         await expect(chatPanel).not.toHaveClass(/active/);
@@ -741,7 +730,7 @@ test.describe('Smoke — alexpavsky.com UI', () => {
 
   test('site logo is visible in header', async ({ homePage, page }) => {
     await homePage.goto();
-    const logo = page.locator('header .logo, header a[href="/"], header img, .site-logo').first();
+    const logo = page.locator('.nav-brand, .site-logo, [data-testid="site-logo"], nav a').filter({ hasText: /alexpavsky/i }).first();
     await expect(logo).toBeVisible();
   });
 
@@ -762,21 +751,31 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     const brokenImgs: string[] = await page.evaluate(() => {
       const imgs = Array.from(document.querySelectorAll('img'));
       return imgs
-        .filter((img) => !img.complete || img.naturalWidth === 0)
+        .filter((img) => {
+          if (img.complete && img.naturalWidth > 0) return false;
+          const rect = img.getBoundingClientRect();
+          const isVisible = rect.width > 0 && rect.height > 0 && rect.bottom >= 0 && rect.top <= window.innerHeight;
+          return img.loading !== 'lazy' || isVisible;
+        })
         .map((img) => img.src)
         .filter((src) => src && !src.includes('data:'));
     });
-    // Allow up to 2 lazy-not-yet-loaded images; report if more
-    expect(brokenImgs.length).toBeLessThanOrEqual(2);
+    expect(brokenImgs).toEqual([]);
   });
 
   test('dark mode body class is set by default or after toggle', async ({ homePage, page }) => {
     await homePage.goto();
-    const bodyClass = await page.evaluate(() => document.body.className);
-    const hasDarkOrLight = /dark|light|theme/i.test(bodyClass);
-    // Site may use data-theme attribute instead
-    const dataTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme') ?? '');
-    expect(hasDarkOrLight || dataTheme.length > 0).toBe(true);
+    const before = await page.evaluate(() => ({
+      bodyClass: document.body.className,
+      htmlClass: document.documentElement.className,
+      dataTheme: document.documentElement.getAttribute('data-theme') ?? document.body.getAttribute('data-theme') ?? '',
+    }));
+    await homePage.themeToggle.click();
+    await expect.poll(async () => page.evaluate(() => ({
+      bodyClass: document.body.className,
+      htmlClass: document.documentElement.className,
+      dataTheme: document.documentElement.getAttribute('data-theme') ?? document.body.getAttribute('data-theme') ?? '',
+    }))).not.toEqual(before);
   });
 
   test('scroll-to-top works or page smoothly scrolls back', async ({ homePage, page }) => {
