@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/base';
+import { test, expect } from '../utils/fixtures';
 
 test.describe('Lab tools and principles', () => {
   test('should open Attack Generator', async ({ labPage }) => {

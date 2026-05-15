@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/base';
+import { test, expect } from '../utils/fixtures';
 
 test.describe('Inspect alexpavsky.com DOM', () => {
   test('capture homepage structure', async ({ page }) => {

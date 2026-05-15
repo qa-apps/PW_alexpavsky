@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/base';
+import { test, expect } from '../utils/fixtures';
 
 const categories = ['Jailbreak', 'Hallucination', 'Prompt Injection', 'Bias Detection'];
 

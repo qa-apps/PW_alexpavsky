@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/base';
+import { test, expect } from '../../utils/fixtures';
 
 const DEMO_MODE = /demo mode|coming soon/i;
 const REFUSAL_PATTERN = /refuse|cannot|will not|can't|sorry|not able|inappropriate|i'm not able|i cannot/i;

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/base';
+import { test, expect } from '../utils/fixtures';
 import type { Page, Route } from '@playwright/test';
 
 test.describe('Hero ticker and digest signup', () => {

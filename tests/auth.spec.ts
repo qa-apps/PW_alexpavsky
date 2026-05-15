@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/base';
+import { test, expect } from '../utils/fixtures';
 
 const TEST_EMAIL = 'test_email_001007@proton.me';
 const TEST_PASSWORD = process.env.TEST_PASSWORD || 'Secret123!';

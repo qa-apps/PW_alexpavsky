@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/base';
+import { test, expect } from '../utils/fixtures';
 
 test.describe('Layout and navigation', () => {
   test('should load homepage and verify title', async ({ homePage, page }) => {

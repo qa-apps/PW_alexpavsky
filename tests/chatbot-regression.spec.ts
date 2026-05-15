@@ -1,5 +1,5 @@
 import { Page, Route } from '@playwright/test';
-import { test, expect } from '../fixtures/base';
+import { test, expect } from '../utils/fixtures';
 import { ChatbotPage } from '../pages/ChatbotPage';
 
 async function mockChatReply(page: Page, reply: string) {

@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/base';
+import { test, expect } from '../../utils/fixtures';
 
 test.use({
   video: 'on',
