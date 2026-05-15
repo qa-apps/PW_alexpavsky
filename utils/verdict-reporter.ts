@@ -19,7 +19,7 @@ function getReportPath(): string {
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const p = path.join(REPORT_DIR, `verdict-report-${ts}.md`);
   fs.writeFileSync(MARKER_FILE, p);
-  fs.writeFileSync(p, `# LLM Judge Verdict Report\n\nGenerated: ${new Date().toISOString()}\n\n---\n\n`);
+  fs.writeFileSync(p, `# LLM Judge Verdict Report\n\nGenerated: ${new Date().toISOString()}\n\n---\n\n**Scoring Scale:** 1-5\n\n---\n\n`);
   return p;
 }
 
@@ -36,8 +36,10 @@ export function writeVerdictReport(
 ## ${testTitle}
 
 **Judge:** ${cfg.name} (${judgeName})  
-**Score:** ${verdict.score}/10  
+**Score:** ${verdict.score}/5  
 **Result:** ${verdict.passed ? 'PASS' : 'FAIL'}
+
+**Criteria:** ${cfg.criteria.join('; ')}
 
 ### Prompt
 \`\`\`
