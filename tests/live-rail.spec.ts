@@ -65,6 +65,31 @@ test.describe('LIVE rail widget', () => {
     await expect(rail).not.toHaveClass(/open/);
   });
 
+  test('clicking outside the rail closes the drawer', async ({ page }) => {
+    const rail = page.locator('#liveRail');
+    await page.locator('#liveHandle').click();
+    await expect(rail).toHaveClass(/open/);
+    // Wait for the slide-open transition so the click lands on a stable
+    // layout (handle is at translateX(380px) when fully open).
+    await page.waitForTimeout(500);
+    // Click on the page body, well outside the drawer + handle.
+    // Hero text is near the center of the viewport at x≈800, y≈300.
+    await page.mouse.click(800, 300);
+    await expect(rail).not.toHaveClass(/open/);
+    await expect(page.locator('#liveHandle')).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('clicking inside the drawer does NOT close it', async ({ page }) => {
+    const rail = page.locator('#liveRail');
+    await page.locator('#liveHandle').click();
+    await page.waitForTimeout(500);
+    // Click on a non-link element inside the drawer: the title header.
+    // Clicking an <a class="live-item"> would navigate away, so we
+    // target the static "LIVE ALERTS" title text instead.
+    await page.locator('.live-head .live-title').click();
+    await expect(rail).toHaveClass(/open/);
+  });
+
   test('drawer renders at least 3 news items with external links', async ({ page }) => {
     await page.locator('#liveHandle').click();
     // Allow /api/feed fetch to complete and re-render the track.
