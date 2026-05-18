@@ -186,8 +186,14 @@ def main() -> int:
 
         resp = query_rag_api(question_text)
         answer = resp.get("answer", "")
+        # Prefer the full `contexts` array (un-truncated chunk text the LLM
+        # actually saw). Fall back to `sources[].content` (300-char preview)
+        # only if the API is on an older build — the preview is too short for
+        # Ragas faithfulness to verify multi-fact answers.
+        contexts = resp.get("contexts") or [
+            s.get("content", "") for s in resp.get("sources", []) if s.get("content")
+        ]
         sources = resp.get("sources", [])
-        contexts = [s.get("content", "") for s in sources if s.get("content")]
 
         # Keyword check (cheap, doesn't need LLM)
         kw_terms = q.get("expected_contains") or q.get("expected_contains_any") or []
