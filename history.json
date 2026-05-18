@@ -1,0 +1,18 @@
+[
+  {
+    "run_number": 4,
+    "run_id": "26014413601",
+    "timestamp": "2026-05-18T05:10:36+00:00",
+    "commit": "5db9ba7",
+    "ragas": {
+      "avg_faithfulness": 0.945,
+      "avg_relevancy": 0.789,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": [
+      "report.md"
+    ]
+  }
+]

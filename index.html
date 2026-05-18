@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>LLM Eval Nightly — qa-apps/PW_alexpavsky</title>
+<style>
+  body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; margin: 0 auto; max-width: 1100px; padding: 24px; color: #1a1a1a; }
+  h1 { margin: 0 0 4px; } h2 { margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  .meta { color: #666; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eaeaea; }
+  th { background: #f6f8fa; font-weight: 600; }
+  tbody tr:hover { background: #fafbfc; }
+  td a { color: #0366d6; text-decoration: none; }
+  .status-pass { color: #0a7c0a; font-weight: 600; } .status-fail { color: #b00020; font-weight: 600; }
+  #chart-wrap { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; margin-top: 8px; }
+</style></head>
+<body>
+<h1>LLM Eval Nightly</h1>
+<p class="meta">
+  Repo: <a href="https://github.com/qa-apps/PW_alexpavsky">qa-apps/PW_alexpavsky</a>
+  · Runs: 1
+  · Latest: 2026-05-18 05:10:36
+</p>
+
+<h2>Faithfulness trend</h2>
+<div id="chart-wrap"><canvas id="chart" height="80"></canvas></div>
+
+<h2>Runs (last 50)</h2>
+<table>
+  <thead><tr>
+    <th>Run</th><th>Timestamp (UTC)</th><th>Faithfulness</th><th>Relevancy</th>
+    <th>Giskard RAG</th><th>Giskard issues</th><th>Commit</th>
+  </tr></thead>
+  <tbody>
+    <tr><td><a href="runs/4/index.html">#4</a></td><td>2026-05-18 05:10:36</td><td class="status-pass">0.945</td><td>0.789</td><td>—</td><td>—</td><td>5db9ba7</td></tr>
+  </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+const data = [{"x": 4, "faith": 0.945, "rel": 0.789}];
+new Chart(document.getElementById('chart'), {
+  type: 'line',
+  data: {
+    labels: data.map(d => '#' + d.x),
+    datasets: [
+      { label: 'Faithfulness', data: data.map(d => d.faith), borderColor: '#0a7c0a', tension: 0.2 },
+      { label: 'Answer relevancy', data: data.map(d => d.rel), borderColor: '#0366d6', tension: 0.2 },
+    ]
+  },
+  options: {
+    scales: { y: { min: 0, max: 1, ticks: { stepSize: 0.1 } } },
+    plugins: { legend: { position: 'bottom' } }
+  }
+});
+</script>
+</body></html>
