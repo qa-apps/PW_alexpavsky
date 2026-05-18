@@ -77,26 +77,11 @@ def main() -> None:
     except ImportError as e:
         fail(f"Missing dependency: {e}. Run: pip install -r eval/requirements.txt")
 
-    from rotating_llm import build_provider_list
+    from rotating_llm import build_provider_list, configure_giskard
     providers = build_provider_list()
     if not providers:
         fail("No LLM provider keys configured.")
-
-    primary = providers[0]
-    log(f"  Judge: {primary['name']}/{primary['model']} (+{len(providers)-1} fallbacks)")
-
-    # Point Giskard at the primary provider via the OpenAI-compatible env.
-    os.environ["OPENAI_API_KEY"] = primary["api_key"]
-    os.environ["OPENAI_API_BASE"] = primary["base_url"]
-    try:
-        giskard.llm.set_llm_model(f"openai/{primary['model']}")
-        # Use HF embeddings — Groq/Cerebras/etc don't serve embedding endpoints.
-        if os.environ.get("HF_TOKEN"):
-            giskard.llm.set_embedding_model(
-                "huggingface/sentence-transformers/all-MiniLM-L6-v2"
-            )
-    except Exception as e:
-        log(f"  WARN: Giskard config helper failed ({e}); relying on env defaults")
+    primary_label = configure_giskard(providers, log)
 
     # Wrap our RAG endpoint as a Giskard model. Giskard will pass DataFrames
     # of probe prompts; we extract the `question` column and return a Series.
@@ -154,7 +139,7 @@ def main() -> None:
     summary = {
         "rag_api": RAG_API,
         "categories": SCAN_CATEGORIES,
-        "judge": f"{primary['name']}/{primary['model']}",
+        "judge": primary_label,
         "total_issues": len(issues),
         "issues_by_category": by_cat,
     }

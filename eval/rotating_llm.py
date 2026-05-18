@@ -179,3 +179,97 @@ class RotatingJudgeLLM(BaseChatModel):
         # Sync fallback — Ragas's metrics call async paths, this keeps things simple.
         import asyncio
         return await asyncio.to_thread(self._generate, messages, stop, None, **kwargs)
+
+
+# Map our provider names → LiteLLM native model id format.
+# LiteLLM auto-reads <PROVIDER>_API_KEY from env, so we don't need OPENAI_API_BASE.
+def _litellm_model_id(provider: dict[str, str]) -> Optional[str]:
+    name = provider["name"]
+    model = provider["model"]
+    if name == "groq":
+        return f"groq/{model}"
+    if name == "cerebras":
+        return f"cerebras/{model}"
+    if name == "sambanova":
+        return f"sambanova/{model}"
+    if name == "mistral":
+        return f"mistral/{model}"
+    if name.startswith("openrouter"):
+        return f"openrouter/{model}"
+    if name == "huggingface":
+        # LiteLLM uses 'huggingface/<repo>' for the HF inference endpoint.
+        return f"huggingface/{model}"
+    return None
+
+
+def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
+    """Point Giskard's LLM + embedding judge at our providers.
+
+    Uses LiteLLM-native provider prefixes (groq/, cerebras/, mistral/, ...)
+    rather than the OpenAI-compat shim — the shim breaks because Groq et al.
+    don't expose every OpenAI endpoint (notably embeddings).
+
+    Picks the first provider with a key as primary, configures Giskard to
+    auto-fall-back through the remaining providers when LiteLLM raises a
+    rate-limit / quota error.
+
+    Embeddings always go through HuggingFace router (free, has the embedding
+    endpoint we need) — `huggingface/sentence-transformers/all-MiniLM-L6-v2`.
+    Requires HF_TOKEN; if missing, skip embedding config and let Giskard
+    fall back to its default (will error if it tries to embed).
+
+    Returns the primary model id string for logging / report metadata.
+    """
+    import giskard
+
+    # LiteLLM auto-reads provider keys from env. Our providers list already
+    # filters to ones with non-empty api_key, so set the env explicitly here
+    # so LiteLLM finds them even if the runner didn't export some of them.
+    env_map = {
+        "groq": "GROQ_API_KEY",
+        "cerebras": "CEREBRAS_API_KEY",
+        "sambanova": "SAMBANOVA_API_KEY",
+        "mistral": "MISTRAL_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
+        "huggingface": "HF_TOKEN",
+    }
+    for p in providers:
+        base = p["name"].split("-", 1)[0]  # "openrouter-llama" -> "openrouter"
+        envvar = env_map.get(base)
+        if envvar and p["api_key"]:
+            os.environ[envvar] = p["api_key"]
+
+    # Build (primary, fallbacks) using LiteLLM id format.
+    litellm_ids = [m for m in (_litellm_model_id(p) for p in providers) if m]
+    if not litellm_ids:
+        raise RuntimeError("No provider in list maps to a LiteLLM-supported id")
+
+    primary, fallbacks = litellm_ids[0], litellm_ids[1:]
+    log_fn(f"  Judge (LiteLLM): {primary}")
+    if fallbacks:
+        log_fn(f"  Fallbacks: {len(fallbacks)} ({', '.join(fallbacks[:3])}...)")
+
+    # set_llm_model signature varies across Giskard versions; pass fallbacks
+    # via kwargs and accept that some versions may ignore them (the primary
+    # still works on its own — Ragas + Giskard share the same env keys).
+    try:
+        giskard.llm.set_llm_model(primary, fallbacks=fallbacks)
+    except TypeError:
+        # Older Giskard without fallbacks kwarg.
+        giskard.llm.set_llm_model(primary)
+    except Exception as e:
+        log_fn(f"  WARN: set_llm_model failed: {e}")
+
+    # Embedding: HuggingFace router serves it for free with HF_TOKEN.
+    if os.environ.get("HF_TOKEN"):
+        try:
+            giskard.llm.set_embedding_model(
+                "huggingface/sentence-transformers/all-MiniLM-L6-v2"
+            )
+            log_fn("  Embeddings: huggingface/sentence-transformers/all-MiniLM-L6-v2")
+        except Exception as e:
+            log_fn(f"  WARN: set_embedding_model failed: {e}")
+    else:
+        log_fn("  WARN: HF_TOKEN missing — embeddings unconfigured")
+
+    return primary

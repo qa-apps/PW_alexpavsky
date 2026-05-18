@@ -93,25 +93,8 @@ def main() -> None:
     if not providers:
         fail("No LLM provider keys configured — set GROQ_API_KEY (and others).")
 
-    primary = providers[0]
-    log(f"  Judge: {primary['name']}/{primary['model']} (+{len(providers)-1} fallbacks)")
-
-    # Point Giskard's LLM client at our primary provider. Giskard reads the
-    # OPENAI_API_KEY / OPENAI_API_BASE convention internally for its judge.
-    os.environ["OPENAI_API_KEY"] = primary["api_key"]
-    os.environ["OPENAI_API_BASE"] = primary["base_url"]
-    try:
-        import giskard
-        # LiteLLM-style: "openai/<model>" routes via OPENAI_API_BASE we just set.
-        giskard.llm.set_llm_model(f"openai/{primary['model']}")
-        # Groq/Cerebras/etc don't serve embeddings — use HuggingFace router
-        # (free, OpenAI-compatible). Requires HF_TOKEN.
-        if os.environ.get("HF_TOKEN"):
-            giskard.llm.set_embedding_model(
-                "huggingface/sentence-transformers/all-MiniLM-L6-v2"
-            )
-    except Exception as e:
-        log(f"  WARN: Giskard config helper failed ({e}); relying on env defaults")
+    from rotating_llm import configure_giskard
+    primary_label = configure_giskard(providers, log)
 
     log("")
     log("Step 1/3: Building knowledge base...")
@@ -166,7 +149,7 @@ def main() -> None:
     summary = {
         "rag_api": RAG_API,
         "num_questions": NUM_QUESTIONS,
-        "judge": f"{primary['name']}/{primary['model']}",
+        "judge": primary_label,
         "correctness": None,
     }
     try:
