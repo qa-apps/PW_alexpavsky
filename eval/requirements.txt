@@ -6,3 +6,5 @@ sentence-transformers==3.3.1
 datasets==3.1.0
 requests==2.32.3
 python-dotenv==1.0.1
+giskard[llm]==2.16.0
+pandas==2.2.3

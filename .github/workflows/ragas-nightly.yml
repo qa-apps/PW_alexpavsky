@@ -1,4 +1,4 @@
-name: Ragas RAG Quality Eval (Nightly)
+name: LLM Eval Nightly (Ragas + Giskard)
 
 on:
   # Manual trigger from Actions UI
@@ -73,13 +73,48 @@ jobs:
         run: |
           python eval/ragas_eval.py
 
-      - name: Upload markdown report
+      - name: Run Giskard RAG eval (auto-generated questions)
+        if: always()
+        working-directory: eval
+        env:
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
+          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
+          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
+          RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
+          GISKARD_NUM_QUESTIONS: '3'
+        run: |
+          python giskard_rag.py || echo "Giskard RAG eval finished with non-zero exit"
+
+      - name: Run Giskard vulnerability scan (7 categories)
+        if: always()
+        working-directory: eval
+        env:
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
+          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
+          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
+          RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
+        run: |
+          python giskard_scan.py || echo "Giskard scan finished with non-zero exit"
+
+      - name: Upload eval reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ragas-report-${{ github.run_number }}
-          path: eval/results/report.md
+          name: eval-reports-${{ github.run_number }}
+          path: |
+            eval/results/report.md
+            eval/results/giskard_rag.html
+            eval/results/giskard_rag.json
+            eval/results/giskard_scan.html
+            eval/results/giskard_scan.json
           retention-days: 30
+          if-no-files-found: warn
 
       - name: Post summary to job
         if: always()
@@ -87,4 +122,18 @@ jobs:
           if [ -f eval/results/report.md ]; then
             echo "## Ragas Evaluation Summary" >> "$GITHUB_STEP_SUMMARY"
             head -30 eval/results/report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f eval/results/giskard_rag.json ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "## Giskard RAG Eval" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat eval/results/giskard_rag.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f eval/results/giskard_scan.json ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "## Giskard Vulnerability Scan" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat eval/results/giskard_scan.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
           fi
