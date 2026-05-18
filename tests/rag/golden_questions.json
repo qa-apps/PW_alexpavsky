@@ -1,0 +1,265 @@
+{
+  "$schema_note": "Golden dataset for RAG quality testing. Two sections: 'specific_facts' (fact-checking against finnova_case_study.docx) and 'concept_questions' (testing understanding across all 10 QA/AI documents).",
+  "source_documents": [
+    "finnova_case_study.docx",
+    "01_Senior_QA_Automation_AI_Assisted_Testing_Handbook.docx",
+    "02_Playwright_TypeScript_Framework_Architecture.docx",
+    "03_LLM_Evaluation_RAG_Testing_QA_Guide.docx",
+    "04_MCP_Servers_Agentic_Testing_SDET_Guide.docx",
+    "05_Cloud_Kubernetes_Observability_Security_QA_Guide.docx",
+    "Advanced LLM Red Teaming and Adversarial Testing Strategies for QA Engineers.docx",
+    "Architecting LLM-as-a-Judge Evaluation Frameworks for Generative AI Features.docx",
+    "Data Integrity and Distributed Systems Automation_ GraphQL, Kafka, and Database Validation.docx",
+    "Enterprise Playwright Automation Architecture for Scalable SaaS Platforms.docx",
+    "Implementing Model Context Protocol (MCP) in Agentic Test Orchestration.docx"
+  ],
+  "min_faithfulness_default": 0.6,
+  "min_relevancy_default": 0.4,
+
+  "specific_facts": [
+    {
+      "id": "finnova-01-agent-count",
+      "category": "facts",
+      "source": "finnova_case_study.docx",
+      "question": "How many specialized AI agents were deployed at FinNova Bank?",
+      "expected_contains": ["seven", "7"],
+      "expected_excludes": ["five", "six", "eight"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-02-bug-reduction",
+      "category": "metrics",
+      "source": "finnova_case_study.docx",
+      "question": "By what percentage did production bugs drop at FinNova Bank?",
+      "expected_contains": ["67%"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-03-cost-savings",
+      "category": "metrics",
+      "source": "finnova_case_study.docx",
+      "question": "How much did FinNova save annually in operating costs?",
+      "expected_contains": ["$2.4 million", "2.4M"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-04-mttd",
+      "category": "metrics",
+      "source": "finnova_case_study.docx",
+      "question": "What was the mean time to detection (MTTD) before and after the engagement?",
+      "expected_contains": ["4 hours 30 minutes", "12 minutes"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-05-test-cases",
+      "category": "facts",
+      "source": "finnova_case_study.docx",
+      "question": "How many automated test cases did the Test Generator agent produce?",
+      "expected_contains": ["3,247", "3247"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-06-flake-rate",
+      "category": "metrics",
+      "source": "finnova_case_study.docx",
+      "question": "What was the flake rate before and after the engagement?",
+      "expected_contains": ["48%", "2.7%"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-07-customers",
+      "category": "facts",
+      "source": "finnova_case_study.docx",
+      "question": "How many retail customers does FinNova Bank serve?",
+      "expected_contains": ["2.4 million", "2,400,000"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-08-transaction-volume",
+      "category": "facts",
+      "source": "finnova_case_study.docx",
+      "question": "What is the annual transaction volume of FinNova Bank?",
+      "expected_contains": ["$48 billion", "48B"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-09-locations",
+      "category": "facts",
+      "source": "finnova_case_study.docx",
+      "question": "Where are FinNova Bank's engineering hubs located?",
+      "expected_contains": ["Charlotte", "Austin", "Krakow"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-10-black-friday",
+      "category": "incidents",
+      "source": "finnova_case_study.docx",
+      "question": "What happened during the Black Friday wire transfer outage in November 2024?",
+      "expected_contains": ["3 hours 22 minutes", "$14.7 million"],
+      "min_faithfulness": 0.6
+    },
+    {
+      "id": "finnova-11-march-incident",
+      "category": "incidents",
+      "source": "finnova_case_study.docx",
+      "question": "What incident did the Red Team Bot prevent on March 15, 2025?",
+      "expected_contains": ["prompt injection", "chatbot"],
+      "min_faithfulness": 0.6
+    },
+    {
+      "id": "finnova-12-kafka-incident",
+      "category": "incidents",
+      "source": "finnova_case_study.docx",
+      "question": "What did the Data Integrity Verifier catch on May 22, 2025?",
+      "expected_contains": ["Kafka", "$890,000", "ACH"],
+      "min_faithfulness": 0.6
+    },
+    {
+      "id": "finnova-13-test-generator-agent",
+      "category": "agents",
+      "source": "finnova_case_study.docx",
+      "question": "What does the Test Generator agent do?",
+      "expected_contains": ["Playwright", "TypeScript", "user stories"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-14-rag-quality-gate",
+      "category": "agents",
+      "source": "finnova_case_study.docx",
+      "question": "What is the purpose of Agent 3 - RAG Quality Gate?",
+      "expected_contains": ["faithfulness", "0.91"],
+      "min_faithfulness": 0.7
+    },
+    {
+      "id": "finnova-15-red-team-vulns",
+      "category": "agents",
+      "source": "finnova_case_study.docx",
+      "question": "How many high-severity vulnerabilities did the Red Team Bot catch?",
+      "expected_contains": ["47"],
+      "min_faithfulness": 0.6
+    }
+  ],
+
+  "concept_questions": [
+    {
+      "id": "concept-01-test-isolation",
+      "category": "best-practices",
+      "source_topic": "Test Data Isolation",
+      "question": "What are the best practices for test data isolation in Playwright?",
+      "expected_contains_any": ["dedicated database", "API seeding", "context", "isolation", "fixtures"],
+      "min_keyword_matches": 2,
+      "min_faithfulness": 0.6,
+      "note": "Should mention multi-tenant isolation, dynamic data seeding, or context pooling"
+    },
+    {
+      "id": "concept-02-prompt-injection-types",
+      "category": "best-practices",
+      "source_topic": "Prompt Injection Testing",
+      "question": "What are the main categories of prompt injection attacks that QA should test for?",
+      "expected_contains_any": ["direct", "indirect", "jailbreak", "extraction", "tool"],
+      "min_keyword_matches": 2,
+      "min_faithfulness": 0.6,
+      "note": "Should mention at least 2 of: direct injection, indirect injection, jailbreak, extraction, tool-call hijack"
+    },
+    {
+      "id": "concept-03-rag-hallucination",
+      "category": "best-practices",
+      "source_topic": "RAG Hallucination Testing",
+      "question": "How do you measure and prevent hallucinations in RAG systems?",
+      "expected_contains_any": ["faithfulness", "grounding", "context", "claim", "verification"],
+      "min_keyword_matches": 2,
+      "min_faithfulness": 0.6,
+      "note": "Should discuss faithfulness metric, context grounding, claim extraction"
+    },
+    {
+      "id": "concept-04-page-object-model",
+      "category": "best-practices",
+      "source_topic": "Page Object Model",
+      "question": "What is the difference between classic Page Object Model and component-driven POM?",
+      "expected_contains_any": ["component", "composition", "reusable", "monolithic", "thousand"],
+      "min_keyword_matches": 2,
+      "min_faithfulness": 0.6,
+      "note": "Should explain why component-driven scales better than monolithic page classes"
+    },
+    {
+      "id": "concept-05-llm-judge-principles",
+      "category": "best-practices",
+      "source_topic": "LLM-as-a-Judge",
+      "question": "What are the key principles when designing LLM-as-a-judge evaluation frameworks?",
+      "expected_contains_any": ["rubric", "bias", "consistency", "judge model", "criteria"],
+      "min_keyword_matches": 2,
+      "min_faithfulness": 0.6,
+      "note": "Should mention rubrics, bias mitigation, evaluation criteria"
+    },
+    {
+      "id": "concept-06-mcp-architecture",
+      "category": "best-practices",
+      "source_topic": "MCP for QA",
+      "question": "What is the Model Context Protocol (MCP) and what are its core components?",
+      "expected_contains_any": ["server", "client", "tools", "resources", "prompts", "host"],
+      "min_keyword_matches": 3,
+      "min_faithfulness": 0.6,
+      "note": "Should mention Server/Client/Host architecture and Tools/Resources/Prompts primitives"
+    },
+    {
+      "id": "concept-07-flakiness-reduction",
+      "category": "best-practices",
+      "source_topic": "Flakiness Reduction",
+      "question": "What strategies are most effective at reducing test flakiness in Playwright?",
+      "expected_contains_any": ["web-first", "locator", "auto-wait", "network", "data isolation", "wait"],
+      "min_keyword_matches": 2,
+      "min_faithfulness": 0.6,
+      "note": "Should mention web-first locators, network response waiting, data isolation"
+    },
+    {
+      "id": "concept-08-kafka-validation",
+      "category": "best-practices",
+      "source_topic": "Kafka Event Validation",
+      "question": "How do you test event-driven systems with Kafka in distributed environments?",
+      "expected_contains_any": ["correlation", "consumer", "schema", "payload", "subscribe"],
+      "min_keyword_matches": 2,
+      "min_faithfulness": 0.6,
+      "note": "Should mention correlation IDs, consumer setup before triggering, payload validation"
+    },
+    {
+      "id": "concept-09-ci-quality-gates",
+      "category": "best-practices",
+      "source_topic": "CI-CD Quality Gates",
+      "question": "What quality gates should be in place for AI/LLM features in CI/CD pipelines?",
+      "expected_contains_any": ["eval", "threshold", "faithfulness", "regression", "promptfoo", "deepeval", "hallucination"],
+      "min_keyword_matches": 2,
+      "min_faithfulness": 0.6,
+      "note": "Should mention eval suite pass rates, faithfulness thresholds, regression gates"
+    },
+    {
+      "id": "concept-10-red-teaming-methodology",
+      "category": "best-practices",
+      "source_topic": "AI Red Teaming",
+      "question": "What is the methodology for AI red teaming and which OWASP standard guides it?",
+      "expected_contains_any": ["OWASP", "LLM Top 10", "adversarial", "defense", "attack vector", "multi-layer"],
+      "min_keyword_matches": 2,
+      "min_faithfulness": 0.6,
+      "note": "Should reference OWASP LLM Top 10, adversarial testing, defense-in-depth"
+    }
+  ],
+
+  "negative_tests": [
+    {
+      "id": "negative-01-no-info",
+      "category": "refusal",
+      "question": "What is FinNova Bank's CEO's favorite color?",
+      "expected_contains_any": ["not", "no information", "does not", "doesn't", "cannot", "unable"],
+      "min_keyword_matches": 1,
+      "min_faithfulness": 0.4,
+      "note": "Negative test — answer should admit lack of info, NOT hallucinate"
+    },
+    {
+      "id": "negative-02-fabrication",
+      "category": "refusal",
+      "question": "How many employees worked on the FinNova engagement from Anthropic?",
+      "expected_contains_any": ["1", "one", "ML engineer"],
+      "min_faithfulness": 0.6,
+      "note": "Document says 1 ML engineer from Anthropic — should not inflate the number"
+    }
+  ]
+}

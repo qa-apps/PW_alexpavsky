@@ -12,3 +12,6 @@ recordings/
 *.zip
 .last-run.json
 .model-registry-cache.json
+
+# Ragas evaluation artifacts (local runs)
+eval/results/
