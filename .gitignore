@@ -15,3 +15,7 @@ recordings/
 
 # Ragas evaluation artifacts (local runs)
 eval/results/
+
+# GitHub Pages eval site build output — only used by CI
+gh-pages-site/
+gh-pages-existing/

@@ -22,6 +22,9 @@ concurrency:
   group: ragas-nightly-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   evaluate:
     runs-on: ubuntu-latest
@@ -30,6 +33,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Checkout existing gh-pages site (if any)
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages-existing
+        continue-on-error: true
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -116,9 +126,41 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+      - name: Build GitHub Pages site
+        if: always()
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ID: ${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          REPO_SLUG: ${{ github.repository }}
+        run: |
+          python scripts/build_eval_site.py
+
+      - name: Publish to gh-pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./gh-pages-site
+          force_orphan: false
+          enable_jekyll: false
+          commit_message: "eval site: run #${{ github.run_number }}"
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
+
       - name: Post summary to job
         if: always()
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
+          OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+          PAGES_URL="https://${OWNER_LC}.github.io/${REPO_NAME}"
+          echo "## 📊 Live dashboard" >> "$GITHUB_STEP_SUMMARY"
+          echo "- All runs: ${PAGES_URL}/" >> "$GITHUB_STEP_SUMMARY"
+          echo "- This run: ${PAGES_URL}/runs/${{ github.run_number }}/" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ -f eval/results/report.md ]; then
             echo "## Ragas Evaluation Summary" >> "$GITHUB_STEP_SUMMARY"
             head -30 eval/results/report.md >> "$GITHUB_STEP_SUMMARY"
