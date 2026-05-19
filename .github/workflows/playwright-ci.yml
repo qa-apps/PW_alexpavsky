@@ -1,4 +1,4 @@
-name: Playwright CI
+name: Playwright CI (deterministic tests)
 
 on:
   push:
@@ -76,8 +76,13 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests
-        run: npm test
+      - name: Run Playwright tests (excluding LLM Judge — flaky by nature)
+        # LLM-judge driven tests live in their own workflow (llm-quality.yml)
+        # because they depend on free-tier provider availability and an
+        # LLM judge that scores non-deterministic chatbot output. Keeping
+        # them out of the main suite means the deterministic functional +
+        # security tests give a clean signal.
+        run: npx playwright test --grep-invert "LLM Judge"
         env:
           CI: true
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}

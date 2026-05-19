@@ -1,0 +1,98 @@
+name: LLM Quality (LLM Judge tests)
+
+# Companion to playwright-ci.yml. The "LLM Judge" suite lives here because
+# every test exercises:
+#   1. Production /api/chat (8-provider rotation with free-tier rate limits)
+#   2. An LLM judge that scores the chatbot's non-deterministic answer
+# So failures here usually mean "Groq+Cerebras got rate-limited" or "the
+# free model answered in a stylistic shape the judge didn't accept" —
+# real LLM behavior issues, not regressions in our code.
+#
+# This workflow runs the SAME tests as main but in isolation, and
+# continue-on-error on the test step keeps red runs from looking like
+# code regressions. Use it as a quality trend signal, not a gate.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Once nightly at 04:30 UTC (12:30 AM EDT). Offset from main Playwright
+    # CI (02:00 / 03:00 UTC) and Ragas nightly (03:30 UTC) so we don't fight
+    # for shared GitHub runners or LLM provider rate limits.
+    - cron: '30 4 * * *'
+
+concurrency:
+  group: llm-quality-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  llm-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run LLM Judge tests
+        # continue-on-error: failures here are non-blocking — they reflect
+        # LLM availability, not code regressions. Trends in the report
+        # artifact tell us whether quality is sliding over time; the
+        # job status is informational.
+        continue-on-error: true
+        id: run_tests
+        run: npx playwright test --grep "LLM Judge"
+        env:
+          CI: true
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: llm-quality-report-${{ github.run_number }}
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload judge verdicts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: judge-verdicts-${{ github.run_number }}
+          path: |
+            test-results/
+            judge-verdicts/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Post summary to job
+        if: always()
+        run: |
+          echo "## LLM Quality Run #${{ github.run_number }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tests in this workflow probe the production AI chatbot via" >> "$GITHUB_STEP_SUMMARY"
+          echo "the 8-provider rotation and grade responses with an LLM judge." >> "$GITHUB_STEP_SUMMARY"
+          echo "Failures usually = rate-limited providers, not code bugs." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Step status:** ${{ steps.run_tests.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifacts:" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`llm-quality-report-${{ github.run_number }}\` — full Playwright HTML report" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`judge-verdicts-${{ github.run_number }}\` — per-prompt judge scores + reasoning" >> "$GITHUB_STEP_SUMMARY"
