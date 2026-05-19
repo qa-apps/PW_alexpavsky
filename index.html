@@ -18,8 +18,8 @@
 <h1>LLM Eval Nightly</h1>
 <p class="meta">
   Repo: <a href="https://github.com/qa-apps/PW_alexpavsky">qa-apps/PW_alexpavsky</a>
-  · Runs: 1
-  · Latest: 2026-05-18 05:10:36
+  · Runs: 2
+  · Latest: 2026-05-19 05:23:24
 </p>
 
 <h2>Faithfulness trend</h2>
@@ -32,13 +32,13 @@
     <th>Giskard RAG</th><th>Giskard issues</th><th>Commit</th>
   </tr></thead>
   <tbody>
-    <tr><td><a href="runs/4/index.html">#4</a></td><td>2026-05-18 05:10:36</td><td class="status-pass">0.945</td><td>0.789</td><td>—</td><td>—</td><td>5db9ba7</td></tr>
+    <tr><td><a href="runs/6/index.html">#6</a></td><td>2026-05-19 05:23:24</td><td class="status-pass">0.959</td><td>0.787</td><td>—</td><td>9</td><td>2bf4762</td></tr><tr><td><a href="runs/4/index.html">#4</a></td><td>2026-05-18 05:10:36</td><td class="status-pass">0.945</td><td>0.789</td><td>—</td><td>—</td><td>5db9ba7</td></tr>
   </tbody>
 </table>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
-const data = [{"x": 4, "faith": 0.945, "rel": 0.789}];
+const data = [{"x": 4, "faith": 0.945, "rel": 0.789}, {"x": 6, "faith": 0.959, "rel": 0.787}];
 new Chart(document.getElementById('chart'), {
   type: 'line',
   data: {
