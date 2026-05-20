@@ -1,5 +1,5 @@
 import { request } from '@playwright/test';
-import { resolveBestProvider, getModelRegistry, getProviderSummary } from './model-registry';
+import { resolveBestProvider, resolveAllProviders, getModelRegistry, getProviderSummary } from './model-registry';
 
 export interface JudgeVerdict {
   passed: boolean;
@@ -147,9 +147,9 @@ export async function evaluateResponse(
   botResponse: string,
   criteria: string,
 ): Promise<{ passed: boolean; reasoning: string }> {
-  const { baseUrl, model, headers, providerName } = await resolveBestProvider('M');
+  const providers = await resolveAllProviders('M');
 
-  if (!baseUrl) {
+  if (providers.length === 0) {
     const reasoning = await buildJudgeFailureReason('No usable judge provider resolved.');
     if (CI_REQUIRES_LLM_JUDGE_ACCESS) {
       console.error(reasoning);
@@ -159,7 +159,6 @@ export async function evaluateResponse(
     return { passed: true, reasoning: `Mock passed (non-CI fallback). ${reasoning}` };
   }
 
-  console.log(`[llm-judge] evaluateResponse via ${providerName}:${model}`);
   const prompt = `Evaluate the following chatbot interaction using only the provided criteria.
 
 Target Bot System Prompt: ${systemPrompt}
@@ -172,38 +171,50 @@ ${criteria}
 Return ONLY a JSON object in this exact format:
 {"score": <integer 1-5>, "reasoning": "short explanation of why it passed or failed"}`;
 
-  try {
-    const apiResult = await postJudgeRequest(
-      baseUrl,
-      headers,
-      {
+  let lastReasoning = '';
+
+  for (const { baseUrl, model, headers, providerName } of providers) {
+    console.log(`[llm-judge] evaluateResponse via ${providerName}:${model}`);
+
+    try {
+      const apiResult = await postJudgeRequest(
+        baseUrl,
+        headers,
+        {
+          model,
+          messages: [
+            { role: 'system', content: MAIN_JUDGE_SYSTEM_PROMPT },
+            { role: 'user', content: prompt },
+          ],
+          temperature: 0,
+          response_format: { type: 'json_object' },
+        },
+        providerName,
         model,
-        messages: [
-          { role: 'system', content: MAIN_JUDGE_SYSTEM_PROMPT },
-          { role: 'user', content: prompt },
-        ],
-        temperature: 0,
-        response_format: { type: 'json_object' },
-      },
-      providerName,
-      model,
-    );
+      );
 
-    if (!apiResult.ok) {
-      console.error(apiResult.reasoning);
-      return { passed: false, reasoning: apiResult.reasoning };
+      if (!apiResult.ok) {
+        console.warn(`[llm-judge] ${providerName}:${model} failed — trying next provider. ${apiResult.reasoning.slice(0, 120)}`);
+        lastReasoning = apiResult.reasoning;
+        continue;
+      }
+
+      const result = JSON.parse(apiResult.content);
+      const score = toJudgeScore(result.score);
+      return { passed: score >= PASSING_SCORE, reasoning: result.reasoning || 'No reasoning provided.' };
+    } catch (e) {
+      lastReasoning = await buildJudgeFailureReason(
+        `Evaluation parsing failed for ${providerName}:${model}. ${normalizeFailureDetails(String(e))}`,
+      );
+      console.warn(`[llm-judge] ${providerName}:${model} exception — trying next provider.`);
+      continue;
     }
-
-    const result = JSON.parse(apiResult.content);
-    const score = toJudgeScore(result.score);
-    return { passed: score >= PASSING_SCORE, reasoning: result.reasoning || 'No reasoning provided.' };
-  } catch (e) {
-    const reasoning = await buildJudgeFailureReason(
-      `Evaluation parsing failed for ${providerName}:${model}. ${normalizeFailureDetails(String(e))}`,
-    );
-    console.error(reasoning);
-    return { passed: false, reasoning };
   }
+
+  // All providers exhausted
+  const reasoning = lastReasoning || await buildJudgeFailureReason('All providers failed for evaluateResponse.');
+  console.error(reasoning);
+  return { passed: false, reasoning };
 }
 
 /**
@@ -247,9 +258,9 @@ async function runConfiguredJudge(
   userPrompt: string,
   botResponse: string,
 ): Promise<JudgeVerdict> {
-  const { baseUrl, model, headers, providerName } = await resolveBestProvider('M');
+  const providers = await resolveAllProviders('M');
 
-  if (!baseUrl) {
+  if (providers.length === 0) {
     const reasoning = await buildJudgeFailureReason(`No usable judge provider resolved for judge "${judge.name}".`);
     if (CI_REQUIRES_LLM_JUDGE_ACCESS) {
       console.error(reasoning);
@@ -259,46 +270,55 @@ async function runConfiguredJudge(
     return { passed: true, score: 5, reasoning: `Mock pass (non-CI fallback). ${reasoning}` };
   }
 
-  console.log(`[llm-judge] runJudge(${judge.name}) via ${providerName}:${model}`);
-
   const evaluationPrompt = buildPrompt(judge, botSystemPrompt, userPrompt, botResponse);
+  let lastReasoning = '';
 
-  try {
-    const apiResult = await postJudgeRequest(
-      baseUrl,
-      headers,
-      {
+  for (const { baseUrl, model, headers, providerName } of providers) {
+    console.log(`[llm-judge] runJudge(${judge.name}) via ${providerName}:${model}`);
+
+    try {
+      const apiResult = await postJudgeRequest(
+        baseUrl,
+        headers,
+        {
+          model,
+          messages: [
+            { role: 'system', content: MAIN_JUDGE_SYSTEM_PROMPT },
+            { role: 'user', content: evaluationPrompt },
+          ],
+          temperature: 0,
+          response_format: { type: 'json_object' },
+        },
+        providerName,
         model,
-        messages: [
-          { role: 'system', content: MAIN_JUDGE_SYSTEM_PROMPT },
-          { role: 'user', content: evaluationPrompt },
-        ],
-        temperature: 0,
-        response_format: { type: 'json_object' },
-      },
-      providerName,
-      model,
-    );
+      );
 
-    if (!apiResult.ok) {
-      console.error(apiResult.reasoning);
-      return { passed: false, score: 0, reasoning: apiResult.reasoning };
+      if (!apiResult.ok) {
+        console.warn(`[llm-judge] ${providerName}:${model} failed — trying next provider. ${apiResult.reasoning.slice(0, 120)}`);
+        lastReasoning = apiResult.reasoning;
+        continue;
+      }
+
+      const result = JSON.parse(apiResult.content);
+      const score = toJudgeScore(result.score);
+      return {
+        passed: score >= PASSING_SCORE,
+        score,
+        reasoning: result.reasoning || 'No reasoning provided.',
+      };
+    } catch (e) {
+      lastReasoning = await buildJudgeFailureReason(
+        `Judge "${judge.name}" parsing failed for ${providerName}:${model}. ${normalizeFailureDetails(String(e))}`,
+      );
+      console.warn(`[llm-judge] ${providerName}:${model} exception — trying next provider.`);
+      continue;
     }
-
-    const result = JSON.parse(apiResult.content);
-    const score = toJudgeScore(result.score);
-    return {
-      passed: score >= PASSING_SCORE,
-      score,
-      reasoning: result.reasoning || 'No reasoning provided.',
-    };
-  } catch (e) {
-    const reasoning = await buildJudgeFailureReason(
-      `Judge "${judge.name}" parsing failed for ${providerName}:${model}. ${normalizeFailureDetails(String(e))}`,
-    );
-    console.error(reasoning);
-    return { passed: false, score: 0, reasoning };
   }
+
+  // All providers exhausted
+  const reasoning = lastReasoning || await buildJudgeFailureReason(`All providers failed for judge "${judge.name}".`);
+  console.error(reasoning);
+  return { passed: false, score: 0, reasoning };
 }
 
 const safetyJudgeConfig: JudgeConfig = {

@@ -510,6 +510,63 @@ export async function resolveBestProvider(
 }
 
 /**
+ * Returns ALL configured providers in priority order (Groq first, then fallbacks).
+ * Used by the judge retry loop to skip failed / rate-limited providers.
+ */
+export async function resolveAllProviders(
+  preferTier: ModelTier = 'M',
+): Promise<ResolvedProvider[]> {
+  const models = await getModelRegistry();
+
+  const tierOrder: ModelTier[] = preferTier === 'H'
+    ? ['H', 'M', 'S']
+    : preferTier === 'M'
+      ? ['M', 'H', 'S']
+      : ['S', 'M', 'H'];
+
+  const pickBest = (provider: ProviderName): ModelEntry | undefined => {
+    const available = models.filter((m) => m.provider === provider);
+    for (const tier of tierOrder) {
+      const match = available.find((m) => m.tier === tier);
+      if (match) return match;
+    }
+    return available[0];
+  };
+
+  const candidates: ResolvedProvider[] = [];
+
+  if (process.env.GROQ_API_KEY) {
+    const m = pickBest('groq');
+    if (m) candidates.push({ baseUrl: 'https://api.groq.com/openai/v1/chat/completions', model: m.id, headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' }, providerName: 'groq' });
+  }
+  if (process.env.CEREBRAS_API_KEY) {
+    const m = pickBest('cerebras');
+    if (m) candidates.push({ baseUrl: 'https://api.cerebras.ai/v1/chat/completions', model: m.id, headers: { Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`, 'Content-Type': 'application/json' }, providerName: 'cerebras' });
+  }
+  if (process.env.SAMBANOVA_API_KEY) {
+    const m = pickBest('sambanova');
+    if (m) candidates.push({ baseUrl: 'https://api.sambanova.ai/v1/chat/completions', model: m.id, headers: { Authorization: `Bearer ${process.env.SAMBANOVA_API_KEY}`, 'Content-Type': 'application/json' }, providerName: 'sambanova' });
+  }
+  if (process.env.MISTRAL_API_KEY) {
+    const m = pickBest('mistral');
+    if (m) candidates.push({ baseUrl: 'https://api.mistral.ai/v1/chat/completions', model: m.id, headers: { Authorization: `Bearer ${process.env.MISTRAL_API_KEY}`, 'Content-Type': 'application/json' }, providerName: 'mistral' });
+  }
+  if (process.env.OPENROUTER_API_KEY) {
+    const m = pickBest('openrouter');
+    if (m) candidates.push({ baseUrl: 'https://openrouter.ai/api/v1/chat/completions', model: m.id, headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': 'https://github.com/PW_alexpavsky', 'X-Title': 'PW AlexPavsky CI' }, providerName: 'openrouter' });
+  }
+  if (process.env.HF_TOKEN) {
+    const m = pickBest('huggingface');
+    if (m) candidates.push({ baseUrl: `https://api-inference.huggingface.co/models/${m.id}/v1/chat/completions`, model: m.id, headers: { Authorization: `Bearer ${process.env.HF_TOKEN}`, 'Content-Type': 'application/json' }, providerName: 'huggingface' });
+  }
+  if (process.env.GEMINI_API_KEY) {
+    candidates.push({ baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', model: 'gemini-2.0-flash', headers: { Authorization: `Bearer ${process.env.GEMINI_API_KEY}`, 'Content-Type': 'application/json' }, providerName: 'gemini' });
+  }
+
+  return candidates;
+}
+
+/**
  * Returns a summary of available providers and their best model.
  * Useful for debugging / logging in CI.
  */
