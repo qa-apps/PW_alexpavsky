@@ -1,16 +1,12 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
-    }
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["tests/**/*", "pages/**/*", "fixtures/**/*", "utils/**/*", "playwright.config.ts"]
+  "include": ["tests/**/*", "pages/**/*", "utils/**/*", "playwright.config.ts"]
 }
