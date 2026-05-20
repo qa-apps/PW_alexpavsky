@@ -119,55 +119,14 @@ jobs:
       - name: Notify Slack
         if: always()
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          JOB_STATUS: ${{ job.status }}
-          REPOSITORY: ${{ github.repository }}
-          BRANCH_NAME: ${{ github.ref_name }}
-          EVENT_NAME: ${{ github.event_name }}
-          ACTOR_NAME: ${{ github.actor }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        shell: bash
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
-          if [[ -z "$SLACK_WEBHOOK_URL" ]]; then
-            echo "SLACK_WEBHOOK_URL is not configured. Skipping Slack notification."
-            exit 0
-          fi
-
-          python - <<'PY'
-          import json
-          import os
-          import urllib.request
-
-          status = os.environ["JOB_STATUS"]
-          color = {
-              "success": "good",
-              "failure": "danger",
-              "cancelled": "warning",
-          }.get(status, "#808080")
-
-          payload = {
-              "text": f"Playwright CI {status.upper()} for {os.environ['REPOSITORY']}",
-              "attachments": [
-                  {
-                      "color": color,
-                      "fields": [
-                          {"title": "Repository", "value": os.environ["REPOSITORY"], "short": True},
-                          {"title": "Branch", "value": os.environ["BRANCH_NAME"], "short": True},
-                          {"title": "Event", "value": os.environ["EVENT_NAME"], "short": True},
-                          {"title": "Actor", "value": os.environ["ACTOR_NAME"], "short": True},
-                          {"title": "Run", "value": os.environ["RUN_URL"], "short": False},
-                      ],
-                  }
-              ],
-          }
-
-          request = urllib.request.Request(
-              os.environ["SLACK_WEBHOOK_URL"],
-              data=json.dumps(payload).encode("utf-8"),
-              headers={"Content-Type": "application/json"},
-          )
-          urllib.request.urlopen(request).read()
-          PY
+          python .github/scripts/notify_slack.py \
+            --channel C0B4WS0JSK0 \
+            --pipeline "Playwright CI" \
+            --results-dir test-results
 
       - name: Send email notification
         if: always()

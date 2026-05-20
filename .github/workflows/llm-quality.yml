@@ -96,3 +96,15 @@ jobs:
           echo "Artifacts:" >> "$GITHUB_STEP_SUMMARY"
           echo "- \`llm-quality-report-${{ github.run_number }}\` — full Playwright HTML report" >> "$GITHUB_STEP_SUMMARY"
           echo "- \`judge-verdicts-${{ github.run_number }}\` — per-prompt judge scores + reasoning" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify Slack
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python .github/scripts/notify_slack.py \
+            --channel C0B4YU5T89G \
+            --pipeline "LLM Quality" \
+            --results-dir test-results
