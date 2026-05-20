@@ -142,7 +142,25 @@ def build_payload(channel: str, pipeline: str, run_url: str,
 
 
 def join_channel(token: str, channel: str) -> None:
-    """Ensure the bot is a member of the channel before posting."""
+    """Best-effort: try to join the channel before posting.
+
+    The Slack bot is expected to be invited to each notification channel
+    manually (so it works for private channels and channels in other
+    workspaces too). conversations.join is a fallback for newly added
+    public channels — failures here are non-fatal; chat.postMessage will
+    surface the real problem if the bot truly can't post.
+    """
+    # Benign outcomes that we don't need to log:
+    #  - method_not_supported_for_channel_type: private channel / DM / mpim
+    #  - missing_scope: bot lacks channels:join, but is already invited
+    #  - already_in_channel: nothing to do
+    #  - is_archived / channel_not_found: chat.postMessage will report it
+    SILENT_ERRORS = {
+        "method_not_supported_for_channel_type",
+        "missing_scope",
+        "already_in_channel",
+    }
+
     body = json.dumps({"channel": channel}).encode()
     req = urllib.request.Request(
         "https://slack.com/api/conversations.join",
@@ -156,8 +174,9 @@ def join_channel(token: str, channel: str) -> None:
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             result = json.loads(resp.read())
-            if not result.get("ok") and result.get("error") != "method_not_supported_for_channel_type":
-                print(f"conversations.join warning: {result.get('error')}", file=sys.stderr)
+            err = result.get("error")
+            if not result.get("ok") and err not in SILENT_ERRORS:
+                print(f"conversations.join warning: {err}", file=sys.stderr)
     except urllib.error.URLError as e:
         print(f"conversations.join HTTP error: {e}", file=sys.stderr)
 
