@@ -5,6 +5,7 @@ import { ChallengePage } from '../pages/ChallengePage';
 import { ChatbotPage } from '../pages/ChatbotPage';
 import { AuthPage } from '../pages/AuthPage';
 import { CommonPage } from '../pages/CommonPage';
+import { LiveRailPage } from '../pages/LiveRailPage';
 
 export type AppFixtures = {
   commonPage: CommonPage;
@@ -13,6 +14,7 @@ export type AppFixtures = {
   challengePage: ChallengePage;
   chatbotPage: ChatbotPage;
   authPage: AuthPage;
+  liveRailPage: LiveRailPage;
 };
 
 export const test = base.extend<AppFixtures>({
@@ -39,6 +41,10 @@ export const test = base.extend<AppFixtures>({
   authPage: async ({ page }, use) => {
     const authPage = new AuthPage(page);
     await use(authPage);
+  },
+  liveRailPage: async ({ page }, use) => {
+    const liveRailPage = new LiveRailPage(page);
+    await use(liveRailPage);
   },
 });
 

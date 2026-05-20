@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../utils/fixtures';
 
 /**
  * LIVE rail (left-edge pill + slide-out vertical news ticker).
@@ -9,113 +9,83 @@ import { test, expect } from '@playwright/test';
  * wheel/touch scroll, console error hygiene.
  */
 
-const BASE_URL = process.env.SITE_URL || 'https://www.alexpavsky.com';
-
 test.describe('LIVE rail widget', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto(BASE_URL + '/');
+  test.beforeEach(async ({ commonPage }) => {
+    await commonPage.goto('/');
   });
 
-  test('handle is rendered and visible on every page load', async ({ page }) => {
-    const handle = page.locator('#liveHandle');
-    await expect(handle).toBeVisible();
-    await expect(handle).toHaveAttribute('aria-expanded', 'false');
-    // The "LIVE" vertical label must be readable.
-    await expect(handle).toContainText('LIVE');
+  test('handle is rendered and visible on every page load', async ({ liveRailPage }) => {
+    await expect(liveRailPage.handle).toBeVisible();
+    await expect(liveRailPage.handle).toHaveAttribute('aria-expanded', 'false');
+    await expect(liveRailPage.handle).toContainText('LIVE');
   });
 
-  test('handle is positioned near the top of the viewport (not centered)', async ({ page }) => {
+  test('handle is positioned near the top of the viewport (not centered)', async ({ liveRailPage }) => {
     // We moved it from top:50% to top:140px so more news rows are visible
     // when the drawer opens. Lock that in.
-    const box = await page.locator('#liveHandle').boundingBox();
+    const box = await liveRailPage.handle.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.y, 'handle y must be near the top').toBeLessThan(300);
     expect(box!.x, 'handle x must be at the left edge').toBeLessThan(80);
   });
 
-  test('clicking the handle opens the drawer with the news ticker', async ({ page }) => {
-    const handle = page.locator('#liveHandle');
-    const rail = page.locator('#liveRail');
-    await handle.click();
-    await expect(rail).toHaveClass(/open/);
-    await expect(handle).toHaveAttribute('aria-expanded', 'true');
-    const drawer = page.locator('#liveDrawer');
-    await expect(drawer).toBeVisible();
-    // CSS transition on width is ~320ms. Wait for it to settle before
-    // measuring, otherwise we catch the drawer mid-animation.
-    await page.waitForTimeout(500);
-    const box = await drawer.boundingBox();
+  test('clicking the handle opens the drawer with the news ticker', async ({ liveRailPage }) => {
+    await liveRailPage.open();
+    await expect(liveRailPage.handle).toHaveAttribute('aria-expanded', 'true');
+    await expect(liveRailPage.drawer).toBeVisible();
+    const box = await liveRailPage.drawer.boundingBox();
     expect(box!.width, 'drawer must expand past 200px when open').toBeGreaterThan(200);
   });
 
-  test('close button restores collapsed state', async ({ page }) => {
-    const rail = page.locator('#liveRail');
-    await page.locator('#liveHandle').click();
-    await expect(rail).toHaveClass(/open/);
-    await page.locator('#liveClose').click();
-    await expect(rail).not.toHaveClass(/open/);
-    await expect(page.locator('#liveHandle')).toHaveAttribute('aria-expanded', 'false');
+  test('close button restores collapsed state', async ({ liveRailPage }) => {
+    await liveRailPage.open();
+    await liveRailPage.closeBtn.click();
+    await expect(liveRailPage.rail).not.toHaveClass(/open/);
+    await expect(liveRailPage.handle).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('Escape key closes the drawer', async ({ page }) => {
-    const rail = page.locator('#liveRail');
-    await page.locator('#liveHandle').click();
-    await expect(rail).toHaveClass(/open/);
+  test('Escape key closes the drawer', async ({ page, liveRailPage }) => {
+    await liveRailPage.open();
     await page.keyboard.press('Escape');
-    await expect(rail).not.toHaveClass(/open/);
+    await expect(liveRailPage.rail).not.toHaveClass(/open/);
   });
 
-  test('clicking outside the rail closes the drawer', async ({ page }) => {
-    const rail = page.locator('#liveRail');
-    await page.locator('#liveHandle').click();
-    await expect(rail).toHaveClass(/open/);
-    // Wait for the slide-open transition so the click lands on a stable
-    // layout (handle is at translateX(380px) when fully open).
-    await page.waitForTimeout(500);
+  test('clicking outside the rail closes the drawer', async ({ page, liveRailPage }) => {
+    await liveRailPage.open();
     // Click on the page body, well outside the drawer + handle.
     // Hero text is near the center of the viewport at x≈800, y≈300.
     await page.mouse.click(800, 300);
-    await expect(rail).not.toHaveClass(/open/);
-    await expect(page.locator('#liveHandle')).toHaveAttribute('aria-expanded', 'false');
+    await expect(liveRailPage.rail).not.toHaveClass(/open/);
+    await expect(liveRailPage.handle).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('clicking inside the drawer does NOT close it', async ({ page }) => {
-    const rail = page.locator('#liveRail');
-    await page.locator('#liveHandle').click();
-    await page.waitForTimeout(500);
+  test('clicking inside the drawer does NOT close it', async ({ liveRailPage }) => {
+    await liveRailPage.open();
     // Click on a non-link element inside the drawer: the title header.
     // Clicking an <a class="live-item"> would navigate away, so we
     // target the static "LIVE ALERTS" title text instead.
-    await page.locator('.live-head .live-title').click();
-    await expect(rail).toHaveClass(/open/);
+    await liveRailPage.title.click();
+    await expect(liveRailPage.rail).toHaveClass(/open/);
   });
 
-  test('drawer renders at least 3 news items with external links', async ({ page }) => {
-    await page.locator('#liveHandle').click();
-    // Allow /api/feed fetch to complete and re-render the track.
-    await page.waitForTimeout(2500);
-    const items = page.locator('.live-item');
-    const count = await items.count();
-    expect(count, 'expected items to render in the track (live + duplicated copies)').toBeGreaterThanOrEqual(3);
-    // Each item must be an anchor with a real http(s) href and open in a new tab.
-    const first = items.first();
+  test('drawer renders at least 3 news items with external links', async ({ liveRailPage }) => {
+    await liveRailPage.openAndWaitForItems(3);
+    const first = liveRailPage.items.first();
     await expect(first).toHaveAttribute('href', /^https?:\/\//);
     await expect(first).toHaveAttribute('target', '_blank');
     await expect(first).toHaveAttribute('rel', /noopener/);
   });
 
-  test('items show a category badge and time-ago metadata', async ({ page }) => {
-    await page.locator('#liveHandle').click();
-    await page.waitForTimeout(2500);
-    const first = page.locator('.live-item').first();
+  test('items show a category badge and time-ago metadata', async ({ liveRailPage }) => {
+    await liveRailPage.openAndWaitForItems(1);
+    const first = liveRailPage.items.first();
     await expect(first.locator('.live-badge'), 'badge must be present').toBeVisible();
     await expect(first.locator('.live-item-title'), 'title must be present').not.toBeEmpty();
     await expect(first.locator('.live-src'), 'source must be present').not.toBeEmpty();
   });
 
-  test('wheel scroll over the viewport shifts the track', async ({ page }) => {
-    await page.locator('#liveHandle').click();
-    await page.waitForTimeout(1500);
+  test('wheel scroll over the viewport shifts the track', async ({ page, liveRailPage }) => {
+    await liveRailPage.openAndWaitForItems(1);
 
     // Snapshot the track transform, dispatch a wheel event with positive
     // deltaY (down-scroll), and verify the offset moved upward (translateY
@@ -144,9 +114,8 @@ test.describe('LIVE rail widget', () => {
     expect(y, 'wheel scroll did not move the track').toBeLessThan(0);
   });
 
-  test('touch swipe over the viewport scrolls the track', async ({ page }) => {
-    await page.locator('#liveHandle').click();
-    await page.waitForTimeout(1500);
+  test('touch swipe over the viewport scrolls the track', async ({ page, liveRailPage }) => {
+    await liveRailPage.openAndWaitForItems(1);
 
     const result = await page.evaluate(() => {
       const v = document.querySelector('.live-viewport') as HTMLElement;
@@ -184,10 +153,9 @@ test.describe('LIVE rail widget', () => {
     expect(result.after).not.toBe('translateY(0)');
   });
 
-  test('pause button toggles auto-scroll', async ({ page }) => {
-    await page.locator('#liveHandle').click();
-    await page.waitForTimeout(1500);
-    const btn = page.locator('#livePauseBtn');
+  test('pause button toggles auto-scroll', async ({ liveRailPage }) => {
+    await liveRailPage.openAndWaitForItems(1);
+    const btn = liveRailPage.pauseBtn;
     await expect(btn).toHaveText('PAUSE');
     await btn.click();
     await expect(btn).toHaveText('PLAY');
@@ -197,16 +165,15 @@ test.describe('LIVE rail widget', () => {
     await expect(btn).not.toHaveClass(/paused/);
   });
 
-  test('no console errors on page load with the rail present', async ({ page }) => {
+  test('no console errors on page load with the rail present', async ({ page, commonPage, liveRailPage }) => {
     const errors: string[] = [];
     page.on('console', (msg) => {
       if (msg.type() === 'error') errors.push(msg.text());
     });
     page.on('pageerror', (err) => errors.push(err.message));
 
-    await page.goto(BASE_URL + '/');
-    await page.locator('#liveHandle').click();
-    await page.waitForTimeout(2500);
+    await commonPage.goto('/');
+    await liveRailPage.openAndWaitForItems(1);
 
     // We only care about errors thrown by OUR code (rail JS or its
     // /api/feed call). Network 404s for upstream RSS images, fonts,
@@ -218,14 +185,13 @@ test.describe('LIVE rail widget', () => {
     expect(ourErrors, `console errors:\n${ourErrors.join('\n')}`).toHaveLength(0);
   });
 
-  test('handle moves with the drawer when opened (stays attached)', async ({ page }) => {
-    const handle = page.locator('#liveHandle');
-    const closedBox = await handle.boundingBox();
-    await handle.click();
-    // Wait for the slide-open transition (CSS transition is 320ms).
-    await page.waitForTimeout(500);
-    const openBox = await handle.boundingBox();
+  test('handle moves with the drawer when opened (stays attached)', async ({ liveRailPage }) => {
+    const closedBox = await liveRailPage.handle.boundingBox();
     expect(closedBox).not.toBeNull();
+    await liveRailPage.open();
+    // open() already waited for the drawer width to settle past 200px,
+    // so the handle has finished sliding right with it.
+    const openBox = await liveRailPage.handle.boundingBox();
     expect(openBox).not.toBeNull();
     expect(openBox!.x, 'handle must slide right with the drawer').toBeGreaterThan(closedBox!.x + 100);
   });
