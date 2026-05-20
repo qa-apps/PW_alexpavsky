@@ -187,12 +187,14 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
-          # Parse Ragas scores from report if available and pass as overrides
+          # Read pass/fail counts written by eval/ragas_eval.py (summary.json).
+          # The old grep-the-markdown approach never matched anything because
+          # report.md has no "passed: N" / "failed: N" lines — that's why
+          # #qa-rag-eval used to always show 0/0.
           PASSED=0; FAILED=0
-          if [ -f eval/results/report.md ]; then
-            # Extract pass/fail from Ragas report (lines like "PASS: 5, FAIL: 1")
-            PASSED=$(grep -oP '(?<=passed:\s)\d+' eval/results/report.md | head -1 || echo 0)
-            FAILED=$(grep -oP '(?<=failed:\s)\d+' eval/results/report.md | head -1 || echo 0)
+          if [ -f eval/results/summary.json ]; then
+            PASSED=$(python3 -c "import json; print(json.load(open('eval/results/summary.json'))['passed'])")
+            FAILED=$(python3 -c "import json; print(json.load(open('eval/results/summary.json'))['failed'])")
           fi
           python .github/scripts/notify_slack.py \
             --channel C0B4HEX5W1M \

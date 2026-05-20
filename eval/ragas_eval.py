@@ -344,6 +344,32 @@ def main() -> int:
 
     write_report(records, summary)
 
+    # Per-question pass/fail summary, consumed by .github/scripts/notify_slack.py
+    # (via ragas-nightly.yml) to populate the #qa-rag-eval Slack post.
+    def _is_passed(r: dict) -> bool:
+        if not r.get("keyword_passed"):
+            return False
+        f = r.get("faithfulness", float("nan"))
+        rel = r.get("relevancy", float("nan"))
+        if math.isnan(f) or math.isnan(rel):
+            return False
+        return f >= MIN_FAITHFULNESS and rel >= MIN_RELEVANCY
+
+    passed_count = sum(1 for r in records if _is_passed(r))
+    summary_json = {
+        "passed": passed_count,
+        "failed": len(records) - passed_count,
+        "flaky": 0,
+        "skipped": 0,
+        "total": len(records),
+        "avg_faithfulness": avg_f,
+        "avg_relevancy": avg_r,
+        "keyword_pass_rate": kw_rate,
+    }
+    (RESULTS_DIR / "summary.json").write_text(
+        json.dumps(summary_json, indent=2), encoding="utf-8"
+    )
+
     # Exit code: pass/fail based on thresholds
     failed_checks: list[str] = []
     if avg_f < MIN_FAITHFULNESS:
