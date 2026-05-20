@@ -195,7 +195,7 @@ jobs:
             FAILED=$(grep -oP '(?<=failed:\s)\d+' eval/results/report.md | head -1 || echo 0)
           fi
           python .github/scripts/notify_slack.py \
-            --channel C0B4HD2L9CP \
+            --channel C0B4HEX5W1M \
             --pipeline "RAG Eval Nightly" \
             --passed "${PASSED:-0}" \
             --failed "${FAILED:-0}" \
