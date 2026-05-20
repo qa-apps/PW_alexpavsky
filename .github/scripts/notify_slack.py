@@ -141,7 +141,29 @@ def build_payload(channel: str, pipeline: str, run_url: str,
     }
 
 
+def join_channel(token: str, channel: str) -> None:
+    """Ensure the bot is a member of the channel before posting."""
+    body = json.dumps({"channel": channel}).encode()
+    req = urllib.request.Request(
+        "https://slack.com/api/conversations.join",
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        },
+        method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read())
+            if not result.get("ok") and result.get("error") != "method_not_supported_for_channel_type":
+                print(f"conversations.join warning: {result.get('error')}", file=sys.stderr)
+    except urllib.error.URLError as e:
+        print(f"conversations.join HTTP error: {e}", file=sys.stderr)
+
+
 def post_message(token: str, payload: dict) -> None:
+    join_channel(token, payload["channel"])
     body = json.dumps(payload).encode()
     req = urllib.request.Request(
         "https://slack.com/api/chat.postMessage",
