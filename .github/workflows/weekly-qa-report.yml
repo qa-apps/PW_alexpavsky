@@ -1,0 +1,57 @@
+name: Weekly QA Report
+
+on:
+  schedule:
+    - cron: '0 14 * * 0'   # Every Sunday 14:00 UTC = 10:00 AM EDT
+  workflow_dispatch:        # Run manually from GitHub Actions UI
+
+concurrency:
+  group: weekly-qa-report
+  cancel-in-progress: true
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Download latest nightly test artifacts so the report has real data
+      - name: Download latest test results
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: playwright-ci.yml
+          name: test-results
+          path: test-results/
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install httpx python-dateutil
+
+      - name: Generate weekly report and send to Slack + site
+        env:
+          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY:  ${{ secrets.OPENROUTER_API_KEY }}
+          CEREBRAS_API_KEY:    ${{ secrets.CEREBRAS_API_KEY }}
+          SLACK_WEBHOOK_URL:   ${{ secrets.SLACK_WEBHOOK_URL }}
+          SITE_REPORTS_URL:    https://alexpavsky.com/api/agent-reports
+          MAINTENANCE_KEY:     ${{ secrets.MAINTENANCE_KEY }}
+          GITHUB_RUN_URL:      ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python .github/scripts/weekly_report.py
+
+      - name: Upload report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-report-${{ github.run_id }}
+          path: judge-verdicts/weekly-report-*.md
+          retention-days: 90
+          if-no-files-found: ignore
