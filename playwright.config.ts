@@ -15,7 +15,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 3 : 1,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: [
+    ['list'],
+    ['html', { open: 'never' }],
+    // JSON results consumed by .github/scripts/notify_slack.py to build
+    // the Slack donut/stats. Without this, the Slack post shows all zeros.
+    ['json', { outputFile: 'test-results/results.json' }],
+  ],
   use: {
     baseURL: 'https://www.alexpavsky.com',
     actionTimeout: 10_000,
