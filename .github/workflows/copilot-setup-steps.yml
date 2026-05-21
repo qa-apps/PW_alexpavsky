@@ -29,6 +29,13 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 
-    # Customize this step as needed
-    - name: Build application
-      run: npx run build
+    # This is a test-only repo — there's no app to build. Instead, validate
+    # that Playwright can load and parse every spec, which is the equivalent
+    # of "compile-checks pass" for this codebase. Gives the Copilot agent
+    # a verified working environment for running tests.
+    #
+    # The previous step ran `npx run build`, which is invalid: `npx` has no
+    # `run` subcommand, so it tried to download a phantom package named
+    # `run` and hung until cancelled (see run 26192834855).
+    - name: Validate Playwright setup
+      run: npx playwright test --list
