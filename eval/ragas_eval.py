@@ -70,19 +70,55 @@ def fail(msg: str, code: int = 1) -> None:
     sys.exit(code)
 
 
-def query_rag_api(question: str) -> dict[str, Any]:
-    """Hit /api/rag/query and return the JSON response."""
-    try:
-        r = requests.post(
-            f"{RAG_API_URL}/api/rag/query",
-            json={"query": question},
-            timeout=60,
-        )
-        r.raise_for_status()
-        return r.json()
-    except requests.RequestException as e:
-        log(f"  WARN: RAG API call failed for '{question[:60]}...': {e}")
-        return {"answer": "", "sources": [], "metrics": {}}
+def query_rag_api(question: str, max_retries: int = 3) -> dict[str, Any]:
+    """Hit /api/rag/query and return the JSON response.
+
+    Retries on:
+      - Transient HTTP / network errors (requests.RequestException).
+      - 200 OK responses whose `answer` is a sentinel string emitted by the
+        upstream chatbot when all of its own LLM providers are rate-limited
+        (e.g. "LLM unavailable — all providers failed. Last error: …").
+        These look like successes to the HTTP layer but are functional
+        failures we want to give a chance to recover.
+
+    Exponential backoff between attempts: 5s, 15s, 45s.
+    """
+    TRANSIENT_MARKERS = (
+        "llm unavailable",
+        "all providers failed",
+        "last error:",
+    )
+
+    for attempt in range(max_retries):
+        is_last = attempt == max_retries - 1
+        delay = 5 * (3 ** attempt)  # 5, 15, 45
+        try:
+            r = requests.post(
+                f"{RAG_API_URL}/api/rag/query",
+                json={"query": question},
+                timeout=60,
+            )
+            r.raise_for_status()
+            data = r.json()
+            answer_lc = (data.get("answer") or "").lower()
+            if any(m in answer_lc for m in TRANSIENT_MARKERS):
+                msg = (f"upstream chatbot returned transient LLM-unavailable "
+                       f"(attempt {attempt + 1}/{max_retries})")
+                if is_last:
+                    log(f"  WARN: {msg} — giving up, keeping unavailable answer")
+                    return data
+                log(f"  WARN: {msg}; backing off {delay}s before retry")
+                time.sleep(delay)
+                continue
+            return data
+        except requests.RequestException as e:
+            if is_last:
+                log(f"  WARN: RAG API call failed for '{question[:60]}...': {e}")
+                return {"answer": "", "sources": [], "metrics": {}}
+            log(f"  WARN: RAG API call failed ({e}); backing off {delay}s before retry")
+            time.sleep(delay)
+
+    return {"answer": "", "sources": [], "metrics": {}}
 
 
 def keyword_score(answer: str, expected_any: list[str], min_matches: int = 1) -> dict[str, Any]:
