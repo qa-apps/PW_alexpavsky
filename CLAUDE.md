@@ -101,3 +101,51 @@ Run `npm run providers:ping` to verify keys before a judge run.
 ## When changing application behavior
 
 If a test fails because the site changed, fix the test here. If the site itself is broken, the fix belongs in `/Users/alexp/Projects/alexpavsky` — flag it, don't try to patch it from this repo.
+
+
+## Agent fix workflow — MANDATORY
+
+**Never push directly to `master`.** All agent fixes must go through a PR with human review.
+
+When you identify and fix a failing test or CI issue, follow this exact sequence:
+
+### 1. Create a fix branch
+```bash
+git checkout master && git pull origin master
+git checkout -b fix/<short-kebab-description>
+# e.g. fix/retry-rag-api, fix/flaky-live-rail-timeout
+```
+
+### 2. Make your changes and commit
+```bash
+git add -A
+git commit -m "fix(<scope>): <what was fixed>
+
+Failing test: <test name or CI workflow>
+Root cause: <1 sentence>
+Fix: <1 sentence>
+CI run: <GITHUB_RUN_URL>"
+```
+
+### 3. Push the branch
+```bash
+git push origin fix/<branch-name>
+```
+
+### 4. Open a PR — always add alexpavsky as reviewer
+```bash
+gh pr create \
+  --title "fix: <description>" \
+  --body "..." \
+  --reviewer alexpavsky \
+  --label bug-fix
+```
+
+### 5. Do NOT merge the PR yourself
+After creating the PR, stop. `alexpavsky` will review and merge once satisfied. Do not use `gh pr merge` or push directly to master.
+
+### Important rules
+- One PR per bug fix — do not bundle unrelated changes
+- PR title must start with `fix:` or `test:` or `ci:`
+- If the fix is for a RAGAS / LLM eval issue, add label `rag-eval`
+- If uncertain about the root cause, still open the PR and explain what you tried
