@@ -1,0 +1,82 @@
+name: Auto-fix Agent
+
+on:
+  workflow_run:
+    workflows:
+      - "Playwright CI (deterministic tests)"
+      - "LLM Quality (LLM Judge tests)"
+      - "LLM Eval Nightly (Ragas + Giskard)"
+    types: [completed]
+
+jobs:
+  auto-fix:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install anthropic --break-system-packages 2>/dev/null || pip install anthropic
+
+      - name: Configure git
+        run: |
+          git config user.email "qa-apps@users.noreply.github.com"
+          git config user.name "qa-apps and claude"
+
+      - name: Download test artifacts from failed run
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runId = context.payload.workflow_run.id;
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+            const fs = require('fs');
+            for (const artifact of artifacts.data.artifacts) {
+              const names = ['test-results', 'playwright-report', 'eval-results'];
+              if (names.some(n => artifact.name.includes(n))) {
+                const zip = await github.rest.actions.downloadArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id,
+                  archive_format: 'zip',
+                });
+                fs.writeFileSync(`${artifact.name}.zip`, Buffer.from(zip.data));
+                console.log(`Downloaded: ${artifact.name}.zip`);
+              }
+            }
+
+      - name: Extract artifacts
+        run: |
+          for f in *.zip; do
+            [ -f "$f" ] && unzip -o "$f" -d "${f%.zip}/" && echo "Extracted $f" || true
+          done
+
+      - name: Run auto-fix agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
+          FAILED_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          PIPELINE: ${{ github.event.workflow_run.name }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: python .github/scripts/auto_fix_agent.py
