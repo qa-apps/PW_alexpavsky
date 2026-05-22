@@ -203,3 +203,23 @@ jobs:
             --failed "${FAILED:-0}" \
             --flaky 0 \
             --skipped 0
+
+
+      - name: Post bug report to Slack
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN:    ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_REPOSITORY:  ${{ github.repository }}
+          GITHUB_SHA:         ${{ github.sha }}
+          GITHUB_REF:         ${{ github.ref }}
+          PR_NUMBER:          ${{ github.event.pull_request.number }}
+          PR_TITLE:           ${{ github.event.pull_request.title }}
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
+        run: |
+          python .github/scripts/bug_report_slack.py \
+            --channel "${{ secrets.BUG_REPORTS_CHANNEL_ID }}" \
+            --pipeline "RAG Eval Nightly" \
+            --results-dir eval/results
