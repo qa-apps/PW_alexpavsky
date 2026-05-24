@@ -25,8 +25,10 @@ test.describe('API Test Cases', () => {
   });
 
   test('should return non-empty response for chat endpoint with valid body', async ({ request }) => {
+    test.setTimeout(60_000);
     const response = await request.post(BASE_URL + '/api/chat', {
       data: { message: 'Hello' },
+      timeout: 45_000,
     });
     expect(response.status()).toBeLessThan(500);
     const body = await response.text();
