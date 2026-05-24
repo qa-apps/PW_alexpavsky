@@ -444,6 +444,13 @@ def join_channel(token: str, channel: str) -> None:
 
 
 def post_bug_report(token: str, channel: str, blocks: list[dict], pipeline: str, failed: int) -> None:
+    """Post bug report. NEVER fails the job — see notify_slack.py for rationale.
+
+    The actual test results are already in the GitHub run; if Slack delivery
+    breaks (wrong channel ID, missing scope, bot removed), that's an ops
+    issue we should fix separately, not a reason to redden a CI step that
+    already accurately reflected test state.
+    """
     join_channel(token, channel)
     payload = {
         "channel": channel,
@@ -460,12 +467,17 @@ def post_bug_report(token: str, channel: str, blocks: list[dict], pipeline: str,
         res = _slack_post(token, "chat.postMessage", payload)
         if res.get("ok"):
             print(f"✅ Bug report posted to {channel}")
-        else:
-            print(f"Slack error: {res.get('error')}", file=sys.stderr)
-            sys.exit(1)
+            return
+        err = res.get("error", "unknown")
+        print(f"⚠️  Slack delivery failed ({err}) for channel {channel}. "
+              f"Bug data was generated correctly; fix the Slack side "
+              f"(re-invite bot, refresh channel ID, or check scopes at "
+              f"https://api.slack.com/apps). Not failing the job.",
+              file=sys.stderr)
     except Exception as e:
-        print(f"HTTP error: {e}", file=sys.stderr)
-        sys.exit(1)
+        print(f"⚠️  Slack HTTP error ({e}) — non-fatal, see note above.",
+              file=sys.stderr)
+    return
 
 
 # ---------------------------------------------------------------------------

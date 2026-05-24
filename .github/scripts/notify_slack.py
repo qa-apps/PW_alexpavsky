@@ -182,7 +182,18 @@ def join_channel(token: str, channel: str) -> None:
 
 
 def post_message(token: str, payload: dict) -> None:
-    join_channel(token, payload["channel"])
+    """Post to Slack. NEVER fails the job — Slack is convenience, not signal.
+
+    Historical: this script used to `sys.exit(1)` on `channel_not_found`,
+    `not_in_channel`, etc. That meant every Slack misconfiguration (stale
+    channel ID, bot removed from channel, token rotated) would redden CI
+    *even when the tests themselves were green*. The actual test results
+    live in the GitHub Actions UI regardless of Slack delivery, so a
+    notification failure is not a CI failure — it's an ops bug to fix
+    separately, surfaced clearly in the logs.
+    """
+    channel = payload["channel"]
+    join_channel(token, channel)
     body = json.dumps(payload).encode()
     req = urllib.request.Request(
         "https://slack.com/api/chat.postMessage",
@@ -196,13 +207,21 @@ def post_message(token: str, payload: dict) -> None:
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             result = json.loads(resp.read())
-            if not result.get("ok"):
-                print(f"Slack error: {result.get('error')}", file=sys.stderr)
-                sys.exit(1)
-            print(f"Message posted to {payload['channel']}")
+            if result.get("ok"):
+                print(f"✅ Message posted to {channel}")
+                return
+            err = result.get("error", "unknown")
+            print(f"⚠️  Slack delivery failed ({err}) for channel {channel}. "
+                  f"CI status reflects test results, not Slack delivery — "
+                  f"check the actual run for the real result. "
+                  f"Fix the Slack side at: "
+                  f"https://api.slack.com/apps (re-invite bot, refresh "
+                  f"channel ID, or check scopes).", file=sys.stderr)
     except urllib.error.URLError as e:
-        print(f"HTTP error: {e}", file=sys.stderr)
-        sys.exit(1)
+        print(f"⚠️  Slack HTTP error ({e}) — non-fatal, see note above.",
+              file=sys.stderr)
+    # Explicit exit 0: never fail the job for notification problems.
+    return
 
 
 def main() -> None:
