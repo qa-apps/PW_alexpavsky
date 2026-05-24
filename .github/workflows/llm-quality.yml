@@ -105,7 +105,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           python .github/scripts/notify_slack.py \
-            --channel C0B4YU5T89G \
+            --channel "${{ secrets.SLACK_LLM_QUALITY_CHANNEL_ID }}" \
             --pipeline "LLM Quality" \
             --results-dir test-results
 
@@ -120,9 +120,16 @@ jobs:
           GITHUB_REF:         ${{ github.ref }}
           PR_NUMBER:          ${{ github.event.pull_request.number }}
           PR_TITLE:           ${{ github.event.pull_request.title }}
+          # Full LLM rotation — same set as auto-fix.yml and playwright-ci.yml
+          # so root-cause analysis isn't crippled by one provider being down.
           GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
+          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
+          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
+          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL:    ${{ secrets.OPENAI_BASE_URL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
         run: |
           python .github/scripts/bug_report_slack.py \
             --channel "${{ secrets.BUG_REPORTS_CHANNEL_ID }}" \

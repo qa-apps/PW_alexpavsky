@@ -197,7 +197,7 @@ jobs:
             FAILED=$(python3 -c "import json; print(json.load(open('eval/results/summary.json'))['failed'])")
           fi
           python .github/scripts/notify_slack.py \
-            --channel C0B4HEX5W1M \
+            --channel "${{ secrets.SLACK_RAGAS_CHANNEL_ID }}" \
             --pipeline "RAG Eval Nightly" \
             --passed "${PASSED:-0}" \
             --failed "${FAILED:-0}" \
@@ -215,9 +215,15 @@ jobs:
           GITHUB_REF:         ${{ github.ref }}
           PR_NUMBER:          ${{ github.event.pull_request.number }}
           PR_TITLE:           ${{ github.event.pull_request.title }}
+          # Full LLM rotation — see llm_client.py for the provider list.
           GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
+          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
+          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
+          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL:    ${{ secrets.OPENAI_BASE_URL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
         run: |
           python .github/scripts/bug_report_slack.py \
             --channel "${{ secrets.BUG_REPORTS_CHANNEL_ID }}" \
