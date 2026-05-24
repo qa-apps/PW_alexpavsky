@@ -24,9 +24,15 @@ test.describe('API Test Cases', () => {
     expect([400, 401, 405, 422, 501]).toContain(response.status());
   });
 
-  test('should return non-empty response for chat endpoint with valid body', async ({ request }) => {
+  // Tagged @upstream because /api/chat proxies to a free-tier LLM provider
+  // whose latency and 5xx rate are outside our control. The test itself is
+  // correct — when this fails, either the upstream LLM is rate-limited or
+  // genuinely down. CI runs @upstream tests in a non-blocking job (see
+  // playwright-ci.yml) so a flaky upstream doesn't redden the suite.
+  test('should return non-empty response for chat endpoint with valid body @upstream', async ({ request }) => {
     const response = await request.post(BASE_URL + '/api/chat', {
       data: { message: 'Hello' },
+      timeout: 30_000,
     });
     expect(response.status()).toBeLessThan(500);
     const body = await response.text();

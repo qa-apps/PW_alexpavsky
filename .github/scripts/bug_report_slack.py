@@ -43,46 +43,23 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# LLM providers for root-cause analysis
-# ---------------------------------------------------------------------------
-LLM_PROVIDERS = [
-    ("groq",     os.environ.get("GROQ_API_KEY", ""),       "https://api.groq.com/openai/v1",       "llama-3.3-70b-versatile"),
-    ("cerebras", os.environ.get("CEREBRAS_API_KEY", ""),   "https://api.cerebras.ai/v1",           "llama-3.3-70b"),
-    ("or-llama", os.environ.get("OPENROUTER_API_KEY", ""), "https://openrouter.ai/api/v1",         "meta-llama/llama-3.3-70b-instruct:free"),
-]
+# Shared LLM rotation — see .github/scripts/llm_client.py
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import llm_client  # noqa: E402
 
 
 def call_llm(prompt: str, system: str = "", max_tokens: int = 600) -> str:
-    import urllib.request, urllib.error
-    for name, key, base_url, model in LLM_PROVIDERS:
-        if not key:
-            continue
-        messages = []
-        if system:
-            messages.append({"role": "system", "content": system})
-        messages.append({"role": "user", "content": prompt})
-        body = json.dumps({
-            "model": model,
-            "messages": messages,
-            "max_tokens": max_tokens,
-        }).encode()
-        req = urllib.request.Request(
-            f"{base_url}/chat/completions",
-            data=body,
-            headers={
-                "Authorization": f"Bearer {key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://alexpavsky.com",
-            },
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=25) as resp:
-                return json.loads(resp.read())["choices"][0]["message"]["content"].strip()
-        except Exception as e:
-            print(f"  [{name}] {e} — trying next", file=sys.stderr)
-    return ""
+    """Thin wrapper around llm_client.chat for backward compat with the rest
+    of this file. Returns the raw text content or "" if every provider failed.
+    """
+    result = llm_client.chat(
+        messages=[{"role": "user", "content": prompt}],
+        system=system or None,
+        max_tokens=max_tokens,
+        temperature=0.2,
+        timeout=25,
+    )
+    return result.get("content", "").strip()
 
 
 # ---------------------------------------------------------------------------

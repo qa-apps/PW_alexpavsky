@@ -28,8 +28,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install anthropic --break-system-packages 2>/dev/null || pip install anthropic
+      # No pip install needed — auto_fix_agent.py + llm_client.py use
+      # only Python stdlib (urllib.request). All rotation logic is local.
 
       - name: Configure git
         run: |
@@ -68,15 +68,24 @@ jobs:
           done
 
       - name: Run auto-fix agent
+        # All LLM keys are plumbed through so .github/scripts/llm_client.py
+        # can rotate through every configured provider until one answers.
+        # Missing keys are simply skipped — no need to gate per-provider.
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
+          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
+          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
+          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL:    ${{ secrets.OPENAI_BASE_URL }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
-          FAILED_RUN_URL: ${{ github.event.workflow_run.html_url }}
-          PIPELINE: ${{ github.event.workflow_run.name }}
-          REPO: ${{ github.repository }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
+          GEMINI_API_KEY:     ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          FAILED_RUN_ID:      ${{ github.event.workflow_run.id }}
+          FAILED_RUN_URL:     ${{ github.event.workflow_run.html_url }}
+          PIPELINE:           ${{ github.event.workflow_run.name }}
+          REPO:               ${{ github.repository }}
+          HEAD_SHA:           ${{ github.event.workflow_run.head_sha }}
+          HEAD_BRANCH:        ${{ github.event.workflow_run.head_branch }}
         run: python .github/scripts/auto_fix_agent.py

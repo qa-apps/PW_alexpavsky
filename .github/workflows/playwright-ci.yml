@@ -76,13 +76,25 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests (excluding LLM Judge — flaky by nature)
-        # LLM-judge driven tests live in their own workflow (llm-quality.yml)
-        # because they depend on free-tier provider availability and an
-        # LLM judge that scores non-deterministic chatbot output. Keeping
-        # them out of the main suite means the deterministic functional +
-        # security tests give a clean signal.
-        run: npx playwright test --grep-invert "LLM Judge"
+      # ──────────────────────────────────────────────────────────────────
+      # Test taxonomy (see auto-fix.agent.md for why this split exists):
+      #
+      #   PURE  — deterministic UI/contract tests with no external network
+      #           dependency beyond alexpavsky.com itself. MUST be green;
+      #           failure here = real product/test regression. Blocks merge.
+      #
+      #   UPSTREAM — tests that hit a free-tier LLM provider or external RSS
+      #              (tagged `@upstream` in the spec). Latency and 5xx rate
+      #              are outside our control. Runs with 3 retries and does
+      #              not redden the pipeline — instead it posts a separate
+      #              "upstream health" report to Slack.
+      #
+      #   LLM JUDGE — non-deterministic chatbot scoring; lives in its own
+      #               workflow (llm-quality.yml). Not run here at all.
+      # ──────────────────────────────────────────────────────────────────
+
+      - name: Run Playwright tests — PURE (blocks pipeline)
+        run: npx playwright test --grep-invert "@upstream|LLM Judge"
         env:
           CI: true
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -92,6 +104,24 @@ jobs:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+
+      - name: Run Playwright tests — UPSTREAM (non-blocking)
+        # `continue-on-error: true` means an upstream LLM rate-limit cannot
+        # turn the whole CI red. The results land in a separate JSON file
+        # which the upstream-health reporter (below) reads.
+        if: always()
+        continue-on-error: true
+        env:
+          CI: true
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results-upstream.json
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        run: npx playwright test --grep "@upstream" --retries=3
 
       - name: Run k6 performance profile
         run: npm run performance
@@ -188,9 +218,16 @@ jobs:
           GITHUB_REF:         ${{ github.ref }}
           PR_NUMBER:          ${{ github.event.pull_request.number }}
           PR_TITLE:           ${{ github.event.pull_request.title }}
+          # Full provider set — bug_report_slack.py uses llm_client.py which
+          # rotates across all configured providers for root-cause analysis.
           GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
+          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
+          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
+          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL:    ${{ secrets.OPENAI_BASE_URL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
         run: |
           python .github/scripts/bug_report_slack.py \
             --channel "${{ secrets.BUG_REPORTS_CHANNEL_ID }}" \

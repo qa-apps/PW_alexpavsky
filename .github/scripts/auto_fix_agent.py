@@ -6,11 +6,16 @@ Triggered by auto-fix.yml when any CI pipeline fails.
 Workflow:
   1. Download failure logs from GitHub Actions API
   2. Find which test files are failing
-  3. Call Claude (or Groq fallback) with logs + file content
+  3. Call LLM (rotating through all configured providers) with logs + files
   4. Apply the suggested file patches
   5. Push a fix branch and open a PR with alexpavsky as reviewer
 
 The agent never merges — it only opens a PR for human review.
+
+LLM rotation lives in .github/scripts/llm_client.py — same provider list
+as eval/rotating_llm.py. When one provider returns 401/403/429 the next
+one is tried automatically, so a single rotated key doesn't break the
+whole pipeline.
 """
 from __future__ import annotations
 
@@ -24,6 +29,10 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+# Local import — llm_client.py sits next to this file in .github/scripts/
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import llm_client  # noqa: E402
+
 # ---------------------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------------------
@@ -33,9 +42,6 @@ RUN_URL   = os.environ.get("FAILED_RUN_URL", "")
 PIPELINE  = os.environ.get("PIPELINE", "CI")
 HEAD_SHA  = os.environ.get("HEAD_SHA", "")
 GH_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
-ANTH_KEY  = os.environ.get("ANTHROPIC_API_KEY", "")
-GROQ_KEY  = os.environ.get("GROQ_API_KEY", "")
-OR_KEY    = os.environ.get("OPENROUTER_API_KEY", "")
 
 MAX_LOG_CHARS  = 18000
 MAX_FILE_CHARS = 12000
@@ -232,74 +238,58 @@ Analyze the failure. If you can determine a confident, minimal fix, call edit_fi
 If the failure requires application changes or you cannot determine the root cause safely, call give_up."""
 
 
-def call_anthropic(logs: str, files: str) -> list[dict]:
-    if not ANTH_KEY:
-        return []
-    print("  Calling Claude (Anthropic)...")
-    body = json.dumps({
-        "model": "claude-sonnet-4-6",
-        "max_tokens": 4096,
-        "system": SYSTEM_PROMPT,
-        "messages": [{"role": "user", "content": build_prompt(logs, files)}],
-        "tools": TOOLS,
-        "tool_choice": {"type": "any"},
-    }).encode()
-    req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages",
-        data=body,
-        headers={
-            "x-api-key": ANTH_KEY,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        },
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=90) as r:
-            resp = json.loads(r.read())
-            return [b for b in resp.get("content", []) if b.get("type") == "tool_use"]
-    except Exception as e:
-        print(f"  Anthropic error: {e}", file=sys.stderr)
-        return []
+def call_llm(logs: str, files: str) -> tuple[list[dict], str]:
+    """Call the rotating LLM client with native tool-use support.
 
+    Returns (tool_calls, provider_used). tool_calls items follow the existing
+    {"name": str, "input": dict} shape used by apply_fixes().
 
-def call_groq(logs: str, files: str) -> list[dict]:
-    key = GROQ_KEY or OR_KEY
-    if not key:
-        return []
-    base = "https://api.groq.com/openai/v1" if GROQ_KEY else "https://openrouter.ai/api/v1"
-    model = "llama-3.3-70b-versatile" if GROQ_KEY else "meta-llama/llama-3.3-70b-instruct:free"
-    print(f"  Calling LLM fallback ({base.split('/')[2]})...")
-    prompt = (
-        f"{SYSTEM_PROMPT}\n\n{build_prompt(logs, files)}\n\n"
-        "Return ONLY a JSON array (no markdown) of fixes, or [] if giving up:\n"
-        '[{"file_path":"...","old_text":"...","new_text":"...","reason":"..."}]'
+    If the provider returned tool_calls natively, use them as-is. If it only
+    returned text content (some weaker models do this even with tools=...),
+    fall back to JSON-parsing a fenced array — same trick the old call_groq
+    used. Either way, downstream code is unchanged.
+    """
+    providers = llm_client.configured_providers()
+    if not providers:
+        print("  No LLM providers configured (no API keys in env).",
+              file=sys.stderr)
+        return [], ""
+    print(f"  Available providers: {', '.join(providers)}")
+
+    result = llm_client.chat(
+        messages=[{"role": "user", "content": build_prompt(logs, files)}],
+        system=SYSTEM_PROMPT,
+        tools=TOOLS,
+        max_tokens=4096,
+        temperature=0.1,
+        timeout=90,
     )
-    body = json.dumps({
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 2000,
-        "temperature": 0.1,
-    }).encode()
-    req = urllib.request.Request(
-        f"{base}/chat/completions",
-        data=body,
-        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            resp = json.loads(r.read())
-            content = resp["choices"][0]["message"]["content"].strip()
-            # Strip markdown code fences if present
-            content = re.sub(r"^```[a-z]*\n?", "", content).rstrip("` \n")
-            fixes = json.loads(content)
-            if not isinstance(fixes, list):
-                return []
-            return [{"name": "edit_file", "input": f} for f in fixes]
-    except Exception as e:
-        print(f"  LLM fallback error: {e}", file=sys.stderr)
-        return []
+
+    provider = result.get("provider", "")
+    tool_calls = result.get("tool_calls", [])
+    content = result.get("content", "")
+
+    if tool_calls:
+        print(f"  ✅ {provider} returned {len(tool_calls)} tool call(s)")
+        return tool_calls, provider
+
+    # Fallback: parse a JSON array out of the content (some models don't
+    # honor tool_choice and just write the JSON instead).
+    if content.strip():
+        cleaned = re.sub(r"^```[a-z]*\n?", "", content.strip()).rstrip("` \n")
+        try:
+            fixes = json.loads(cleaned)
+            if isinstance(fixes, list) and fixes:
+                print(f"  ✅ {provider} returned {len(fixes)} fixes via "
+                      f"text-JSON fallback")
+                return [{"name": "edit_file", "input": f} for f in fixes], provider
+        except json.JSONDecodeError:
+            pass
+
+    print(f"  All providers failed or returned no fix. Errors:")
+    for e in result.get("errors", []):
+        print(f"    {e}", file=sys.stderr)
+    return [], ""
 
 
 # ---------------------------------------------------------------------------
@@ -433,8 +423,11 @@ def main() -> None:
         print("No GITHUB_TOKEN — aborting", file=sys.stderr)
         sys.exit(1)
 
-    if not ANTH_KEY and not GROQ_KEY and not OR_KEY:
-        print("No LLM API key (ANTHROPIC_API_KEY / GROQ_API_KEY / OPENROUTER_API_KEY)", file=sys.stderr)
+    if not llm_client.configured_providers():
+        print("No LLM API keys in env (need one of: "
+              "GROQ_API_KEY, CEREBRAS_API_KEY, SAMBANOVA_API_KEY, "
+              "MISTRAL_API_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY, HF_TOKEN)",
+              file=sys.stderr)
         sys.exit(1)
 
     # 1. Get logs
@@ -465,14 +458,13 @@ def main() -> None:
     print(f"  Found: {failing or '(none — will scan all tests)'}")
     file_content = read_files(failing)
 
-    # 3. Call LLM
+    # 3. Call LLM (rotates through all configured providers)
     print("\n[3] Calling LLM for fix analysis...")
-    tool_uses = call_anthropic(logs, file_content)
+    tool_uses, provider = call_llm(logs, file_content)
     if not tool_uses:
-        tool_uses = call_groq(logs, file_content)
-    if not tool_uses:
-        print("  LLM returned no tool calls — cannot fix. Exiting.")
+        print("  No LLM produced a usable fix — exiting cleanly.")
         sys.exit(0)
+    print(f"  Fix author: {provider}")
 
     # 4. Apply fixes
     print("\n[4] Applying fixes...")
