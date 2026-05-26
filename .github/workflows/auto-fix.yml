@@ -9,8 +9,28 @@ on:
     types: [completed]
 
 jobs:
+  # Gate job runs unconditionally so the workflow conclusion is "success"
+  # instead of "skipped" when there's nothing to fix. Without this,
+  # every passing upstream run produced a "Run skipped" email.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.decide.outputs.should_run }}
+    steps:
+      - id: decide
+        run: |
+          conclusion="${{ github.event.workflow_run.conclusion }}"
+          echo "Upstream workflow conclusion: $conclusion"
+          if [ "$conclusion" = "failure" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Nothing to fix — exiting cleanly so the run isn't marked as skipped."
+          fi
+
   auto-fix:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    needs: gate
+    if: needs.gate.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
