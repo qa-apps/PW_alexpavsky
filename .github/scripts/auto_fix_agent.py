@@ -43,10 +43,13 @@ PIPELINE  = os.environ.get("PIPELINE", "CI")
 HEAD_SHA  = os.environ.get("HEAD_SHA", "")
 GH_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
 
-# Slack notification — reuses the same bot token / channel as bug_report_slack.
-# No webhook needed: chat.postMessage works with the bot token directly.
+# Slack notification — uses the bot token via chat.postMessage (no webhook).
+# PR-review pings go to the dedicated #ci-pr-review channel
+# (PR_REVIEW_CHANNEL_ID); fall back to the bug-reports channel if it isn't set
+# so we never silently lose a notification.
 SLACK_TOKEN   = os.environ.get("SLACK_BOT_TOKEN", "")
-SLACK_CHANNEL = os.environ.get("BUG_REPORTS_CHANNEL_ID", "")
+SLACK_CHANNEL = (os.environ.get("PR_REVIEW_CHANNEL_ID", "")
+                 or os.environ.get("BUG_REPORTS_CHANNEL_ID", ""))
 
 MAX_LOG_CHARS  = 18000
 MAX_FILE_CHARS = 12000

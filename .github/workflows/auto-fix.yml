@@ -103,7 +103,10 @@ jobs:
           GEMINI_API_KEY:     ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
           # Slack ping when a PR is opened — no webhook needed, bot token only.
+          # PR-review pings go to the dedicated #ci-pr-review channel; the
+          # bug-reports channel stays the fallback if PR_REVIEW_CHANNEL_ID is unset.
           SLACK_BOT_TOKEN:        ${{ secrets.SLACK_BOT_TOKEN }}
+          PR_REVIEW_CHANNEL_ID:   ${{ secrets.PR_REVIEW_CHANNEL_ID }}
           BUG_REPORTS_CHANNEL_ID: ${{ secrets.BUG_REPORTS_CHANNEL_ID }}
           FAILED_RUN_ID:      ${{ github.event.workflow_run.id }}
           FAILED_RUN_URL:     ${{ github.event.workflow_run.html_url }}
