@@ -43,6 +43,11 @@ PIPELINE  = os.environ.get("PIPELINE", "CI")
 HEAD_SHA  = os.environ.get("HEAD_SHA", "")
 GH_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
 
+# Slack notification — reuses the same bot token / channel as bug_report_slack.
+# No webhook needed: chat.postMessage works with the bot token directly.
+SLACK_TOKEN   = os.environ.get("SLACK_BOT_TOKEN", "")
+SLACK_CHANNEL = os.environ.get("BUG_REPORTS_CHANNEL_ID", "")
+
 MAX_LOG_CHARS  = 18000
 MAX_FILE_CHARS = 12000
 
@@ -341,6 +346,37 @@ def git(*args: str) -> str:
     return result.stdout.strip()
 
 
+def slack_notify(pr_url: str, fixes: list[dict]) -> None:
+    """Best-effort Slack ping that a PR needs review. Uses the bot token +
+    channel that already exist as repo secrets — no webhook required.
+    GitHub never emails about PRs the bot's own account authored, so this is
+    how the human actually finds out. Never raises."""
+    if not SLACK_TOKEN or not SLACK_CHANNEL:
+        print("  (slack notify skipped — SLACK_BOT_TOKEN/BUG_REPORTS_CHANNEL_ID not set)")
+        return
+    changed = ", ".join(sorted({f["file_path"] for f in fixes})) or "test files"
+    text = (f":robot_face: *Auto-fix PR ready for review* — {PIPELINE}\n"
+            f"Files: {changed}\n{pr_url}")
+    payload = json.dumps({"channel": SLACK_CHANNEL, "text": text}).encode()
+    req = urllib.request.Request(
+        "https://slack.com/api/chat.postMessage",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {SLACK_TOKEN}",
+            "Content-Type": "application/json; charset=utf-8",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            resp = json.loads(r.read())
+        if resp.get("ok"):
+            print("  💬 Slack notification sent")
+        else:
+            print(f"  ⚠ Slack notify error: {resp.get('error')}", file=sys.stderr)
+    except Exception as e:
+        print(f"  ⚠ Slack notify failed: {e}", file=sys.stderr)
+
+
 def create_pr(fixes: list[dict]) -> None:
     slug      = re.sub(r"[^a-z0-9]+", "-", PIPELINE.lower())[:25].strip("-")
     short_sha = (HEAD_SHA or "unknown")[:8]
@@ -397,6 +433,9 @@ def create_pr(fixes: list[dict]) -> None:
         return
     pr_url = create.stdout.strip()
     print(f"  ✅ PR created: {pr_url}")
+
+    # Ping the human in Slack — GitHub won't, since the bot authored the PR.
+    slack_notify(pr_url, fixes)
 
     # Best-effort metadata — a missing label/reviewer must never orphan the PR.
     # Reviewer is opt-in via PR_REVIEWER env (must be a real repo collaborator).

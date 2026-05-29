@@ -102,6 +102,9 @@ jobs:
           HF_TOKEN:           ${{ secrets.HF_TOKEN }}
           GEMINI_API_KEY:     ${{ secrets.GEMINI_API_KEY }}
           GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          # Slack ping when a PR is opened — no webhook needed, bot token only.
+          SLACK_BOT_TOKEN:        ${{ secrets.SLACK_BOT_TOKEN }}
+          BUG_REPORTS_CHANNEL_ID: ${{ secrets.BUG_REPORTS_CHANNEL_ID }}
           FAILED_RUN_ID:      ${{ github.event.workflow_run.id }}
           FAILED_RUN_URL:     ${{ github.event.workflow_run.html_url }}
           PIPELINE:           ${{ github.event.workflow_run.name }}
