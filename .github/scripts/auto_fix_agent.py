@@ -8,7 +8,7 @@ Workflow:
   2. Find which test files are failing
   3. Call LLM (rotating through all configured providers) with logs + files
   4. Apply the suggested file patches
-  5. Push a fix branch and open a PR with alexpavsky as reviewer
+  5. Push a fix branch and open a PR for human review (labelled `bug`)
 
 The agent never merges — it only opens a PR for human review.
 
@@ -378,36 +378,42 @@ def create_pr(fixes: list[dict]) -> None:
 *This PR was created automatically by the auto-fix agent. Review carefully before merging.*
 """
 
-    result = subprocess.run(
+    # Create the PR with only the flags that can't fail. A bad --reviewer or a
+    # non-existent --label makes `gh pr create` exit non-zero AFTER pushing the
+    # branch, which orphans it with no PR. Metadata is applied best-effort below.
+    create = subprocess.run(
         [
             "gh", "pr", "create",
             "--title", f"fix: auto-fix {PIPELINE} ({short_sha})",
             "--body", pr_body,
-            "--reviewer", "alexpavsky",
-            "--label", "bug-fix",
             "--head", branch,
             "--base", "master",
         ],
         capture_output=True,
         text=True,
     )
-    if result.returncode == 0:
-        print(f"  ✅ PR created: {result.stdout.strip()}")
-    else:
-        print(f"  ⚠ PR creation failed: {result.stderr.strip()}", file=sys.stderr)
-        # Try without reviewer in case alexpavsky is not yet a collaborator
-        subprocess.run(
-            [
-                "gh", "pr", "create",
-                "--title", f"fix: auto-fix {PIPELINE} ({short_sha})",
-                "--body", pr_body,
-                "--label", "bug-fix",
-                "--head", branch,
-                "--base", "master",
-            ],
-            check=True,
+    if create.returncode != 0:
+        print(f"  ⚠ PR creation failed: {create.stderr.strip()}", file=sys.stderr)
+        return
+    pr_url = create.stdout.strip()
+    print(f"  ✅ PR created: {pr_url}")
+
+    # Best-effort metadata — a missing label/reviewer must never orphan the PR.
+    # Reviewer is opt-in via PR_REVIEWER env (must be a real repo collaborator).
+    reviewer = os.environ.get("PR_REVIEWER", "").strip()
+    label = subprocess.run(
+        ["gh", "pr", "edit", pr_url, "--add-label", "bug"],
+        capture_output=True, text=True,
+    )
+    if label.returncode != 0:
+        print(f"  (label not applied: {label.stderr.strip()})", file=sys.stderr)
+    if reviewer:
+        rev = subprocess.run(
+            ["gh", "pr", "edit", pr_url, "--add-reviewer", reviewer],
+            capture_output=True, text=True,
         )
-        print("  ✅ PR created (without reviewer)")
+        if rev.returncode != 0:
+            print(f"  (reviewer not added: {rev.stderr.strip()})", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
