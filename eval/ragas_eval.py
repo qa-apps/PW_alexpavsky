@@ -53,6 +53,11 @@ RAG_API_URL = os.environ.get("RAG_API_URL", "http://localhost:8001").rstrip("/")
 MIN_FAITHFULNESS = float(os.environ.get("MIN_FAITHFULNESS", "0.65"))
 MIN_RELEVANCY = float(os.environ.get("MIN_RELEVANCY", "0.55"))
 MAX_QUESTIONS = int(os.environ.get("MAX_QUESTIONS", "0"))  # 0 = all
+# How many individual question failures are tolerated before the run is marked
+# failed (and the auto-fix agent is allowed to trigger). Default 0 = any single
+# failed question fails the build, so "even RAG" failures get investigated.
+# Set ALLOWED_FAILURES=-1 to fall back to average-only gating (legacy behaviour).
+ALLOWED_FAILURES = int(os.environ.get("ALLOWED_FAILURES", "0"))
 OUTPUT_PATH = Path(os.environ.get("OUTPUT_PATH", str(RESULTS_DIR / "report.md")))
 
 REQUEST_DELAY_SEC = float(os.environ.get("REQUEST_DELAY_SEC", "1.0"))
@@ -456,12 +461,21 @@ def main() -> int:
         json.dumps(summary_json, indent=2), encoding="utf-8"
     )
 
-    # Exit code: pass/fail based on thresholds
+    # Exit code: pass/fail based on thresholds.
+    # Previously this only considered the *average* faithfulness/relevancy, so a
+    # run with individual question failures (e.g. 24/27 passed) still exited 0,
+    # GitHub marked it "success", and the auto-fix gate (conclusion == failure)
+    # never fired. We now also fail when too many individual questions fail.
+    failed_count = summary_json["failed"]
     failed_checks: list[str] = []
     if avg_f < MIN_FAITHFULNESS:
-        failed_checks.append(f"faithfulness {avg_f:.3f} < {MIN_FAITHFULNESS}")
+        failed_checks.append(f"avg faithfulness {avg_f:.3f} < {MIN_FAITHFULNESS}")
     if avg_r < MIN_RELEVANCY:
-        failed_checks.append(f"relevancy {avg_r:.3f} < {MIN_RELEVANCY}")
+        failed_checks.append(f"avg relevancy {avg_r:.3f} < {MIN_RELEVANCY}")
+    if ALLOWED_FAILURES >= 0 and failed_count > ALLOWED_FAILURES:
+        failed_checks.append(
+            f"{failed_count} question(s) failed "
+            f"(> {ALLOWED_FAILURES} allowed)")
 
     if failed_checks:
         log("FAIL: " + "; ".join(failed_checks))

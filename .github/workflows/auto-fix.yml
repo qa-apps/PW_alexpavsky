@@ -68,7 +68,7 @@ jobs:
             });
             const fs = require('fs');
             for (const artifact of artifacts.data.artifacts) {
-              const names = ['test-results', 'playwright-report', 'eval-results'];
+              const names = ['test-results', 'playwright-report', 'eval-results', 'eval-report'];
               if (names.some(n => artifact.name.includes(n))) {
                 const zip = await github.rest.actions.downloadArtifact({
                   owner: context.repo.owner,
@@ -108,6 +108,9 @@ jobs:
           SLACK_BOT_TOKEN:        ${{ secrets.SLACK_BOT_TOKEN }}
           PR_REVIEW_CHANNEL_ID:   ${{ secrets.PR_REVIEW_CHANNEL_ID }}
           BUG_REPORTS_CHANNEL_ID: ${{ secrets.BUG_REPORTS_CHANNEL_ID }}
+          # Detailed Investigation / Fix / Resolution reports land here
+          # (#qa-agent-reports). Falls back to the PR-review channel if unset.
+          AGENT_REPORTS_CHANNEL_ID: ${{ secrets.AGENT_REPORTS_CHANNEL_ID }}
           FAILED_RUN_ID:      ${{ github.event.workflow_run.id }}
           FAILED_RUN_URL:     ${{ github.event.workflow_run.html_url }}
           PIPELINE:           ${{ github.event.workflow_run.name }}
