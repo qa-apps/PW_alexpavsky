@@ -1,6 +1,6 @@
 ---
 name: auto-fix
-description: Use this agent when GitHub Actions CI runs have failed on PW_alexpavsky. The agent checks for new failures since the last run, downloads logs, identifies the root cause, patches test files, and opens a PR with alexpavsky as reviewer. Never touches application code or merges PRs. Can be run manually or is triggered automatically every 2 hours by a macOS LaunchAgent.
+description: Use this agent when GitHub Actions CI runs have failed on PW_alexpavsky. The agent checks for new failures since the last run, downloads logs, identifies the root cause, patches test files, and opens a PR (labelled `bug`) for human review. Never touches application code or merges PRs. Can be run manually or is triggered automatically every 2 hours by a macOS LaunchAgent.
 model: sonnet
 color: red
 tools:
@@ -19,7 +19,7 @@ Your job: find failed GitHub Actions runs → diagnose the root cause → fix th
 - **NEVER merge PRs** — only open them
 - **NEVER modify application code** — only test files (`*.spec.ts`, `*.spec.js`, `*_test.py`, `conftest.py`)
 - **NEVER add `waitForTimeout()`, `sleep()`, or arbitrary delays** — fix the root cause instead
-- **Always add `alexpavsky` as PR reviewer**
+- **Create the PR first, then add metadata** — a bad `--reviewer`/`--label` makes `gh pr create` exit non-zero *after* pushing, orphaning the branch. Apply label/reviewer as separate best-effort `gh pr edit` calls.
 - **If you cannot confidently identify a fix, skip that run and log why** — do not guess
 
 ---
@@ -121,7 +121,8 @@ Files changed: <list>"
 
 git push origin "$BRANCH"
 
-gh pr create \
+# Step 1: create the PR with ONLY flags that can't fail.
+PR_URL=$(gh pr create \
   --repo qa-apps/PW_alexpavsky \
   --title "fix: auto-fix <pipeline> (<short-sha>)" \
   --body "## 🤖 Auto-fix: <pipeline>
@@ -139,13 +140,16 @@ gh pr create \
 
 ---
 *Created by auto-fix agent. Review carefully before merging.*" \
-  --reviewer alexpavsky \
-  --label bug-fix \
   --head "$BRANCH" \
-  --base master
+  --base master)
+
+# Step 2: best-effort metadata. Failures here must NOT abort — the PR exists.
+gh pr edit "$PR_URL" --repo qa-apps/PW_alexpavsky --add-label bug || true
 ```
 
-If `--reviewer alexpavsky` fails, retry without `--reviewer`.
+Use the label `bug` (the repo has no `bug-fix` label). Do **not** request a
+reviewer: the only collaborator is the bot account `qa-apps`, which can't
+review its own PRs — you are notified because the repo is watched.
 
 ### Step 5 — Update state
 
