@@ -24,10 +24,14 @@ import type { Page } from '@playwright/test';
 
 const BASE_URL = process.env.SITE_URL || 'https://www.alexpavsky.com';
 
+// Real persisted test account on alexpavsky.com — must be able to log in
+// every day. Owned by the site owner. If the password ever rotates, set
+// QA_DAILY_USER_PASSWORD in the env / .env file. Credentials are
+// deliberately committed (low-value test account, no real data).
 const DAILY_USER = {
-  name: process.env.QA_DAILY_USER_NAME || 'QA Daily',
-  email: process.env.QA_DAILY_USER_EMAIL || 'qa-daily@alexpavsky.test',
-  password: process.env.QA_DAILY_USER_PASSWORD || 'DailyTestPassword!2026',
+  name: process.env.QA_DAILY_USER_NAME || 'test_email_001007',
+  email: process.env.QA_DAILY_USER_EMAIL || 'test_email_001007@proton.me',
+  password: process.env.QA_DAILY_USER_PASSWORD || 'test_email_001007',
 };
 
 function randomUser() {
@@ -42,18 +46,6 @@ function randomUser() {
     password: `Fr3sh!-${stamp}`,
     firstName: first,
   };
-}
-
-/** Ensure the daily user exists. Best-effort: register; ignore 409 (already exists). */
-async function ensureDailyUserExists(page: Page) {
-  const r = await page.request.post(`${BASE_URL}/api/auth/register`, {
-    data: DAILY_USER,
-    headers: { 'Content-Type': 'application/json' },
-    failOnStatusCode: false,
-  });
-  if (r.status() !== 201 && r.status() !== 409) {
-    console.warn(`[authUserJourneys] daily-user bootstrap returned ${r.status()}: ${(await r.text()).slice(0, 200)}`);
-  }
 }
 
 /** Hide the chat-teaser bubble that overlaps the Login button area. */
@@ -90,8 +82,9 @@ async function assertNavShowsUser(page: Page, firstName: string) {
 test.describe('Auth user journeys (UI) @upstream', () => {
 
   test('daily test user can log in via the modal and nav swaps Login → user name', async ({ page }) => {
-    await ensureDailyUserExists(page);
-
+    // No bootstrap. This account must already exist on prod. A failure here
+    // means either auth is broken or the account was deleted — either way,
+    // we want a loud red signal, not a silent re-registration.
     await page.goto(BASE_URL);
     await hideChatWidgetOverlays(page);
 
