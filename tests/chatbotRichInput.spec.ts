@@ -25,6 +25,7 @@ import { test, expect } from '../utils/fixtures';
 import * as fs from 'node:fs';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
+import ExcelJS from 'exceljs';
 
 const BASE_URL = process.env.SITE_URL || 'https://www.alexpavsky.com';
 
@@ -74,6 +75,28 @@ async function makePdfFile(filePath: string, marker: string) {
     { x: 50, y: 720, size: 14, font, lineHeight: 20 },
   );
   await fs.promises.writeFile(filePath, await pdf.save());
+}
+
+async function makeCsvFile(filePath: string, marker: string) {
+  // Simple CSV: header + 3 rows; the unique discriminator lives in the
+  // last cell, so the bot has to actually parse the file to find it.
+  const csv = [
+    'product,quantity,note',
+    'apples,42,fresh',
+    'oranges,17,boxed',
+    `mystery_item,1,${marker}`,
+  ].join('\n');
+  await fs.promises.writeFile(filePath, csv, 'utf8');
+}
+
+async function makeXlsxFile(filePath: string, marker: string) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Inventory');
+  ws.addRow(['product', 'quantity', 'note']);
+  ws.addRow(['apples', 42, 'fresh']);
+  ws.addRow(['oranges', 17, 'boxed']);
+  ws.addRow(['mystery_item', 1, marker]);
+  await wb.xlsx.writeFile(filePath);
 }
 
 async function makeDocxFile(filePath: string, marker: string) {
@@ -246,6 +269,48 @@ test.describe('Chatbot rich-input @upstream', () => {
     );
 
     expect(reply, `bot reply must reference the DOCX discriminator. Reply: ${reply.slice(0, 400)}`)
+      .toContain(discriminator);
+  });
+
+  test('CSV — bot parses the rows and answers from the discriminator cell', async ({ page }, testInfo) => {
+    await openChatAndAccept(page);
+
+    const discriminator = 'CARROT-BICYCLE';
+    const marker = `${discriminator}-${Date.now().toString(36).slice(-6)}`;
+    const filePath = testInfo.outputPath('grounding-test.csv');
+    await makeCsvFile(filePath, marker);
+
+    await page.setInputFiles('#chat-file-input', filePath);
+    await page.locator('.chat-attachment-chip, .chat-attachment-card').first()
+      .waitFor({ state: 'visible', timeout: 10_000 });
+
+    const reply = await sendAndAwaitNewBotReply(
+      page,
+      'In the attached CSV, what value is in the "note" column for the "mystery_item" row? Reply with ONLY that value.',
+    );
+
+    expect(reply, `bot must read the CSV discriminator cell. Reply: ${reply.slice(0, 400)}`)
+      .toContain(discriminator);
+  });
+
+  test('Excel XLSX — bot parses the spreadsheet and answers from the discriminator cell', async ({ page }, testInfo) => {
+    await openChatAndAccept(page);
+
+    const discriminator = 'GRAPEFRUIT-METRONOME';
+    const marker = `${discriminator}-${Date.now().toString(36).slice(-6)}`;
+    const filePath = testInfo.outputPath('grounding-test.xlsx');
+    await makeXlsxFile(filePath, marker);
+
+    await page.setInputFiles('#chat-file-input', filePath);
+    await page.locator('.chat-attachment-chip, .chat-attachment-card').first()
+      .waitFor({ state: 'visible', timeout: 10_000 });
+
+    const reply = await sendAndAwaitNewBotReply(
+      page,
+      'In the attached Excel spreadsheet, what is the value in the "note" column for the "mystery_item" row? Reply with ONLY that value.',
+    );
+
+    expect(reply, `bot must read the XLSX discriminator cell. Reply: ${reply.slice(0, 400)}`)
       .toContain(discriminator);
   });
 
