@@ -31,9 +31,34 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
+    // Default desktop project — runs ALL specs.
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+    // Device matrix — runs the cross-device smoke spec only, so we
+    // verify hero / nav / Live Feed / auth render correctly on every
+    // device profile users actually have. Tagged via testMatch so the
+    // full 500-test suite isn't multiplied by 4.
+    {
+      name: 'iphone-13',
+      use: { ...devices['iPhone 13'] },
+      testMatch: /tests\/crossDevice\.spec\.ts/,
+    },
+    {
+      name: 'pixel-7',
+      use: { ...devices['Pixel 7'] },
+      testMatch: /tests\/crossDevice\.spec\.ts/,
+    },
+    {
+      name: 'ipad-pro-11',
+      use: { ...devices['iPad Pro 11'] },
+      testMatch: /tests\/crossDevice\.spec\.ts/,
+    },
+    {
+      name: 'galaxy-tab-s4',
+      use: { ...devices['Galaxy Tab S4'] },
+      testMatch: /tests\/crossDevice\.spec\.ts/,
     },
   ],
 });

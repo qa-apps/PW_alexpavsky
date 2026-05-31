@@ -100,7 +100,9 @@ test.describe('Article modal — reader-area load (E2E)', () => {
 
     await page.goto(BASE_URL + '/');
     const card = page.locator('.feed-card').first();
-    await card.waitFor({ state: 'visible', timeout: 20_000 });
+    // CI runners have higher network jitter — give the upstream RSS fetch
+    // headroom. Local runs typically resolve in ~3–5s.
+    await card.waitFor({ state: 'visible', timeout: 35_000 });
     await card.click();
 
     const modal = page.locator('#article-modal-overlay, .article-modal').first();
