@@ -120,5 +120,44 @@ test.describe('Live feed @upstream', () => {
       await homePage.openFeedArticle(0);
       expect(await homePage.articleModalLinks.count()).toBeGreaterThan(0);
     });
+
+    // Production renders article content (or its fallback) into the
+    // #article-modal-reader div; the iframe is hidden. See production
+    // script.js:944-951.
+
+    test('reader must render real article content, not the blocked/fallback screen', async ({ homePage, page }) => {
+      await homePage.openFeedArticle(0);
+      const reader = page.locator('#article-modal-reader');
+      await expect(reader).toHaveClass(/loaded/, { timeout: 15_000 });
+
+      const body = await reader.innerText({ timeout: 10_000 });
+
+      expect(body, 'reader shows blocked/fallback page').not.toMatch(
+        /preview is unavailable|RSS preview|publisher blocks|took too long/i,
+      );
+      expect(body.replace(/\s+/g, ' ').trim().length, 'reader body empty').toBeGreaterThan(200);
+    });
+
+    test('majority of feed articles render real content', async ({ homePage, page }) => {
+      const total = Math.min(await homePage.feedCards.count(), 5);
+      const broken: string[] = [];
+      const reader = page.locator('#article-modal-reader');
+      for (let i = 0; i < total; i++) {
+        await homePage.openFeedArticle(i);
+        let body = '';
+        try {
+          await expect(reader).toHaveClass(/loaded/, { timeout: 15_000 });
+          body = await reader.innerText({ timeout: 8_000 });
+        } catch (e) {
+          body = String(e);
+        }
+        if (/preview is unavailable|RSS preview|publisher blocks|took too long/i.test(body) || body.trim().length < 200) {
+          const title = (await homePage.articleModalTitle.innerText().catch(() => '?')).slice(0, 60);
+          broken.push(`#${i}: ${title}`);
+        }
+        await homePage.closeArticleModal();
+      }
+      expect(broken, `broken articles:\n${broken.join('\n')}`).toEqual([]);
+    });
   });
 });

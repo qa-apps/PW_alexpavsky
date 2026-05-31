@@ -51,8 +51,26 @@ SLACK_TOKEN   = os.environ.get("SLACK_BOT_TOKEN", "")
 SLACK_CHANNEL = (os.environ.get("PR_REVIEW_CHANNEL_ID", "")
                  or os.environ.get("BUG_REPORTS_CHANNEL_ID", ""))
 
+# Detailed Investigation / Fix / Resolution reports go to #qa-agent-reports.
+# Fall back to the PR-review/bug channel so a report is never silently lost.
+AGENT_REPORTS_CHANNEL = (os.environ.get("AGENT_REPORTS_CHANNEL_ID", "")
+                         or SLACK_CHANNEL)
+
+# Pipelines where we must NOT auto-patch code. RAG / eval-quality failures have
+# their root cause in the RAG app, the knowledge base, or the eval dataset —
+# none of which the agent is allowed to edit. For these we investigate, post a
+# detailed report, and open a tracking issue instead of a PR.
+REPORT_ONLY_KEYWORDS = ("ragas", "rag eval", "eval nightly", "giskard")
+
 MAX_LOG_CHARS  = 18000
 MAX_FILE_CHARS = 12000
+
+
+def is_report_only(pipeline: str) -> bool:
+    """True for RAG/eval pipelines that should be investigated + reported but
+    never auto-patched."""
+    p = pipeline.lower()
+    return any(k in p for k in REPORT_ONLY_KEYWORDS)
 
 
 # ---------------------------------------------------------------------------
@@ -170,6 +188,42 @@ def read_files(paths: list[str]) -> str:
                 break
         except Exception:
             pass
+    return "\n\n".join(parts)
+
+
+def gather_eval_context() -> str:
+    """For RAG/eval pipelines: collect the human-readable report + machine
+    summary so the LLM can investigate which questions failed and why. Reads
+    both the in-repo eval/results/ and any artifact dirs the workflow extracted
+    from the failed run."""
+    patterns = [
+        "eval/results/report.md",
+        "eval/results/summary.json",
+        "eval/results/giskard_rag.json",
+        "eval/results/giskard_scan.json",
+        "**/report.md",
+        "**/summary.json",
+        "**/giskard_rag.json",
+        "**/giskard_scan.json",
+    ]
+    seen: set[str] = set()
+    parts: list[str] = []
+    total = 0
+    for pat in patterns:
+        for p in sorted(Path(".").glob(pat)):
+            sp = str(p)
+            if sp in seen or not p.is_file():
+                continue
+            seen.add(sp)
+            try:
+                text = p.read_text(errors="replace")
+            except Exception:
+                continue
+            chunk = f"### {sp}\n{text[:4000]}"
+            parts.append(chunk)
+            total += len(chunk)
+            if total > MAX_FILE_CHARS:
+                return "\n\n".join(parts)
     return "\n\n".join(parts)
 
 
@@ -300,6 +354,64 @@ def call_llm(logs: str, files: str) -> tuple[list[dict], str]:
     return [], ""
 
 
+REPORT_SYSTEM_PROMPT = """You are a senior QA / LLM-evaluation engineer triaging a failed CI run.
+Write a concise incident report grounded in concrete evidence from the logs
+(test names, metrics, thresholds, error messages). Never invent details — if
+the logs are inconclusive, say so.
+
+Return ONLY a JSON object (no markdown fence, no prose around it) with keys:
+- "investigation": 2-4 sentences. What failed and the most likely root cause,
+  citing specific evidence.
+- "fix": 2-4 sentences. For test-code failures, the concrete code change that
+  resolves it. For RAG / eval-quality failures, the concrete fix you recommend
+  (which dataset/threshold/file or which RAG-app behaviour) — note that test
+  code cannot fix a genuine answer-quality regression.
+- "severity": one of "low", "medium", "high"."""
+
+
+def investigate(logs: str, context: str) -> dict:
+    """Ask the LLM for a structured Investigation/Fix narrative. Returns a dict
+    with keys investigation, fix, severity. Never raises — returns {} on fail."""
+    prompt = f"""Pipeline: {PIPELINE}
+Failed run: {RUN_URL}
+
+## CI failure logs (truncated):
+{logs}
+
+## Additional context (test files / eval reports):
+{context}
+
+Produce the JSON incident report described in the system prompt."""
+    try:
+        result = llm_client.chat(
+            messages=[{"role": "user", "content": prompt}],
+            system=REPORT_SYSTEM_PROMPT,
+            max_tokens=1024,
+            temperature=0.2,
+            timeout=90,
+        )
+    except Exception as e:
+        print(f"  ⚠ investigate() LLM error: {e}", file=sys.stderr)
+        return {}
+    content = (result.get("content") or "").strip()
+    if not content:
+        return {}
+    cleaned = re.sub(r"^```[a-z]*\n?", "", content).rstrip("` \n")
+    # Some models wrap the JSON in prose — grab the first {...} block.
+    m = re.search(r"\{.*\}", cleaned, re.DOTALL)
+    if m:
+        cleaned = m.group(0)
+    try:
+        data = json.loads(cleaned)
+        if isinstance(data, dict):
+            return data
+    except json.JSONDecodeError:
+        print("  ⚠ investigate() returned non-JSON; using raw text",
+              file=sys.stderr)
+        return {"investigation": content[:600], "fix": "", "severity": "medium"}
+    return {}
+
+
 # ---------------------------------------------------------------------------
 # Apply fixes
 # ---------------------------------------------------------------------------
@@ -349,18 +461,12 @@ def git(*args: str) -> str:
     return result.stdout.strip()
 
 
-def slack_notify(pr_url: str, fixes: list[dict]) -> None:
-    """Best-effort Slack ping that a PR needs review. Uses the bot token +
-    channel that already exist as repo secrets — no webhook required.
-    GitHub never emails about PRs the bot's own account authored, so this is
-    how the human actually finds out. Never raises."""
-    if not SLACK_TOKEN or not SLACK_CHANNEL:
-        print("  (slack notify skipped — SLACK_BOT_TOKEN/BUG_REPORTS_CHANNEL_ID not set)")
-        return
-    changed = ", ".join(sorted({f["file_path"] for f in fixes})) or "test files"
-    text = (f":robot_face: *Auto-fix PR ready for review* — {PIPELINE}\n"
-            f"Files: {changed}\n{pr_url}")
-    payload = json.dumps({"channel": SLACK_CHANNEL, "text": text}).encode()
+def slack_post(channel: str, text: str, label: str = "Slack") -> bool:
+    """Best-effort chat.postMessage with the bot token. Never raises."""
+    if not SLACK_TOKEN or not channel:
+        print(f"  ({label} skipped — SLACK_BOT_TOKEN/channel not set)")
+        return False
+    payload = json.dumps({"channel": channel, "text": text}).encode()
     req = urllib.request.Request(
         "https://slack.com/api/chat.postMessage",
         data=payload,
@@ -373,14 +479,96 @@ def slack_notify(pr_url: str, fixes: list[dict]) -> None:
         with urllib.request.urlopen(req, timeout=15) as r:
             resp = json.loads(r.read())
         if resp.get("ok"):
-            print("  💬 Slack notification sent")
-        else:
-            print(f"  ⚠ Slack notify error: {resp.get('error')}", file=sys.stderr)
+            print(f"  💬 {label} sent")
+            return True
+        print(f"  ⚠ {label} error: {resp.get('error')}", file=sys.stderr)
     except Exception as e:
-        print(f"  ⚠ Slack notify failed: {e}", file=sys.stderr)
+        print(f"  ⚠ {label} failed: {e}", file=sys.stderr)
+    return False
 
 
-def create_pr(fixes: list[dict]) -> None:
+def slack_notify(pr_url: str, fixes: list[dict]) -> None:
+    """Short Slack ping to the PR-review channel that a PR needs review.
+    GitHub never emails about PRs the bot's own account authored, so this is
+    how the human actually finds out."""
+    changed = ", ".join(sorted({f["file_path"] for f in fixes})) or "test files"
+    text = (f":robot_face: *Auto-fix PR ready for review* — {PIPELINE}\n"
+            f"Files: {changed}\n{pr_url}")
+    slack_post(SLACK_CHANNEL, text, label="Slack PR notify")
+
+
+_SEVERITY_EMOJI = {"high": ":rotating_light:", "medium": ":warning:",
+                   "low": ":information_source:"}
+
+
+def post_agent_report(report: dict, resolution: str) -> None:
+    """Post the detailed Investigation / Fix / Resolution report to
+    #qa-agent-reports. `report` comes from investigate(); `resolution` is set
+    by the caller based on what actually happened (PR opened, issue opened, or
+    no safe fix). Best-effort — never raises."""
+    severity = (report.get("severity") or "medium").lower()
+    emoji = _SEVERITY_EMOJI.get(severity, ":warning:")
+    investigation = report.get("investigation") or "_(no analysis produced)_"
+    fix = report.get("fix") or "_(no fix proposed)_"
+    text = (
+        f"{emoji} *Agent incident report — {PIPELINE}*  _(severity: {severity})_\n"
+        f"*Failed run:* {RUN_URL}\n\n"
+        f"*:mag: Investigation*\n{investigation}\n\n"
+        f"*:wrench: Fix*\n{fix}\n\n"
+        f"*:white_check_mark: Resolution*\n{resolution}"
+    )
+    slack_post(AGENT_REPORTS_CHANNEL, text, label="Agent report")
+
+
+def open_tracking_issue(report: dict) -> str:
+    """Open a GitHub issue capturing the investigation + recommended fix for a
+    failure the agent must not auto-patch (RAG/eval) or couldn't fix safely.
+    Returns the issue URL, or "" on failure. Best-effort."""
+    severity = (report.get("severity") or "medium").lower()
+    investigation = report.get("investigation") or "(no analysis produced)"
+    fix = report.get("fix") or "(no fix proposed)"
+    title = f"[auto-triage] {PIPELINE} failure — needs human review"
+    body = f"""## 🤖 Agent triage report
+
+**Failed CI run:** {RUN_URL}
+**Head commit:** `{HEAD_SHA}`
+**Severity:** {severity}
+
+### 🔍 Investigation
+{investigation}
+
+### 🔧 Recommended fix
+{fix}
+
+---
+*Opened automatically by the auto-fix agent. This failure was not auto-patched
+(RAG/eval-quality root causes live in the app, knowledge base, or dataset, which
+the agent must not edit, or no confident test-code fix was found). A human should
+review and decide on the fix.*
+"""
+    create = subprocess.run(
+        ["gh", "issue", "create", "--title", title, "--body", body],
+        capture_output=True, text=True,
+    )
+    if create.returncode != 0:
+        print(f"  ⚠ issue creation failed: {create.stderr.strip()}",
+              file=sys.stderr)
+        return ""
+    issue_url = create.stdout.strip()
+    print(f"  ✅ tracking issue created: {issue_url}")
+    # Best-effort label — a missing label must never fail the run.
+    lbl = subprocess.run(
+        ["gh", "issue", "edit", issue_url, "--add-label", "bug"],
+        capture_output=True, text=True,
+    )
+    if lbl.returncode != 0:
+        print(f"  (issue label not applied: {lbl.stderr.strip()})",
+              file=sys.stderr)
+    return issue_url
+
+
+def create_pr(fixes: list[dict]) -> str:
+    """Push the fix branch and open a PR. Returns the PR URL, or "" on failure."""
     slug      = re.sub(r"[^a-z0-9]+", "-", PIPELINE.lower())[:25].strip("-")
     short_sha = (HEAD_SHA or "unknown")[:8]
     branch    = f"fix/{slug}-{short_sha}"
@@ -433,7 +621,7 @@ def create_pr(fixes: list[dict]) -> None:
     )
     if create.returncode != 0:
         print(f"  ⚠ PR creation failed: {create.stderr.strip()}", file=sys.stderr)
-        return
+        return ""
     pr_url = create.stdout.strip()
     print(f"  ✅ PR created: {pr_url}")
 
@@ -456,6 +644,8 @@ def create_pr(fixes: list[dict]) -> None:
         )
         if rev.returncode != 0:
             print(f"  (reviewer not added: {rev.stderr.strip()})", file=sys.stderr)
+
+    return pr_url
 
 
 # ---------------------------------------------------------------------------
@@ -495,11 +685,44 @@ def main() -> None:
                 pass
 
     if not logs:
-        print("  No logs available — cannot fix. Exiting.")
+        print("  No logs available — cannot triage. Exiting.")
         sys.exit(0)
 
     print(f"  Got {len(logs)} chars of logs")
 
+    # -----------------------------------------------------------------
+    # REPORT-ONLY path: RAG / eval-quality pipelines. We never auto-patch
+    # (the root cause lives in the app / KB / dataset, which the agent must
+    # not edit). Instead: investigate, open a tracking issue, post a detailed
+    # Investigation / Fix / Resolution report to #qa-agent-reports.
+    # -----------------------------------------------------------------
+    if is_report_only(PIPELINE):
+        print(f"\n[2] Report-only pipeline ({PIPELINE}) — investigating...")
+        context = gather_eval_context()
+        report = investigate(logs, context)
+        if not report:
+            report = {"investigation": "Automated analysis was inconclusive — "
+                                       "see the failed run logs.",
+                      "fix": "", "severity": "medium"}
+        print("\n[3] Opening tracking issue...")
+        issue_url = open_tracking_issue(report)
+        if issue_url:
+            resolution = (f"No safe auto-fix — RAG/eval-quality regressions need "
+                          f"a human decision. Opened tracking issue for review: "
+                          f"{issue_url}")
+        else:
+            resolution = ("No safe auto-fix — RAG/eval-quality regressions need a "
+                          "human decision. (Tracking-issue creation failed; see "
+                          "the failed run logs.)")
+        print("\n[4] Posting detailed report to #qa-agent-reports...")
+        post_agent_report(report, resolution)
+        print("\nDone.")
+        return
+
+    # -----------------------------------------------------------------
+    # PATCH path: test-code pipelines (Playwright, LLM-judge). Try to fix,
+    # open a PR, and always post a detailed report (even when no fix is found).
+    # -----------------------------------------------------------------
     # 2. Find failing files
     print("\n[2] Identifying failing test files...")
     failing = find_failing_files(logs)
@@ -509,26 +732,49 @@ def main() -> None:
     # 3. Call LLM (rotates through all configured providers)
     print("\n[3] Calling LLM for fix analysis...")
     tool_uses, provider = call_llm(logs, file_content)
-    if not tool_uses:
-        print("  No LLM produced a usable fix — exiting cleanly.")
-        sys.exit(0)
-    print(f"  Fix author: {provider}")
+    print(f"  Fix author: {provider or '(none)'}")
 
     # 4. Apply fixes
-    print("\n[4] Applying fixes...")
-    applied = apply_fixes(tool_uses)
-    if not applied:
-        print("  No fixes could be applied safely.")
-        sys.exit(0)
+    applied: list[dict] = []
+    if tool_uses:
+        print("\n[4] Applying fixes...")
+        applied = apply_fixes(tool_uses)
 
-    # 5. Check for actual changes
-    if not git("diff", "--name-only", "HEAD"):
-        print("  No file changes after applying fixes.")
-        sys.exit(0)
+    has_changes = bool(applied) and bool(git("diff", "--name-only", "HEAD"))
 
-    # 6. Create PR
-    print("\n[5] Creating PR...")
-    create_pr(applied)
+    # 5. Open a PR if we have real changes
+    pr_url = ""
+    if has_changes:
+        print("\n[5] Creating PR...")
+        pr_url = create_pr(applied)
+
+    # 6. Always post a detailed Investigation / Fix / Resolution report.
+    print("\n[6] Building detailed report...")
+    report = investigate(logs, file_content)
+    if not report:
+        report = {"investigation": "Automated analysis was inconclusive — "
+                                   "see the failed run logs.",
+                  "fix": "", "severity": "medium"}
+    # Overlay the concrete fixes we actually applied, so the report's "Fix"
+    # section reflects reality rather than only the LLM's narrative.
+    if applied:
+        applied_lines = "\n".join(
+            f"• `{f['file_path']}` — {f['reason']}" for f in applied)
+        report["fix"] = (report.get("fix", "").strip() + "\n\n*Applied changes:*\n"
+                         + applied_lines).strip()
+
+    if pr_url:
+        resolution = f"Auto-fix PR opened for your review (do not auto-merge): {pr_url}"
+    elif applied and not has_changes:
+        resolution = "Proposed edits produced no net change — needs human review."
+    else:
+        # No confident fix — open a tracking issue so it isn't lost.
+        issue_url = open_tracking_issue(report)
+        resolution = (f"No confident auto-fix found. Opened tracking issue: {issue_url}"
+                      if issue_url else
+                      "No confident auto-fix found — needs human review (see logs).")
+
+    post_agent_report(report, resolution)
     print("\nDone.")
 
 
