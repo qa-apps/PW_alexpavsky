@@ -129,11 +129,17 @@ test.describe('Content quality @upstream', () => {
     const totalRendered = await items.count();
     expect(totalRendered, 'LIVE rail rendered zero items').toBeGreaterThan(0);
 
-    // Owner contract: cap at 15.
-    expect(totalRendered, 'LIVE rail must cap at 15 items per owner contract')
+    // Owner contract: cap at 15 UNIQUE items. The track duplicates the
+    // item list 2-3× for marquee scrolling, so node count = unique × N.
+    const uniqueCount = await items.evaluateAll(els => {
+      const seen = new Set<string>();
+      els.forEach(e => seen.add(e.getAttribute('href') || ''));
+      return seen.size;
+    });
+    expect(uniqueCount, 'LIVE rail must cap at 15 UNIQUE items per owner contract')
       .toBeLessThanOrEqual(15);
 
-    const total = Math.min(totalRendered, PROBES_PER_FEED);
+    const total = Math.min(uniqueCount, PROBES_PER_FEED);
     const dead: string[] = [];
     const empty: string[] = [];
     const judged: CardJudgement[] = [];
@@ -208,9 +214,20 @@ test.describe('Content quality @upstream', () => {
       await card.scrollIntoViewIfNeeded();
 
       const img = card.locator('img').first();
-      const imgOk = await img.evaluate((el: HTMLImageElement) =>
-        !!el && el.complete && el.naturalWidth > 0 && el.naturalHeight > 0
-      ).catch(() => false);
+      // Poll up to 8s for image to actually load — i.ytimg.com fetch can
+      // lag behind the card render by a couple of seconds.
+      let imgOk = false;
+      try {
+        await expect.poll(
+          () => img.evaluate((el: HTMLImageElement) =>
+            !!el && el.complete && el.naturalWidth > 0 && el.naturalHeight > 0
+          ).catch(() => false),
+          { timeout: 8_000, intervals: [500, 800, 1500] },
+        ).toBe(true);
+        imgOk = true;
+      } catch {
+        imgOk = false;
+      }
 
       const link = await card.getAttribute('href') || await card.locator('a').first().getAttribute('href').catch(() => '') || '';
       const linkOk = /youtu(?:be\.com|\.be)/i.test(link);
