@@ -118,23 +118,31 @@ test.describe('Content quality @upstream', () => {
   });
 
   // ───────────────────────────────────────────────────────────────────────
-  // 2. LIVE rail items — links must resolve (no dead 404s) and titles non-empty
+  // 2. LIVE rail items — links resolve + title not empty + LLM judges
+  //    that the title/source actually look like a real article headline.
   // ───────────────────────────────────────────────────────────────────────
-  test('LIVE rail: every probed item has a non-dead URL and a non-empty title', async ({ page, commonPage, liveRailPage }, testInfo) => {
+  test('LIVE rail: every probed item has live URL, non-empty title, and meaningful headline', async ({ page, commonPage, liveRailPage }, testInfo) => {
     await commonPage.goto('/');
     await liveRailPage.openAndWaitForItems(1);
 
     const items = liveRailPage.items;
-    const total = Math.min(await items.count(), PROBES_PER_FEED);
-    expect(total, 'LIVE rail rendered zero items').toBeGreaterThan(0);
+    const totalRendered = await items.count();
+    expect(totalRendered, 'LIVE rail rendered zero items').toBeGreaterThan(0);
 
+    // Owner contract: cap at 15.
+    expect(totalRendered, 'LIVE rail must cap at 15 items per owner contract')
+      .toBeLessThanOrEqual(15);
+
+    const total = Math.min(totalRendered, PROBES_PER_FEED);
     const dead: string[] = [];
     const empty: string[] = [];
+    const judged: CardJudgement[] = [];
 
     for (let i = 0; i < total; i++) {
       const item = items.nth(i);
       const href = (await item.getAttribute('href')) || '';
       const title = (await item.locator('.live-item-title').innerText().catch(() => '')) || '';
+      const source = (await item.locator('.live-src').innerText().catch(() => '')) || '';
 
       if (!title.trim()) {
         empty.push(`#${i} href=${href}`);
@@ -159,13 +167,26 @@ test.describe('Content quality @upstream', () => {
       }
       if (status < 0 || status >= 400) {
         dead.push(`#${i} ${status} ${href} ("${title.slice(0, 60)}")`);
+        continue;
       }
+
+      // Headline-mode LLM judge: catches nonsense / placeholder / "Loading…"
+      // / "Untitled" / error-text headlines without penalising for being
+      // headline-length (no body is expected here by design).
+      const judge = await runArticleQualityJudge(title, source, '', 'headline');
+      judged.push({ index: i, title, source, textLen: title.length, judge });
     }
 
     if (dead.length || empty.length) await attachScreenshot(page, 'live-rail-FAIL.png', testInfo);
 
+    const nonsense = judged.filter(j => !j.judge.isReal);
+
     expect(empty, `LIVE rail items with empty titles:\n${empty.join('\n')}`).toEqual([]);
     expect(dead, `LIVE rail items pointing to dead/non-2xx URLs:\n${dead.join('\n')}`).toEqual([]);
+    expect(
+      nonsense,
+      `LIVE rail items flagged as nonsense / placeholder / error by the LLM judge:\n${summarise(nonsense)}`,
+    ).toEqual([]);
   });
 
   // ───────────────────────────────────────────────────────────────────────

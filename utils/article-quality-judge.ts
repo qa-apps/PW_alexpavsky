@@ -23,7 +23,7 @@ export interface ArticleQualityVerdict {
   judgeUsed: string; // "providerName:model" of the judge that ran, or "" on failure
 }
 
-const SYSTEM_PROMPT = `You are a content-quality classifier. You receive raw text extracted from an article modal on a news/blog site. Decide whether the text contains a real, meaningful article body OR whether it is some failure state.
+const BODY_SYSTEM_PROMPT = `You are a content-quality classifier. You receive raw text extracted from an article modal on a news/blog site. Decide whether the text contains a real, meaningful article body OR whether it is some failure state.
 
 Score on this exact scale:
 - 5 = substantive article body, multiple coherent paragraphs on a clear topic
@@ -39,7 +39,25 @@ The user wants tests to catch the 1-3 cases. Be strict. A title plus one boilerp
 Respond ONLY with strict JSON, no markdown:
 {"score": 1-5, "isReal": true/false, "reasoning": "1-2 sentences explaining the classification"}`;
 
+const HEADLINE_SYSTEM_PROMPT = `You are a headline-quality classifier. You receive ONLY a news headline and its source label (no article body — the user would have to click through to read more). Decide whether the headline looks like a real article headline that a recruiter or reader would respect, OR whether it is junk / placeholder / error / nonsense.
+
+Score on this exact scale:
+- 5 = clear, specific, real-sounding article headline on an identifiable topic
+- 4 = legitimate headline, slightly generic but plausibly real
+- 3 = vague but not obviously broken
+- 2 = looks like placeholder copy, "Loading...", a fallback notice, "Untitled", error text, or marketing filler with no information
+- 1 = empty, gibberish, random unrelated words, debug strings, or obviously broken
+
+Treat 4-5 as PASS (isReal=true). Treat 1-3 as FAIL (isReal=false).
+
+Do NOT penalise the headline for being short or for lacking a body — that is expected by design. Only flag content-level junk: errors, placeholders, gibberish, "Loading", "Untitled", etc.
+
+Respond ONLY with strict JSON, no markdown:
+{"score": 1-5, "isReal": true/false, "reasoning": "1-2 sentences explaining the classification"}`;
+
 const PASSING = 4;
+
+export type JudgeMode = 'body' | 'headline';
 
 function clip(s: string, n: number): string {
   return s.length > n ? s.slice(0, n) + ' …[truncated]' : s;
@@ -48,11 +66,18 @@ function clip(s: string, n: number): string {
 /**
  * Run the content-quality judge. If no providers are reachable, returns
  * a fail with reasoning. Never throws.
+ *
+ * mode='body' (default): judges full article body; expects multi-paragraph
+ *   real content (used for Live Feed modal reader).
+ * mode='headline': judges a headline + source only; tolerates short content
+ *   as long as it looks like a real headline (used for LIVE rail items
+ *   where only the title is visible without click-through).
  */
 export async function runArticleQualityJudge(
   articleTitle: string,
   articleSource: string,
   articleBodyText: string,
+  mode: JudgeMode = 'body',
 ): Promise<ArticleQualityVerdict> {
   const providers = await resolveAllProviders('M');
   if (providers.length === 0) {
@@ -65,16 +90,24 @@ export async function runArticleQualityJudge(
     };
   }
 
-  const userPayload = [
-    `ARTICLE TITLE: ${clip(articleTitle, 200)}`,
-    `SOURCE LABEL: ${clip(articleSource, 80)}`,
-    `RAW MODAL BODY TEXT (everything user can see inside the modal):`,
-    '---BEGIN---',
-    clip(articleBodyText, 6000),
-    '---END---',
-    '',
-    'Classify per the scale. Reply JSON only.',
-  ].join('\n');
+  const systemPrompt = mode === 'headline' ? HEADLINE_SYSTEM_PROMPT : BODY_SYSTEM_PROMPT;
+  const userPayload = mode === 'headline'
+    ? [
+        `HEADLINE: ${clip(articleTitle, 200)}`,
+        `SOURCE LABEL: ${clip(articleSource, 80)}`,
+        '',
+        'Classify whether this looks like a real article headline or junk/placeholder/error. Reply JSON only.',
+      ].join('\n')
+    : [
+        `ARTICLE TITLE: ${clip(articleTitle, 200)}`,
+        `SOURCE LABEL: ${clip(articleSource, 80)}`,
+        `RAW MODAL BODY TEXT (everything user can see inside the modal):`,
+        '---BEGIN---',
+        clip(articleBodyText, 6000),
+        '---END---',
+        '',
+        'Classify per the scale. Reply JSON only.',
+      ].join('\n');
 
   let lastReason = '';
   for (const { baseUrl, model, headers, providerName } of providers) {
@@ -87,7 +120,7 @@ export async function runArticleQualityJudge(
         data: {
           model,
           messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: systemPrompt },
             { role: 'user', content: userPayload },
           ],
           temperature: 0,
