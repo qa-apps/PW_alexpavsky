@@ -164,14 +164,14 @@ const CONTRACTS: Record<string, Probe> = {
     json: true,
   },
 
-  // ─── nginx-level 404s (SPA fallback returns HTML) ─────────────────────────
-  // /api/agent-reports is POST-only in chat_server; a GET hits the SPA
-  // fallback. We document that here so it doesn't look like a regression.
+  // /api/agent-reports is POST-only in chat_server; GET now returns 403
+  // from the auth middleware (admin-only endpoint). Documented contract:
+  // unauthorised reads are blocked.
   '/api/agent-reports': {
     method: 'GET',
-    status: 404,
-    json: false,
-    note: 'POST-only endpoint. GET falls through to nginx SPA index.',
+    status: 403,
+    json: true,
+    note: 'POST-only, admin-protected. Unauth GET returns 403.',
   },
 };
 
