@@ -86,10 +86,10 @@ test.describe('Live Feed + Article API', () => {
   });
 });
 
-test.describe('Article modal — iframe load (E2E)', () => {
-  test('opening a feed article must not show a 4xx error page inside the iframe', async ({ page }) => {
+test.describe('Article modal — reader-area load (E2E)', () => {
+  test('opening a feed article must not show a 4xx error page in the modal', async ({ page }) => {
     // Record any /api/article-* response so we can fail fast on a 4xx — but
-    // the iframe-content assertion below is the real safety net.
+    // the reader-content assertion below is the real safety net.
     const apiResponses: { url: string; status: number }[] = [];
     page.on('response', (resp) => {
       const u = resp.url();
@@ -106,23 +106,24 @@ test.describe('Article modal — iframe load (E2E)', () => {
     const modal = page.locator('#article-modal-overlay, .article-modal').first();
     await expect(modal).toBeVisible({ timeout: 5_000 });
 
-    // The iframe src is set inside loadIframeView(); give it time to load.
-    const iframe = page.locator('#article-modal-iframe');
-    await expect(iframe).toBeVisible({ timeout: 5_000 });
-    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+    // Production now renders article content (or its fallback) into the
+    // #article-modal-reader div; the iframe is hidden. See production
+    // script.js:944-951 — the .loaded class is added once content/fallback
+    // is in place.
+    const reader = page.locator('#article-modal-reader');
+    await expect(reader).toHaveClass(/loaded/, { timeout: 15_000 });
 
-    // Real check: pull HTML from inside the iframe and assert it isn't the
-    // BaseHTTPRequestHandler 404 page (which is exactly what users saw in
-    // production before this fix).
-    const frame = page.frameLocator('#article-modal-iframe');
-    const bodyText = await frame.locator('body').textContent().catch(() => '');
+    // Real check: assert the reader body isn't the BaseHTTPRequestHandler
+    // 404 page (which is exactly what users saw in production before the
+    // article-proxy fix).
+    const bodyText = await reader.innerText({ timeout: 5_000 }).catch(() => '');
     const body = (bodyText || '').slice(0, 4000);
-    expect(body, 'iframe must not render the http.server 404 error page').not.toContain('Error code: 404');
-    expect(body, 'iframe must not render the http.server file-not-found error').not.toContain('File not found');
+    expect(body, 'reader must not render the http.server 404 error page').not.toContain('Error code: 404');
+    expect(body, 'reader must not render the http.server file-not-found error').not.toContain('File not found');
 
     // If any of our endpoints did respond, none should be 4xx/5xx.
     for (const r of apiResponses) {
-      expect(r.status, `iframe loaded ${r.url} with status ${r.status}`).toBeLessThan(400);
+      expect(r.status, `article endpoint ${r.url} returned ${r.status}`).toBeLessThan(400);
     }
   });
 });
