@@ -19,3 +19,6 @@ eval/results/
 # GitHub Pages eval site build output — only used by CI
 gh-pages-site/
 gh-pages-existing/
+
+# Local screenshot artifacts from MCP-driven manual verification
+screenshots/

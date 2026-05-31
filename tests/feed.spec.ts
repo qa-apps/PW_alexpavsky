@@ -120,5 +120,42 @@ test.describe('Live feed @upstream', () => {
       await homePage.openFeedArticle(0);
       expect(await homePage.articleModalLinks.count()).toBeGreaterThan(0);
     });
+
+    test('iframe must render real article content, not the blocked/fallback screen', async ({ homePage, page }) => {
+      await homePage.openFeedArticle(0);
+      const iframe = page.locator('#article-modal-iframe');
+      await expect(iframe).toHaveClass(/loaded/, { timeout: 15_000 });
+
+      const body = await page.frameLocator('#article-modal-iframe')
+        .locator('body').innerText({ timeout: 10_000 });
+
+      expect(body, 'iframe shows blocked/fallback page').not.toMatch(
+        /This content is blocked|Article preview unavailable|preview request failed|took too long/i
+      );
+      expect(body.replace(/\s+/g, ' ').trim().length, 'iframe body empty').toBeGreaterThan(200);
+    });
+
+    test('majority of feed articles render real content', async ({ homePage, page }) => {
+      const total = Math.min(await homePage.feedCards.count(), 5);
+      const broken: string[] = [];
+      for (let i = 0; i < total; i++) {
+        await homePage.openFeedArticle(i);
+        const iframe = page.locator('#article-modal-iframe');
+        let body = '';
+        try {
+          await expect(iframe).toHaveClass(/loaded/, { timeout: 15_000 });
+          body = await page.frameLocator('#article-modal-iframe')
+            .locator('body').innerText({ timeout: 8_000 });
+        } catch (e) {
+          body = String(e);
+        }
+        if (/blocked|unavailable|failed|took too long/i.test(body) || body.trim().length < 200) {
+          const title = (await homePage.articleModalTitle.innerText().catch(() => '?')).slice(0, 60);
+          broken.push(`#${i}: ${title}`);
+        }
+        await homePage.closeArticleModal();
+      }
+      expect(broken, `broken articles:\n${broken.join('\n')}`).toEqual([]);
+    });
   });
 });
