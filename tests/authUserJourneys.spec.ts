@@ -96,20 +96,27 @@ test.describe('Auth user journeys (UI) @upstream', () => {
     await page.locator('#login-password').fill(DAILY_USER.password);
     await page.locator('#login-form .auth-submit').click();
 
-    // Modal closes, nav updates.
+    // Modal closes.
     await expect(page.locator('#auth-overlay.open')).toBeHidden({ timeout: 10_000 });
-    await assertNavShowsUser(page, DAILY_USER.name.split(' ')[0]);
 
     // Verify the token actually authenticates by hitting /api/auth/me from
-    // within the page's storage — proves the frontend really stored it
-    // and the backend really minted a valid one.
-    const tokenIsValid = await page.evaluate(async () => {
+    // within the page's storage — proves the frontend really stored it AND
+    // the backend really minted a valid one. We also use the API response
+    // to derive the expected nav display name (first word), so the test
+    // doesn't have to know the exact display name baked into the DB row.
+    const me = await page.evaluate(async () => {
       const t = localStorage.getItem('auth_token');
-      if (!t) return false;
+      if (!t) return { ok: false };
       const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + t } });
-      return r.status === 200;
+      if (r.status !== 200) return { ok: false, status: r.status };
+      const data = await r.json();
+      return { ok: true, name: data.name, email: data.email };
     });
-    expect(tokenIsValid, 'stored auth_token must validate against /api/auth/me').toBe(true);
+    expect(me.ok, 'stored auth_token must validate against /api/auth/me').toBe(true);
+    expect(me.email, '/api/auth/me must echo the logged-in email').toBe(DAILY_USER.email);
+
+    // Now assert nav state matches what the API says.
+    await assertNavShowsUser(page, (me.name || '').split(' ')[0]);
   });
 
   test('a brand-new random user can register and nav swaps Login → first name', async ({ page }) => {

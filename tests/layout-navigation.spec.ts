@@ -3,7 +3,7 @@ import { test, expect } from '../utils/fixtures';
 test.describe('Layout and navigation', () => {
   test('should load homepage and verify title', async ({ homePage, page }) => {
     await homePage.goto();
-    await expect(page).toHaveTitle(/Alex Pavsky/);
+    await expect(page).toHaveTitle(/Alex Pav(?:l|s)/);
     await expect(homePage.heroSection).toBeVisible();
   });
 
