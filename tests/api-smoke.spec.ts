@@ -130,18 +130,21 @@ const CONTRACTS: Record<string, Probe> = {
   // ─── 501 stubs (handlers exist but return not_implemented) ────────────────
   // Locking these down so an unfinished refactor can't silently flip them to
   // 200 with broken behaviour. Auth endpoints owned by auth-flow.spec.ts.
+  // /api/subscribe is now implemented. Empty body → 400 invalid_email.
   '/api/subscribe': {
     method: 'POST',
     body: {},
-    status: 501,
+    status: 400,
     json: true,
-    note: 'Stub. Replace with happy-path test when DB write is wired up.',
+    note: 'Implemented: empty body rejected with invalid_email JSON.',
   },
+  // /api/forum/posts is now implemented. Missing valid handle → 400.
   '/api/forum/posts': {
     method: 'POST',
     body: { title: 't', body: 'b' },
-    status: 501,
+    status: 400,
     json: true,
+    note: 'Implemented: payload missing valid handle → 400 invalid_handle.',
   },
   '/api/user/messages': {
     method: 'POST',
@@ -161,14 +164,14 @@ const CONTRACTS: Record<string, Probe> = {
     json: true,
   },
 
-  // ─── nginx-level 404s (SPA fallback returns HTML) ─────────────────────────
-  // /api/agent-reports is POST-only in chat_server; a GET hits the SPA
-  // fallback. We document that here so it doesn't look like a regression.
+  // /api/agent-reports is POST-only in chat_server; GET now returns 403
+  // from the auth middleware (admin-only endpoint). Documented contract:
+  // unauthorised reads are blocked.
   '/api/agent-reports': {
     method: 'GET',
-    status: 404,
-    json: false,
-    note: 'POST-only endpoint. GET falls through to nginx SPA index.',
+    status: 403,
+    json: true,
+    note: 'POST-only, admin-protected. Unauth GET returns 403.',
   },
 };
 

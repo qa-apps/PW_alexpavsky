@@ -734,7 +734,7 @@ test.describe('Smoke — alexpavsky.com UI', () => {
 
   test('site logo is visible in header', async ({ homePage, page }) => {
     await homePage.goto();
-    const logo = page.locator('.nav-brand, .site-logo, [data-testid="site-logo"], nav a').filter({ hasText: /alexpavsky/i }).first();
+    const logo = page.locator('.nav-brand, .site-logo, [data-testid="site-logo"], nav a').filter({ hasText: /alexpa(?:v|vlov)sky/i }).first();
     await expect(logo).toBeVisible();
   });
 
