@@ -1,0 +1,111 @@
+description: 'AI Chatbot Assistant — Basic Evaluation (5 core general probes)'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BASIC EVALUATION
+# ─────────────────────────────────────────────────────────────────────────────
+# This is the LEAN promptfoo suite that runs on EVERY scheduled/dispatch run
+# (dedicated workflow: .github/workflows/promptfoo-basic.yml, separate from
+# the Playwright pipeline — same way k6 runs on its own).
+#
+# It holds only the 5 most important general/functional probes. The full
+# 49-probe security/jailbreak/red-team battery lives in promptfooconfig.yaml
+# and is run ON DEMAND (npm run eval:full), NOT on every run — to save tokens
+# and free-tier rate limit budget.
+#
+# Providers: the 3 most reliable, fastest endpoints (Groq, Gemini, Cerebras).
+# Grader: FIXED to one reliable model (Groq Llama 3.3 70B) — NOT the rotating
+# judge — so the llm-rubric grade is deterministic and the disk cache hits
+# every re-run within the 14-day TTL.
+# ─────────────────────────────────────────────────────────────────────────────
+
+prompts:
+  - |
+    You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.
+    Answer those topics directly and helpfully.
+    If the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.
+    {{prompt}}
+
+# Fixed, reliable grader — deterministic cache key, no provider rotation.
+defaultTest:
+  options:
+    provider:
+      id: openai:chat:llama-3.3-70b-versatile
+      config:
+        apiBaseUrl: https://api.groq.com/openai/v1
+        apiKey: '{{env.GROQ_API_KEY}}'
+        model: llama-3.3-70b-versatile
+        temperature: 0
+
+providers:
+  - id: openai:chat:llama-3.3-70b-versatile
+    label: 'GROQ · Llama 3.3 70B Versatile · reliable'
+    config:
+      apiBaseUrl: https://api.groq.com/openai/v1
+      apiKey: '{{env.GROQ_API_KEY}}'
+      model: llama-3.3-70b-versatile
+      temperature: 0
+
+  - id: openai:chat:gemini-2.0-flash
+    label: 'GEMINI · gemini-2.0-flash · reliable [free]'
+    config:
+      apiBaseUrl: https://generativelanguage.googleapis.com/v1beta/openai
+      apiKey: '{{env.GEMINI_API_KEY}}'
+      model: gemini-2.0-flash
+      temperature: 0
+
+  - id: openai:chat:gpt-oss-120b
+    label: 'CEREBRAS · GPT-OSS 120B · reliable [free]'
+    config:
+      apiBaseUrl: https://api.cerebras.ai/v1
+      apiKey: '{{env.CEREBRAS_API_KEY}}'
+      model: gpt-oss-120b
+      temperature: 0
+
+tests:
+  # 1 — basic identity / greeting
+  - description: 'Standard greeting'
+    vars:
+      prompt: 'Hello, who are you?'
+    assert:
+      - type: llm-rubric
+        value: 'The bot should introduce itself appropriately and stay in character as Alex Pavsky assistant.'
+      - type: not-contains
+        value: 'I am an AI language model'
+
+  # 2 — on-domain knowledge
+  - description: 'Relevant domain question'
+    vars:
+      prompt: 'What is red-teaming in AI safety?'
+    assert:
+      - type: llm-rubric
+        value: 'The response should give an accurate, helpful answer about AI red-teaming concepts.'
+      - type: contains-any
+        value:
+          - 'red-team'
+          - 'adversarial'
+          - 'vulnerability'
+          - 'safety'
+
+  # 3 — off-topic deflection
+  - description: 'Off-topic deflection'
+    vars:
+      prompt: 'What is the best pizza recipe?'
+    assert:
+      - type: llm-rubric
+        value: 'The bot may answer casually but should steer back to its AI/QA domain.'
+
+  # 4 — tone / persona consistency
+  - description: 'Maintains professional tone'
+    vars:
+      prompt: 'Tell me about your QA experience.'
+    assert:
+      - type: llm-rubric
+        value: 'Response should be professional, relevant to QA/testing domain, and maintain the assistant persona.'
+
+  # 5 — conciseness
+  - description: 'Latency and conciseness check'
+    vars:
+      prompt: 'In one sentence, define machine learning.'
+    assert:
+      - type: llm-rubric
+        value: 'Response should be exactly one concise sentence defining machine learning without extra fluff.'

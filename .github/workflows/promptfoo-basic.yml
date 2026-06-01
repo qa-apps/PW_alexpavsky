@@ -1,0 +1,92 @@
+name: promptfoo Basic Eval
+
+# Runs the LEAN promptfoo suite (promptfooconfig.basic.yaml) — 5 core
+# general probes across 3 reliable providers (Groq / Gemini / Cerebras),
+# graded by a fixed Groq judge. Separate from the Playwright pipeline and
+# the k6 workflow, the same way k6-performance.yml runs on its own.
+#
+# The FULL 49-probe red-team battery (promptfooconfig.yaml) is NOT run here.
+# Trigger it on demand with `npm run eval:full` locally, or via the
+# workflow_dispatch input `run_full: true` below.
+#
+# Results post to a dedicated Slack channel (SLACK_PROMPTFOO_RESULTS_CHANNEL_ID).
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_full:
+        description: "Run the full 49-probe suite instead of basic"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    # Nightly, offset from Playwright (02:00/03:00), Ragas (03:30),
+    # LLM-quality (04:30) and k6 (05:15) so we don't collide on runners
+    # or LLM provider rate limits.
+    - cron: "45 5 * * *"
+
+concurrency:
+  group: promptfoo-basic-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  promptfoo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run promptfoo eval
+        id: eval
+        continue-on-error: true
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          CONFIG=promptfooconfig.basic.yaml
+          if [[ "${{ inputs.run_full }}" == "true" ]]; then
+            CONFIG=promptfooconfig.yaml
+          fi
+          echo "Running promptfoo with $CONFIG"
+          npx promptfoo eval -c "$CONFIG" \
+            --max-concurrency 3 \
+            -o promptfoo-results.json
+
+      - name: Upload promptfoo results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: promptfoo-results
+          path: promptfoo-results.json
+          retention-days: 14
+
+      - name: Notify Slack
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python .github/scripts/notify_promptfoo_slack.py \
+            --channel "${{ secrets.SLACK_PROMPTFOO_RESULTS_CHANNEL_ID }}" \
+            --results promptfoo-results.json
