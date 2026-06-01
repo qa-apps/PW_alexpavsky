@@ -38,6 +38,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -127,6 +128,8 @@ def parse_results(results_dir: str) -> dict:
                     screenshot = _find_artifact(results_dir, title, [".png", ".jpg"])
                     video      = _find_artifact(results_dir, title, [".webm", ".mp4"])
                     trace      = _find_artifact(results_dir, title, [".zip"])
+                    # For LLM-judge prompt failures, attach the judge verdict.
+                    verdict_path, verdict_text = _find_judge_verdict(title, results_dir)
 
                     failed_tests.append({
                         "title": title,
@@ -135,6 +138,8 @@ def parse_results(results_dir: str) -> dict:
                         "screenshot": screenshot,
                         "video": video,
                         "trace": trace,
+                        "verdict_path": verdict_path,
+                        "verdict_text": verdict_text,
                     })
 
             for child in suite.get("suites", []):
@@ -179,6 +184,59 @@ def _find_artifact(results_dir: str, test_title: str, exts: list[str]) -> str:
                 if os.path.exists(c) and os.path.getsize(c) > 0:
                     return c
     return ""
+
+
+# Directories where LLM-judge verdicts land. The judge writes one Markdown
+# file per graded test (e.g. "...-safety-should_refuse_bias_amplification.md")
+# plus rolled-up "verdict-report-*.md" files.
+_VERDICT_DIRS = ["judge-verdicts", "test-results", "."]
+
+
+# Generic tokens shared by most judge test names — too weak to match on alone.
+_VERDICT_STOPWORDS = {"should", "refuse", "the", "a", "an", "to", "of", "for",
+                      "and", "or", "request", "test", "via", "with", "safety"}
+
+
+def _find_judge_verdict(test_title: str, results_dir: str) -> tuple[str, str]:
+    """
+    For a failed LLM-judge prompt test, locate the matching verdict .md and
+    return (path, text). Returns ("", "") when no verdict is found (i.e. this
+    was a normal Playwright UI failure, not a judge failure).
+
+    Matching is by DISTINCTIVE-token overlap, not a short prefix: generic
+    tokens like "should"/"refuse" are ignored, so e.g.
+    "should refuse bias amplification request" matches the
+    "...bias_amplification..." verdict and not the first "should_refuse_*"
+    file on disk. Requires at least 2 distinctive tokens to overlap.
+    """
+    tokens = [t for t in re.split(r"[^a-z0-9]+", test_title.lower())
+              if t and t not in _VERDICT_STOPWORDS and len(t) > 2]
+    if not tokens:
+        return "", ""
+
+    best_path, best_score = "", 0
+    dirs = list(dict.fromkeys(_VERDICT_DIRS + [results_dir]))
+    seen: set[str] = set()
+    for d in dirs:
+        if not os.path.isdir(d):
+            continue
+        for path in glob.glob(os.path.join(d, "**", "*.md"), recursive=True):
+            if path in seen:
+                continue
+            seen.add(path)
+            name = os.path.basename(path).lower().replace("-", "_")
+            score = sum(1 for t in tokens if t in name)
+            if score > best_score:
+                best_path, best_score = path, score
+
+    # Need a real match — at least 2 distinctive tokens — to avoid mislabeling.
+    if best_score < 2:
+        return "", ""
+    try:
+        with open(best_path, "r", encoding="utf-8") as fh:
+            return best_path, fh.read()
+    except Exception:
+        return best_path, ""
 
 
 # ---------------------------------------------------------------------------
@@ -238,13 +296,27 @@ def _slack_post(token: str, api_method: str, payload: dict) -> dict:
         return json.loads(resp.read())
 
 
-def upload_screenshot_to_slack(token: str, channel: str, file_path: str, title: str) -> str | None:
-    """Upload a screenshot to Slack and return the file permalink, or None on error."""
+_MIME_BY_EXT = {
+    "png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+    "webm": "video/webm", "mp4": "video/mp4",
+    "md": "text/markdown", "txt": "text/plain", "zip": "application/zip",
+}
+
+# Large videos clog the channel and the upload PUT; skip anything bigger
+# than this and fall back to a GitHub-artifact link instead.
+_MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # 25 MB
+
+
+def upload_file_to_slack(token: str, channel: str, file_path: str, title: str) -> str | None:
+    """Upload any file (image / video / markdown) to Slack; return permalink or None."""
     if not file_path or not os.path.exists(file_path):
         return None
     size = os.path.getsize(file_path)
-    ext  = Path(file_path).suffix.lstrip(".")
-    mime = "image/png" if ext == "png" else f"image/{ext}"
+    if size > _MAX_UPLOAD_BYTES:
+        print(f"  Skipping upload (>{_MAX_UPLOAD_BYTES // (1024*1024)}MB): {file_path}", file=sys.stderr)
+        return None
+    ext  = Path(file_path).suffix.lstrip(".").lower()
+    mime = _MIME_BY_EXT.get(ext, "application/octet-stream")
 
     # Step 1 — get upload URL
     try:
@@ -306,7 +378,11 @@ def build_bug_report_blocks(
     pr_number: str,
     pr_title: str,
     screenshot_permalinks: list[str],
+    video_permalinks: list[str] | None = None,
+    verdict_permalinks: list[str] | None = None,
 ) -> list[dict]:
+    video_permalinks = video_permalinks or []
+    verdict_permalinks = verdict_permalinks or []
 
     branch = ref.replace("refs/heads/", "") if ref else "unknown"
     short_sha = sha[:8] if sha else "?"
@@ -397,12 +473,49 @@ def build_bug_report_blocks(
     if root_cause or steps_to_reproduce or recommended_fix:
         blocks.append({"type": "divider"})
 
+    # Judge verdicts — for failed LLM-judge prompt tests, show the verdict
+    # text inline (truncated) so it's readable without leaving Slack, plus a
+    # link to the uploaded full .md file.
+    verdict_tests = [t for t in results.get("failed_tests", []) if t.get("verdict_text")]
+    for i, t in enumerate(verdict_tests[:3]):
+        vtext = t["verdict_text"].strip()
+        # Strip noisy front-matter / headers, keep the substance.
+        vtext = re.sub(r"^#.*$", "", vtext, flags=re.M).strip()
+        if len(vtext) > 1200:
+            vtext = vtext[:1200] + " …(truncated — see attached file)"
+        link = ""
+        if i < len(verdict_permalinks) and verdict_permalinks[i]:
+            link = f"  <{verdict_permalinks[i]}|full verdict ↗>"
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn",
+                     "text": f"*⚖️ Judge verdict — `{t['title']}`:*{link}\n```{vtext}```"},
+        })
+    if verdict_tests:
+        blocks.append({"type": "divider"})
+
     # Screenshots
     if screenshot_permalinks:
         links = " ".join(f"<{p}|screenshot>" for p in screenshot_permalinks if p)
         blocks.append({
             "type": "section",
             "text": {"type": "mrkdwn", "text": f"*📸 Screenshots:* {links}"},
+        })
+
+    # Videos (failed-test recordings). Uploaded inline when ≤25 MB; otherwise
+    # the recording is in the GitHub "test-results" artifact for this run.
+    if video_permalinks:
+        links = " ".join(f"<{p}|recording>" for p in video_permalinks if p)
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": f"*🎥 Videos:* {links}"},
+        })
+    elif any(t.get("video") for t in results.get("failed_tests", [])):
+        blocks.append({
+            "type": "section",
+            "text": {"type": "mrkdwn",
+                     "text": "*🎥 Videos:* recordings attached to the "
+                             "`test-results` artifact on the CI run (too large to inline)."},
         })
 
     # Action buttons
@@ -529,12 +642,34 @@ def main() -> None:
     for t in results["failed_tests"]:
         if t.get("screenshot"):
             print(f"  Uploading screenshot for: {t['title']}")
-            permalink = upload_screenshot_to_slack(
+            permalink = upload_file_to_slack(
                 token, args.channel, t["screenshot"], f"Failure: {t['title']}"
             )
             if permalink:
                 screenshot_permalinks.append(permalink)
                 print(f"  ✅ Uploaded: {permalink}")
+
+    # Upload failure-recording videos (≤25 MB; larger ones stay as artifacts).
+    video_permalinks: list[str] = []
+    for t in results["failed_tests"]:
+        if t.get("video"):
+            print(f"  Uploading video for: {t['title']}")
+            permalink = upload_file_to_slack(
+                token, args.channel, t["video"], f"Recording: {t['title']}"
+            )
+            if permalink:
+                video_permalinks.append(permalink)
+                print(f"  ✅ Uploaded video: {permalink}")
+
+    # Upload full judge-verdict .md files for failed LLM-judge tests.
+    verdict_permalinks: list[str] = []
+    for t in results["failed_tests"]:
+        if t.get("verdict_path"):
+            print(f"  Uploading judge verdict for: {t['title']}")
+            permalink = upload_file_to_slack(
+                token, args.channel, t["verdict_path"], f"Judge verdict: {t['title']}"
+            )
+            verdict_permalinks.append(permalink or "")
 
     # LLM root-cause analysis
     print("Generating root-cause analysis via LLM...")
@@ -556,6 +691,8 @@ def main() -> None:
         pr_number=pr_number,
         pr_title=pr_title,
         screenshot_permalinks=screenshot_permalinks,
+        video_permalinks=video_permalinks,
+        verdict_permalinks=verdict_permalinks,
     )
 
     post_bug_report(token, args.channel, blocks, args.pipeline, results["failed"])
