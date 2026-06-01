@@ -1,0 +1,175 @@
+name: k6 Performance
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Target base URL"
+        required: false
+        default: "https://www.alexpavsky.com"
+      run_heavy:
+        description: "Run load/stress/spike profiles"
+        required: false
+        type: boolean
+        default: false
+      include_chatbot:
+        description: "Run one minimal /api/chat probe"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    # Nightly lightweight k6 signal, offset from Playwright and LLM workflows.
+    - cron: "15 5 * * *"
+
+concurrency:
+  group: k6-performance-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare result directory
+        run: mkdir -p performance-results
+
+      - name: Run k6 smoke
+        id: smoke
+        continue-on-error: true
+        env:
+          K6_BASE_URL: ${{ inputs.base_url || 'https://www.alexpavsky.com' }}
+        run: |
+          k6 run \
+            -e PERFORMANCE_SCENARIO=smoke \
+            --summary-export performance-results/k6-smoke.json \
+            performance/site.js
+
+      - name: Run k6 100 RPS arrival-rate
+        id: rps_100
+        continue-on-error: true
+        env:
+          K6_BASE_URL: ${{ inputs.base_url || 'https://www.alexpavsky.com' }}
+        run: |
+          k6 run \
+            -e PERFORMANCE_SCENARIO=rps-100 \
+            --summary-export performance-results/k6-rps-100.json \
+            performance/site.js
+
+      - name: Run k6 load
+        id: load
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_heavy }}
+        continue-on-error: true
+        env:
+          K6_BASE_URL: ${{ inputs.base_url || 'https://www.alexpavsky.com' }}
+        run: |
+          k6 run \
+            -e PERFORMANCE_SCENARIO=load \
+            --summary-export performance-results/k6-load.json \
+            performance/site.js
+
+      - name: Run k6 stress
+        id: stress
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_heavy }}
+        continue-on-error: true
+        env:
+          K6_BASE_URL: ${{ inputs.base_url || 'https://www.alexpavsky.com' }}
+        run: |
+          k6 run \
+            -e PERFORMANCE_SCENARIO=stress \
+            --summary-export performance-results/k6-stress.json \
+            performance/site.js
+
+      - name: Run k6 spike
+        id: spike
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_heavy }}
+        continue-on-error: true
+        env:
+          K6_BASE_URL: ${{ inputs.base_url || 'https://www.alexpavsky.com' }}
+        run: |
+          k6 run \
+            -e PERFORMANCE_SCENARIO=spike \
+            --summary-export performance-results/k6-spike.json \
+            performance/site.js
+
+      - name: Run k6 chatbot minimal
+        id: chatbot
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.include_chatbot }}
+        continue-on-error: true
+        env:
+          K6_BASE_URL: ${{ inputs.base_url || 'https://www.alexpavsky.com' }}
+          K6_CHAT_PROMPT: "Reply with only: OK"
+        run: |
+          k6 run \
+            -e PERFORMANCE_SCENARIO=chatbot-minimal \
+            --summary-export performance-results/k6-chatbot-minimal.json \
+            performance/site.js
+
+      - name: Upload k6 summaries
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: k6-performance-results-${{ github.run_number }}
+          path: performance-results/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Notify Slack
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python .github/scripts/notify_k6_slack.py \
+            --channel "${{ secrets.SLACK_K6_RESULTS_CHANNEL_ID }}" \
+            --pipeline "k6 Performance" \
+            --results-dir performance-results
+
+      - name: Fail on required public profile regression
+        if: always()
+        shell: bash
+        run: |
+          failed=0
+
+          if [[ "${{ steps.smoke.outcome }}" == "failure" ]]; then
+            echo "k6 smoke failed"
+            failed=1
+          fi
+
+          if [[ "${{ steps.rps_100.outcome }}" == "failure" ]]; then
+            echo "k6 rps-100 failed"
+            failed=1
+          fi
+
+          if [[ "${{ steps.load.outcome }}" == "failure" ]]; then
+            echo "k6 load failed"
+            failed=1
+          fi
+
+          if [[ "${{ steps.stress.outcome }}" == "failure" ]]; then
+            echo "k6 stress failed"
+            failed=1
+          fi
+
+          if [[ "${{ steps.spike.outcome }}" == "failure" ]]; then
+            echo "k6 spike failed"
+            failed=1
+          fi
+
+          exit "$failed"
