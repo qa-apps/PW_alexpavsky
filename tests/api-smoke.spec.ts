@@ -33,6 +33,7 @@ type Probe = {
   // Optional structural assertion run against the parsed JSON body.
   assertBody?: (body: any) => void;
   note?: string;
+  upstream?: boolean;
 };
 
 const CONTRACTS: Record<string, Probe> = {
@@ -81,6 +82,7 @@ const CONTRACTS: Record<string, Probe> = {
     // long as we don't get 5xx-other or HTML.
     status: [200, 429, 503],
     json: true,
+    upstream: true,
     note: 'Implemented; LLM-backed, tolerates rate-limit responses.',
   },
   '/api/hallucination': {
@@ -195,7 +197,7 @@ async function runProbe(request: APIRequestContext, path: string, probe: Probe) 
 
 test.describe('API smoke — chat_server contracts', () => {
   for (const [path, probe] of Object.entries(CONTRACTS)) {
-    test(`${probe.method} ${path} → ${probe.status}${probe.note ? ` (${probe.note})` : ''}`,
+    test(`${probe.method} ${path} → ${probe.status}${probe.note ? ` (${probe.note})` : ''}${probe.upstream ? ' @upstream' : ''}`,
       async ({ request }) => {
         await runProbe(request, path, probe);
       },
