@@ -55,7 +55,17 @@ jobs:
       - name: Run promptfoo eval
         id: eval
         continue-on-error: true
+        # Step-level cap so a hung eval can't eat the whole job — the
+        # always() Notify Slack step below still runs after a step timeout.
+        timeout-minutes: 15
         env:
+          # Non-interactive: promptfoo hangs with zero output in a non-TTY
+          # runner if it tries telemetry / update-check / a progress TUI.
+          # These + stdin from /dev/null keep it fully headless.
+          PROMPTFOO_DISABLE_TELEMETRY: "1"
+          PROMPTFOO_DISABLE_UPDATE: "1"
+          PROMPTFOO_DISABLE_SHARE: "1"
+          CI: "true"
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
@@ -71,7 +81,8 @@ jobs:
           echo "Running promptfoo with $CONFIG"
           npx promptfoo eval -c "$CONFIG" \
             --max-concurrency 3 \
-            -o promptfoo-results.json
+            --no-progress-bar \
+            -o promptfoo-results.json </dev/null
 
       - name: Upload promptfoo results
         if: always()
