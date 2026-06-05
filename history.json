@@ -853,5 +853,45 @@
       "giskard_scan.html",
       "giskard_scan.json"
     ]
+  },
+  {
+    "run_number": 29,
+    "run_id": "26996408496",
+    "timestamp": "2026-06-05T05:29:38+00:00",
+    "commit": "26175ea",
+    "ragas": {
+      "avg_faithfulness": 0.922,
+      "avg_relevancy": 0.723,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 3,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
   }
 ]
