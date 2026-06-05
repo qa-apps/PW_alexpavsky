@@ -20,10 +20,9 @@ on:
         type: boolean
         default: false
   schedule:
-    # Nightly, offset from Playwright (02:00/03:00), Ragas (03:30),
-    # LLM-quality (04:30) and k6 (05:15) so we don't collide on runners
-    # or LLM provider rate limits.
-    - cron: "45 5 * * *"
+    # Daily daytime run, offset from Playwright, Ragas, LLM-quality and k6
+    # so we don't collide on runners or LLM provider rate limits.
+    - cron: "45 19 * * *"
 
 concurrency:
   group: promptfoo-basic-${{ github.ref }}

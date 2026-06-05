@@ -15,10 +15,9 @@ name: LLM Quality (LLM Judge tests)
 on:
   workflow_dispatch:
   schedule:
-    # Once nightly at 04:30 UTC (12:30 AM EDT). Offset from main Playwright
-    # CI (02:00 / 03:00 UTC) and Ragas nightly (03:30 UTC) so we don't fight
-    # for shared GitHub runners or LLM provider rate limits.
-    - cron: '30 4 * * *'
+    # Daily daytime run at 14:30 America/New_York during EDT, offset from
+    # Playwright and Ragas so we don't fight for runners or LLM rate limits.
+    - cron: '30 18 * * *'
 
 concurrency:
   group: llm-quality-${{ github.ref }}

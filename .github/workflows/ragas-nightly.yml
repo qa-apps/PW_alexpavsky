@@ -13,10 +13,10 @@ on:
         required: false
         default: 'https://alexpavsky.com'
 
-  # Nightly at 03:30 UTC (11:30 PM EDT). Offset from playwright-ci nightly
-  # runs (02:00 / 03:00) so the two suites don't fight for runners.
+  # Daily daytime run at 13:45 America/New_York during EDT.
+  # GitHub cron is UTC; during EST this runs one hour earlier locally.
   schedule:
-    - cron: '30 3 * * *'
+    - cron: '45 17 * * *'
 
 concurrency:
   group: ragas-nightly-${{ github.ref }}

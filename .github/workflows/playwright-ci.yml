@@ -9,14 +9,11 @@ on:
       - master
   workflow_dispatch:
   schedule:
-    # Run nightly at 10 PM EDT (02:00 UTC). No gate needed — GitHub cron
-    # delays make exact-hour checks unreliable; just let it run whenever
-    # the scheduler delivers it (usually within ±30 min of 10 PM EDT).
-    - cron: '0 2 * * *'    # nightly at 10 PM EDT
-    - cron: '0 3 * * *'
+    # Daytime daily run at 1 PM America/New_York. GitHub cron is UTC,
+    # so keep adjacent UTC hours and let the schedule gate handle DST.
+    - cron: '0 17 * * *'
     - cron: '0 18 * * *'
-    - cron: '0 19 * * *'
-    - cron: '0 10 * * 1'   # weekly on Monday 10:00 UTC — model registry refresh
+    - cron: '30 20 * * 1'  # weekly Monday model registry refresh, daytime ET
 
 concurrency:
   group: playwright-ci-${{ github.ref }}-${{ github.event_name }}
@@ -38,14 +35,14 @@ jobs:
             exit 0
           fi
 
-          if [[ "${{ github.event.schedule }}" == "0 10 * * 1" ]]; then
+          if [[ "${{ github.event.schedule }}" == "30 20 * * 1" ]]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           ny_hour="$(TZ=America/New_York date +%H)"
 
-          if [[ "$ny_hour" == "14" || "$ny_hour" == "22" ]]; then
+          if [[ "$ny_hour" == "13" ]]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"

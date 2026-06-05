@@ -2,7 +2,7 @@ name: Weekly QA Report
 
 on:
   schedule:
-    - cron: '0 14 * * 0'   # Every Sunday 14:00 UTC = 10:00 AM EDT
+    - cron: '15 20 * * 0'  # Sunday 16:15 America/New_York during EDT
   workflow_dispatch:        # Run manually from GitHub Actions UI
 
 concurrency:
