@@ -1,0 +1,94 @@
+name: Daily Design Check (visual + structural regression)
+
+# Design-oriented guard for alexpavsky.com, separate from the main Playwright CI.
+# It runs the tests/design-regression.spec.ts suite — structural invariants
+# (footer compact, no overflow, Digest modal, nav present, console clean) plus
+# pixel snapshots of the stable design surfaces (footer, nav, Digest modal).
+#
+# It runs INSIDE the same Playwright image the baselines were generated in, so
+# the pixel snapshots are deterministic (no cross-runner font-AA flake). When a
+# design change or break is detected, bug_report_slack.py posts the diff
+# screenshots to the #bug-reports Slack channel.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daytime daily run ~1 PM America/New_York (GitHub cron is UTC; the gate
+    # below picks the right hour across DST), mirroring playwright-ci.yml.
+    - cron: '0 17 * * *'
+    - cron: '0 18 * * *'
+
+concurrency:
+  group: design-check-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ny_hour="$(TZ=America/New_York date +%H)"
+          if [[ "$ny_hour" == "13" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  design-check:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    # Same image the baselines were generated in → pixel-stable snapshots.
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run design regression (structural + visual)
+        env:
+          CI: true
+        run: npx playwright test design-regression --project=chromium
+
+      - name: Upload report + visual diffs
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: design-check-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Post design break to Slack #bug-reports
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF: ${{ github.ref }}
+          # Optional — used only for the LLM root-cause section; the report still
+          # posts (with screenshots) if these are absent.
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          python3 .github/scripts/bug_report_slack.py \
+            --channel "${{ secrets.BUG_REPORTS_CHANNEL_ID }}" \
+            --pipeline "Daily Design Check" \
+            --results-dir test-results

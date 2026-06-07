@@ -29,7 +29,18 @@ and the `judge-verdicts/` folder for any LLM judge results.
 
 ### 2. Classify each failure
 
-For every failing test, determine which bucket it belongs to:
+For every failing test, determine which bucket it belongs to. **Check DESIGN
+ISSUE first** — it overrides the others:
+
+**DESIGN ISSUE** — anything about how the site LOOKS (owner-only decision):
+- A `tests/design-regression.spec.ts` failure
+- A `toHaveScreenshot` / visual-snapshot pixel diff
+- An assertion about footer height, layout, spacing, sizing, colour, typography,
+  visual hierarchy, or modal/component appearance
+- Any "is this how it should look?" uncertainty, or a *potential* visual bug
+→ Do NOT auto-fix and do NOT classify as TEST ISSUE. Design decisions belong to
+the owner. Route to the DESIGN escalation in step 3 (report to Slack
+`#bug-reports`, never update baselines or loosen design assertions).
 
 **SITE BUG** — the application itself is broken:
 - HTTP 4xx/5xx responses from the site
@@ -52,6 +63,17 @@ For every failing test, determine which bucket it belongs to:
 - Rate limit hit during test run
 
 ### 3. Act on each classification
+
+**For DESIGN ISSUE:**
+1. Do NOT fix it. Never run `--update-snapshots`, never loosen a design
+   assertion or threshold — that would silently accept a design change.
+2. Capture the diff image / actual screenshot and a one-line description of what
+   changed (e.g. "footer height 285px → 824px", "nav bar colour shifted").
+3. Escalate to the owner in Slack `#bug-reports` (the design-check workflow does
+   this automatically on CI; if running standalone, post via
+   `.github/scripts/bug_report_slack.py --channel "$BUG_REPORTS_CHANNEL_ID"`).
+4. Print: "🎨 DESIGN — owner decision: [test] — [what changed]. Reported to
+   #bug-reports, not fixed."
 
 **For SITE BUG:**
 1. Navigate to the affected page/endpoint with browser tools to confirm the bug is reproducible.
@@ -108,3 +130,4 @@ After processing all failures, append a summary block to `judge-verdicts/triage-
 - If a test is marked `test.fixme()`, skip it — it is already known to be broken.
 - Fix one test at a time and re-run before moving to the next.
 - When in doubt about whether it is a site bug or a test issue, mark it SITE BUG and report.
+- **When a failure touches how the site LOOKS in any way, or you are unsure whether it is functional vs. design, classify it DESIGN ISSUE and escalate to `#bug-reports` — never auto-fix it.** Functional bugs may be fixed; design is the owner's decision.

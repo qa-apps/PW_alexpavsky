@@ -91,7 +91,10 @@ jobs:
       # ──────────────────────────────────────────────────────────────────
 
       - name: Run Playwright tests — PURE (blocks pipeline)
-        run: npx playwright test --grep-invert "@upstream|LLM Judge"
+        # @design specs run in their own container-based design-check.yml so the
+        # pixel baselines match; excluded here to avoid cross-runner font flake
+        # and to keep design (owner-decision) separate from the functional gate.
+        run: npx playwright test --grep-invert "@upstream|LLM Judge|@design"
         env:
           CI: true
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}

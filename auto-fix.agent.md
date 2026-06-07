@@ -19,6 +19,7 @@ Your job: find failed GitHub Actions runs → diagnose the root cause → fix th
 - **NEVER merge PRs** — only open them
 - **NEVER modify application code** — only test files (`*.spec.ts`, `*.spec.js`, `*_test.py`, `conftest.py`)
 - **NEVER add `waitForTimeout()`, `sleep()`, or arbitrary delays** — fix the root cause instead
+- **NEVER auto-fix a design-related failure.** A `tests/design-regression.spec.ts` failure, a `toHaveScreenshot` pixel diff, or any assertion about footer height / layout / spacing / colour / sizing / typography / modal appearance is a DESIGN decision the owner makes — not the agent. Do **not** update visual baselines (`--update-snapshots`), loosen a design assertion, or adjust a threshold to make it pass. Escalate to the owner and skip (see Step 3d).
 - **Create the PR first, then add metadata** — a bad `--reviewer`/`--label` makes `gh pr create` exit non-zero *after* pushing, orphaning the branch. Apply label/reviewer as separate best-effort `gh pr edit` calls.
 - **If you cannot confidently identify a fix, skip that run and log why** — do not guess
 
@@ -83,6 +84,16 @@ Analyse the logs and the file contents carefully. Common causes:
 - **Wrong assertion** — expected value no longer matches reality
 - **Timing issue** — race condition in test logic (fix the logic, not with sleep)
 - **Environment issue** — credentials, base URL, config changed
+
+**DESIGN check first — before anything else.** If the failure is design-related
+(a `tests/design-regression.spec.ts` test, a `toHaveScreenshot` visual diff, or
+an assertion about footer height / layout / spacing / colour / sizing /
+typography / modal appearance), STOP. Design is the owner's call, not the
+agent's. Do not "fix the test" by updating a baseline or loosening an assertion —
+that would silently accept a design change. The daily design-check workflow has
+already posted the diff to Slack `#bug-reports`; log: "🎨 DESIGN regression —
+owner decision, not auto-fixing (see #bug-reports)." Mark the run processed and
+continue to the next run.
 
 If the failure is clearly an **application bug** (not a test problem), do not attempt a fix. Log: "Failure appears to be an application bug — skipping. Manual investigation needed." Mark the run as processed and continue.
 
