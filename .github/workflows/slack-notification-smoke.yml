@@ -1,0 +1,88 @@
+name: Slack Notification Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      delay_seconds:
+        description: "Delay before posting, used to prepare desktop notification capture"
+        required: false
+        default: "0"
+      message_suffix:
+        description: "Short suffix for the test message"
+        required: false
+        default: "manual smoke test"
+
+jobs:
+  send-test-messages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Send Slack notification smoke messages
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DELAY_SECONDS: ${{ inputs.delay_seconds }}
+          MESSAGE_SUFFIX: ${{ inputs.message_suffix }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.error
+          import urllib.request
+
+          token = os.environ["SLACK_BOT_TOKEN"]
+          delay = int(os.environ.get("DELAY_SECONDS") or "0")
+          suffix = os.environ.get("MESSAGE_SUFFIX") or "manual smoke test"
+          run_url = os.environ.get("GITHUB_RUN_URL", "")
+
+          channels = [
+              ("C0B9NAG5R40", "#codex-daily-e2e-results"),
+              ("C0B50MB635F", "#bug-reports"),
+          ]
+
+          if delay > 0:
+              time.sleep(delay)
+
+          def slack_api(method, payload):
+              req = urllib.request.Request(
+                  f"https://slack.com/api/{method}",
+                  data=json.dumps(payload).encode("utf-8"),
+                  headers={
+                      "Content-Type": "application/json",
+                      "Authorization": f"Bearer {token}",
+                  },
+                  method="POST",
+              )
+              with urllib.request.urlopen(req, timeout=15) as response:
+                  result = json.loads(response.read().decode("utf-8"))
+              if not result.get("ok"):
+                  error = result.get("error", "unknown")
+                  if method == "conversations.join" and error in {
+                      "already_in_channel",
+                      "missing_scope",
+                      "method_not_supported_for_channel_type",
+                  }:
+                      return result
+                  raise RuntimeError(f"Slack API {method} failed: {error}")
+              return result
+
+          for channel_id, channel_name in channels:
+              slack_api("conversations.join", {"channel": channel_id})
+              text = (
+                  f"<@U07GUF1246M> Slack notification smoke test for {channel_name}.\n"
+                  f"Sender: GitHub Actions Slack bot.\n"
+                  f"Purpose: verify desktop Slack notifications for Codex daily QA reports and bug/design escalations.\n"
+                  f"Result expected: a desktop notification banner should appear if Slack/macOS notification settings allow it.\n"
+                  f"Suffix: {suffix}\n"
+                  f"Run: {run_url}"
+              )
+              slack_api("chat.postMessage", {
+                  "channel": channel_id,
+                  "text": text,
+                  "link_names": True,
+                  "unfurl_links": False,
+                  "unfurl_media": False,
+              })
+              print(f"Posted smoke message to {channel_name} ({channel_id})")
+          PY
