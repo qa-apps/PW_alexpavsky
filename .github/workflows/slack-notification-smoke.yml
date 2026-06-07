@@ -11,6 +11,10 @@ on:
         description: "Short suffix for the test message"
         required: false
         default: "manual smoke test"
+      target_channel:
+        description: "Which channel to test: all, codex-daily-e2e-results, or bug-reports"
+        required: false
+        default: "all"
 
 jobs:
   send-test-messages:
@@ -23,6 +27,7 @@ jobs:
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           DELAY_SECONDS: ${{ inputs.delay_seconds }}
           MESSAGE_SUFFIX: ${{ inputs.message_suffix }}
+          TARGET_CHANNEL: ${{ inputs.target_channel }}
         run: |
           python3 - <<'PY'
           import json
@@ -34,12 +39,21 @@ jobs:
           token = os.environ["SLACK_BOT_TOKEN"]
           delay = int(os.environ.get("DELAY_SECONDS") or "0")
           suffix = os.environ.get("MESSAGE_SUFFIX") or "manual smoke test"
+          target_channel = os.environ.get("TARGET_CHANNEL") or "all"
           run_url = os.environ.get("GITHUB_RUN_URL", "")
 
-          channels = [
+          all_channels = [
               ("C0B9NAG5R40", "#codex-daily-e2e-results"),
               ("C0B50MB635F", "#bug-reports"),
           ]
+          aliases = {
+              "all": all_channels,
+              "codex-daily-e2e-results": [all_channels[0]],
+              "bug-reports": [all_channels[1]],
+          }
+          if target_channel not in aliases:
+              raise RuntimeError(f"Unsupported target_channel: {target_channel}")
+          channels = aliases[target_channel]
 
           if delay > 0:
               time.sleep(delay)
