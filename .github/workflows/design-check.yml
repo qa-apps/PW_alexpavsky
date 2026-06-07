@@ -58,6 +58,12 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      # The image ships browsers, but the installed Playwright build expects the
+      # split chrome-headless-shell binary which isn't always present after a
+      # clean npm ci — install it explicitly (fast no-op if already there).
+      - name: Ensure Chromium is installed
+        run: npx playwright install chromium
+
       - name: Run design regression (structural + visual)
         env:
           CI: true
