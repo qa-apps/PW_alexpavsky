@@ -299,11 +299,13 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     await expect(page.locator('#challenge, [id*="challenge"]').first()).toBeVisible();
   });
 
-  test('nav Digest link scrolls to digest/newsletter section', async ({ homePage, page }) => {
+  test('nav Digest link opens the digest modal without scrolling', async ({ homePage, page }) => {
     await homePage.goto();
     await page.locator('nav a[href*="digest"], nav .nav-link', { hasText: /^Digest$/i }).first().click();
-    await homePage.newsletterSection.waitFor({ state: 'visible' });
-    await expect(homePage.newsletterSection).toBeInViewport({ ratio: 0.1 });
+    const modal = page.locator('#digest-modal');
+    await expect(modal).toHaveClass(/active/);
+    await expect(page.locator('#digest-modal .modal-content')).toBeVisible();
+    expect(await page.evaluate(() => window.scrollY), 'Digest opens a modal and must not scroll the page').toBeLessThan(5);
   });
 
   // ## Break It modal

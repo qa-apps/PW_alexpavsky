@@ -22,3 +22,9 @@ gh-pages-existing/
 
 # Local screenshot artifacts from MCP-driven manual verification
 screenshots/
+
+# k6 performance run artifacts (CI uploads these as build artifacts)
+performance-results/
+
+# QA history / defect logs (generated, not source)
+qa-history/
