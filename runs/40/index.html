@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Eval run #40</title>
+<style>
+  body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; margin: 0 auto; max-width: 1100px; padding: 24px; color: #1a1a1a; }
+  h1 { margin: 0 0 4px; } h2 { margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  nav { font-size: 13px; color: #666; } nav a { color: #0366d6; text-decoration: none; }
+  .meta { color: #666; font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+  .card { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 14px; }
+  .card .label { color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .status-pass { color: #0a7c0a; } .status-fail { color: #b00020; }
+  iframe { width: 100%; height: 600px; border: 1px solid #d0d7de; border-radius: 6px; }
+  #ragas-md { background: #fff; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; }
+</style></head>
+<body>
+<nav><a href="../../index.html">← all runs</a></nav>
+<h1>Eval run #40</h1>
+<p class="meta">2026-06-16T19:29:51+00:00 · commit <a href="https://github.com/qa-apps/PW_alexpavsky/commit/fc67399">fc67399</a> · <a href="https://github.com/qa-apps/PW_alexpavsky/actions/runs/27640913813">run #40</a></p>
+
+<div class="grid">
+  <div class="card"><div class="label">Ragas faithfulness</div><div class="value status-pass">0.884</div></div>
+  <div class="card"><div class="label">Ragas relevancy</div><div class="value">0.74</div></div>
+  <div class="card"><div class="label">Giskard RAG correctness</div><div class="value">—</div></div>
+  <div class="card"><div class="label">Giskard scan issues</div><div class="value">7</div></div>
+</div>
+
+<h2>Ragas report</h2>
+<div id="ragas-md">Loading…</div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+fetch('report.md').then(r => r.ok ? r.text() : 'Ragas report not produced for this run.').then(t => {
+  document.getElementById('ragas-md').innerHTML = marked.parse(t);
+}).catch(e => { document.getElementById('ragas-md').textContent = 'Failed to load Ragas report: ' + e; });
+</script>
+
+<h2>Giskard RAG evaluation</h2>
+<iframe src="giskard_rag.html" title="Giskard RAG eval"></iframe>
+
+<h2>Giskard vulnerability scan</h2>
+<iframe src="giskard_scan.html" title="Giskard scan"></iframe>
+</body></html>
