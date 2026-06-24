@@ -20,6 +20,7 @@ CLI quick reference (run `python3 report_lib.py -h`):
     blocker <date> <id> <state>      open|claude_cleared|resolved_by_design (+ --note/--commit)
     add-bug <date> --id .. --title ..  append a bug Codex found
     claude-fix <date> <bug_id> ..    record the fix Claude applied (--summary/--commit/--files/--verified)
+    add-shot <date> <bug_id> ..      attach a screenshot (--file/--src, --kind bug|fix, --caption)
     verdict <date> <bug_id> <v>      Codex's per-bug verdict: fixed|needs_attention|not_reproduced|pending
     final <date> <v> --summary ..    Codex's final verdict: all_clear|attention_needed|pending
 """
@@ -27,13 +28,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import shutil
+import socket
+import subprocess
 import sys
+import time
+import webbrowser
 from datetime import datetime, timezone
 from pathlib import Path
 
 SCHEMA = "alexpavsky-qa-report/v1"
 ROOT = Path(__file__).resolve().parent
 REPORTS_DIR = ROOT / "reports"
+SHOTS_DIR = ROOT / "shots"  # one subdir per run_date, served by the UI at /shot/
 DEFAULT_SITE = "https://www.alexpavsky.com"
 
 # The report's position in the Codex<->Claude loop.
@@ -46,6 +54,17 @@ CODEX_STATUSES = ["found", "confirmed", "not_reproduced"]
 # Codex's verdict on a bug AFTER Claude's fix.
 VERDICTS = ["fixed", "needs_attention", "not_reproduced", "pending"]
 FINAL_VERDICTS = ["all_clear", "attention_needed", "pending"]
+# A screenshot attached to a bug: "bug" = the defect Codex saw, "fix" = the
+# verified fixed state Claude observed. Rendered as a clickable thumbnail.
+SHOT_KINDS = ["bug", "fix"]
+
+# Where the local report UI lives (mirrors serve.py). After a milestone we pop
+# the report open in the browser so Alex sees it without hunting for the URL.
+UI_HOST = os.getenv("QA_UI_HOST", "127.0.0.1")
+UI_PORT = int(os.getenv("QA_UI_PORT", "5058"))
+# Status transitions worth surfacing: run hit a blocker, run clean / fixes done,
+# verification finished. These are exactly "after each run / fix / verification".
+OPEN_ON_STATUS = {"blocked", "codex_verifying", "complete"}
 
 
 def _now() -> str:
@@ -91,6 +110,60 @@ def list_reports(reports_dir=REPORTS_DIR) -> list:
         out.append(r)
     out.sort(key=lambda r: str(r.get("run_date") or ""), reverse=True)
     return out
+
+
+# ── browser auto-open ────────────────────────────────────────────────────────
+# After a run/fix/verification milestone the report pops open in the browser.
+# Best-effort throughout: surfacing the report is a convenience and must never
+# break a save or raise. Set QA_UI_NO_OPEN=1 to disable (CI, headless sandboxes).
+def report_url(run_date: str) -> str:
+    return f"http://{UI_HOST}:{UI_PORT}/r/{run_date}"
+
+
+def _server_up(timeout: float = 0.3) -> bool:
+    try:
+        with socket.create_connection((UI_HOST, UI_PORT), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def _ensure_server() -> None:
+    """Start serve.py detached if nothing is already listening on the UI port."""
+    if _server_up():
+        return
+    serve = ROOT / "serve.py"
+    if not serve.is_file():
+        return
+    subprocess.Popen(
+        [sys.executable, str(serve)],
+        cwd=str(ROOT),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    for _ in range(20):  # wait up to ~2s for it to bind, so the tab isn't refused
+        if _server_up():
+            return
+        time.sleep(0.1)
+
+
+def _launch_browser(url: str) -> None:
+    if sys.platform == "darwin":  # use the OS default browser explicitly
+        subprocess.Popen(["open", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        webbrowser.open(url)
+
+
+def open_report(run_date: str) -> None:
+    """Open the report for run_date in the default browser (best-effort)."""
+    if os.getenv("QA_UI_NO_OPEN"):
+        return
+    try:
+        _ensure_server()
+        _launch_browser(report_url(run_date))
+    except Exception:
+        pass  # never let opening a tab break the report write
 
 
 # ── derived data ─────────────────────────────────────────────────────────────
@@ -141,6 +214,7 @@ def add_bug(report, bug_id, title, section="", severity="minor",
         "severity": severity,
         "codex_status": codex_status,
         "evidence": list(evidence or []),
+        "shots": [],
         "claude_fix": None,
         "codex_verdict": "pending",
         "codex_verdict_note": "",
@@ -160,6 +234,28 @@ def set_claude_fix(report, bug_id, summary, commit="", files=None,
         "verified": verified,
     }
     return bug
+
+
+def add_shot(report, bug_id, src, caption="", kind="bug") -> dict:
+    """Attach a screenshot to a bug. ``kind`` is 'bug' (the defect) or 'fix'
+    (the verified fixed state). ``src`` is a path relative to SHOTS_DIR."""
+    bug = _find_bug(report, bug_id)
+    shot = {"src": src, "caption": caption, "kind": kind}
+    bug.setdefault("shots", []).append(shot)
+    return shot
+
+
+def import_shot_file(run_date, file_path) -> str:
+    """Copy an image into ``shots/<run_date>/`` and return its src relative to
+    SHOTS_DIR (e.g. '2026-06-14/fix-009-mobile.png'). Keeps the report's images
+    next to the report so the UI can serve them with no extra config."""
+    src_path = Path(file_path).expanduser().resolve()
+    if not src_path.is_file():
+        raise FileNotFoundError(f"no such screenshot: {file_path}")
+    dest_dir = SHOTS_DIR / run_date
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(src_path, dest_dir / src_path.name)
+    return f"{run_date}/{src_path.name}"
 
 
 def set_verdict(report, bug_id, verdict, note="") -> dict:
@@ -220,6 +316,9 @@ def validate(report: dict) -> list:
         need(b.get("codex_verdict") in VERDICTS, f"{loc}: codex_verdict must be {VERDICTS}")
         cf = b.get("claude_fix")
         need(cf is None or isinstance(cf, dict), f"{loc}: claude_fix must be an object or null")
+        for j, s in enumerate(b.get("shots") or []):
+            need(bool(s.get("src")), f"{loc}: shots[{j}].src required")
+            need(s.get("kind", "bug") in SHOT_KINDS, f"{loc}: shots[{j}].kind must be {SHOT_KINDS}")
     for i, x in enumerate(report.get("blockers") or []):
         loc = f"blockers[{i}] ({x.get('id', '?')})"
         need(bool(x.get("id")), f"{loc}: id required")
@@ -278,6 +377,8 @@ def _mutate(date, fn):
 
 def _cmd_status(a):
     _mutate(a.date, lambda r: r.update({"status": a.status}))
+    if a.status in OPEN_ON_STATUS:
+        open_report(a.date)
 
 
 def _cmd_headline(a):
@@ -299,6 +400,17 @@ def _cmd_claude_fix(a):
     _mutate(a.date, lambda r: set_claude_fix(r, a.bug, a.summary, commit=a.commit or "",
                                              files=_split_csv(a.files), verified=a.verified or "",
                                              done=not a.not_done))
+
+
+def _cmd_add_shot(a):
+    if a.file:
+        src = import_shot_file(a.date, a.file)
+    elif a.src:
+        src = a.src
+    else:
+        print("add-shot: pass --file <image path> (copied in) or --src <relpath under shots/>")
+        sys.exit(1)
+    _mutate(a.date, lambda r: add_shot(r, a.bug, src, caption=a.caption or "", kind=a.kind))
 
 
 def _cmd_verdict(a):
@@ -367,6 +479,16 @@ def _build_parser():
     s.add_argument("--verified", help="how the fix was observed working")
     s.add_argument("--not-done", action="store_true", help="record attempt without marking done")
     s.set_defaults(func=_cmd_claude_fix)
+
+    s = sub.add_parser("add-shot", help="attach a screenshot thumbnail to a bug or its fix")
+    s.add_argument("date")
+    s.add_argument("bug")
+    s.add_argument("--file", help="path to an image; copied into shots/<date>/")
+    s.add_argument("--src", help="relative path under shots/ if the image is already placed")
+    s.add_argument("--caption", default="", help="shown on hover and under the expanded image")
+    s.add_argument("--kind", choices=SHOT_KINDS, default="bug",
+                   help="'bug' = the defect Codex saw, 'fix' = the verified fixed state")
+    s.set_defaults(func=_cmd_add_shot)
 
     s = sub.add_parser("verdict", help="Codex's per-bug verdict")
     s.add_argument("date")

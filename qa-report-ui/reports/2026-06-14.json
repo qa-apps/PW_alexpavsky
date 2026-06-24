@@ -3,7 +3,7 @@
   "run_date": "2026-06-14",
   "site": "https://www.alexpavsky.com",
   "status": "codex_verifying",
-  "headline": "Codex's daily run was sandbox-blocked (DNS + Chromium). Claude cleared the blocker with a full live pass on 2026-06-14: all 7 fixes re-verified in a real browser, 0 new defects. Awaiting Codex's independent sign-off once its runner sandbox is restored.",
+  "headline": "Codex sandbox-blocked (DNS+Chromium); Claude's live pass re-verified 7/7 fixes, 0 new defects. Codex sign-off pending.",
   "tester": "codex",
   "blockers": [
     {
@@ -11,7 +11,7 @@
       "title": "Shell DNS cannot resolve www.alexpavsky.com",
       "detail": "getaddrinfo ENOTFOUND www.alexpavsky.com — the Codex runner sandbox has no shell-level DNS egress, though the web fetcher can still pull rendered HTML.",
       "status": "claude_cleared",
-      "claude_note": "Claude ran the full live browser pass over its own network on 2026-06-14 — DNS resolves www.alexpavsky.com fine outside the Codex sandbox. Durable fix: give the Codex runner DNS egress.",
+      "claude_note": "Live pass ran on Claude's network; DNS resolves outside the sandbox. Durable fix: give the Codex runner DNS egress.",
       "claude_commit": ""
     },
     {
@@ -19,7 +19,7 @@
       "title": "Headless Chromium aborts at launch (Mach port Permission denied 1100)",
       "detail": "FATAL base/apple/mach_port_rendezvous_mac.cc:155 — bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer: Permission denied (1100). Chromium dies before navigation, so Codex cannot drive the live site.",
       "status": "claude_cleared",
-      "claude_note": "Claude drove the live site via its own Playwright/Chromium on 2026-06-14 (navigation, console, 1280/390/820 viewports, and the Digest modal click all worked). Durable fix: grant the Codex runner the Automation entitlement, or run the daily QA outside the restricted sandbox.",
+      "claude_note": "Drove the live site via Claude's Chromium (nav, console, 1280/390/820, Digest click). Durable fix: grant the runner the Automation entitlement, or run QA outside the sandbox.",
       "claude_commit": ""
     },
     {
@@ -27,7 +27,7 @@
       "title": "Cannot create /Users/alexp/Desktop/REPORTS/alexpavsky-e2e (EPERM)",
       "detail": "EPERM: operation not permitted, mkdir '/Users/alexp/Desktop/REPORTS/alexpavsky-e2e'. The old workflow delivered a PDF to the Desktop, which the sandbox forbids.",
       "status": "resolved_by_design",
-      "claude_note": "Reports no longer go to the Desktop. They are written into qa-report-ui/reports/ (inside the project, which the runner CAN write) and shown in this UI. This blocker is eliminated by the new workflow.",
+      "claude_note": "Reports now write to qa-report-ui/reports/ and render in this UI — Desktop write removed by the new workflow.",
       "claude_commit": ""
     }
   ],
@@ -52,7 +52,14 @@
         "verified": "live 2026-06-14: 3/4 carousel thumbs loaded at 480x360 hqdefault; the 4th (SzJ46YA_RaA) is loading=lazy and off-screen, and its hqdefault probed valid in 175ms at 480x360. Zero broken images."
       },
       "codex_verdict": "fixed",
-      "codex_verdict_note": "Fixed in 90e2fdb; live retest blocked since 06-04, classification carried forward pending Claude's live pass."
+      "codex_verdict_note": "Fixed in 90e2fdb; live retest blocked since 06-04, classification carried forward pending Claude's live pass.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-livefeed-desktop.png",
+          "caption": "Live feed carousel — YouTube thumbnails load (naturalWidth 480, complete). Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
     },
     {
       "id": "codex-e2e-2026-06-01-002",
@@ -89,7 +96,14 @@
         "verified": "live 2026-06-14: 0 empty visible headings across all 52 headings (aria-hidden placeholders correctly excluded)."
       },
       "codex_verdict": "fixed",
-      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a live accessibility retest."
+      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a live accessibility retest.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-hero-desktop.png",
+          "caption": "Homepage first paint — headings carry text; DOM check 0/52 empty. Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
     },
     {
       "id": "codex-e2e-2026-06-01-004",
@@ -111,7 +125,14 @@
         "verified": "live 2026-06-14: clicked the Digest nav -> #digest-modal became 'diff-modal active' and visible, window.scrollY stayed 0, no hash change. The footer-stretch incident does not recur."
       },
       "codex_verdict": "fixed",
-      "codex_verdict_note": "Confirmed resolved by a live retest on 2026-06-08."
+      "codex_verdict_note": "Confirmed resolved by a live retest on 2026-06-08.",
+      "shots": [
+        {
+          "src": "2026-06-14/alexpavsky-live-digest-2026-06-14.png",
+          "caption": "Daily Digest opens as a centered modal at scrollY=0; content scrolls inside. Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
     },
     {
       "id": "codex-e2e-2026-06-01-005",
@@ -161,7 +182,14 @@
         "verified": "live 2026-06-14: 0 console errors on a clean load (after isolating an unrelated i-copilot camera-tab websocket error that had polluted the shared automation browser)."
       },
       "codex_verdict": "fixed",
-      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a live console retest."
+      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a live console retest.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-hero-desktop.png",
+          "caption": "Homepage loads clean — 0 console errors after isolating an unrelated tab. Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
     },
     {
       "id": "codex-e2e-2026-06-01-008",
@@ -184,7 +212,14 @@
         "verified": "live 2026-06-14: hero H1 accessible text reads 'AI Testing & Integration. Building Trust.' with correct inter-word and post-period spacing."
       },
       "codex_verdict": "fixed",
-      "codex_verdict_note": "Addressed in 90e2fdb; cosmetic, carried forward."
+      "codex_verdict_note": "Addressed in 90e2fdb; cosmetic, carried forward.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-hero-desktop.png",
+          "caption": "Hero 'AI Testing & Integration. Building Trust.' — correct spacing, no word-join. Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
     },
     {
       "id": "codex-e2e-2026-06-01-009",
@@ -206,7 +241,14 @@
         "verified": "live 2026-06-14 @390px: documentElement scrollWidth 390 == clientWidth 390, no horizontal page scroll (overshoot 0px). Wide LIVE ticker items are the marquee, contained by overflow-x clip."
       },
       "codex_verdict": "fixed",
-      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a fresh 390px live retest."
+      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a fresh 390px live retest.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-mobile-390.png",
+          "caption": "iPhone 390px — no horizontal overflow (scrollWidth == 390). Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
     },
     {
       "id": "codex-e2e-2026-06-01-010",
@@ -228,16 +270,23 @@
         "verified": "live 2026-06-14 @820px: documentElement scrollWidth 820 == clientWidth 820, no horizontal page scroll (overshoot 0px). Only marquee-child nodes extend past the viewport, all contained."
       },
       "codex_verdict": "fixed",
-      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a fresh 820px live retest."
+      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a fresh 820px live retest.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-tablet-820.png",
+          "caption": "Tablet 820px — no horizontal overflow (scrollWidth == 820). Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
     }
   ],
   "codex_final": {
     "verdict": "pending",
-    "summary": "Claude's 2026-06-14 live pass (run outside Codex's blocked sandbox) cleared the test blocker and re-verified every open fix with fresh real-browser evidence: YouTube thumbs load (hqdefault valid), no empty headings (0 of 52), 0 console errors, hero H1 spacing correct, Digest opens as a modal with scrollY=0, and no horizontal overflow at 390px or 820px. No new defects found; the 3 prior items remain not-reproduced (by-design). The site is clean as of this pass. Codex's own formal final sign-off is the only step left and is pending restoration of the Codex runner sandbox.",
+    "summary": "7/7 fixes re-verified live 2026-06-14 @1280/390/820: thumbs load, 0/52 empty headings, 0 console errors, H1 spacing OK, Digest modal scrollY=0, no overflow @390/820. 0 new defects; 3 prior items by-design; Codex's own sign-off pending (sandbox).",
     "needs_alex": [
-      "Restore the Codex runner sandbox (DNS egress + Chromium Automation entitlement) so Codex can resume its own independent daily verification"
+      "Restore Codex runner sandbox (DNS egress + Chromium Automation entitlement) for independent daily verification."
     ]
   },
   "created_at": "2026-06-14T16:19:16Z",
-  "updated_at": "2026-06-14T23:09:58Z"
+  "updated_at": "2026-06-15T03:11:26Z"
 }

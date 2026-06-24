@@ -23,6 +23,13 @@ Open that URL to see the list of days and click a day for the full report
 (blockers, bugs found/fixed/verified, final verdict). It is pure Python stdlib —
 nothing to install.
 
+**The report auto-opens in Alex's browser at each milestone.** Every `status`
+transition to `blocked`, `codex_verifying`, or `complete` pops that day's report
+open in the default browser (and starts `serve.py` if it isn't already running) —
+so Alex sees the result right after a run, a fix, or a verification without being
+told a URL. If your runner is headless and must not spawn a browser, export
+`QA_UI_NO_OPEN=1` for that process; the report still saves exactly the same.
+
 **Never write a report JSON by hand.** Always go through the CLI below; it
 validates before every save and refuses to persist anything off-schema.
 
@@ -106,6 +113,35 @@ python3 report_lib.py status 2026-06-15 complete
 Per-bug verdicts: `fixed`, `needs_attention`, `not_reproduced`, `pending`.
 Final verdicts: `all_clear`, `attention_needed`, `pending`.
 
+## Screenshots — attach evidence to every bug AND every fix
+
+Alex reads the report visually. **Every bug should carry at least one screenshot,
+and every fix should carry one too** — a small thumbnail he can click to expand
+full-screen in the UI (a built-in lightbox handles the zoom). Either agent may
+attach them: Codex attaches `--kind bug` evidence while testing; Claude (or Codex
+on re-verify) attaches `--kind fix` proof of the corrected behavior.
+
+```bash
+cd qa-report-ui
+
+# Codex, phase 1 — capture the defect, then attach it to the bug as evidence.
+# --file copies an image from anywhere on disk into shots/<date>/ for you:
+python3 report_lib.py add-shot 2026-06-15 codex-e2e-2026-06-15-001 \
+  --file qa-history/shots/carousel-thumb-404.png \
+  --kind bug --caption "Carousel thumbnail 404s — naturalWidth=0 @1440"
+
+# Claude / Codex re-verify — attach proof the fix works:
+python3 report_lib.py add-shot 2026-06-15 codex-e2e-2026-06-15-001 \
+  --file /tmp/livefeed-fixed.png \
+  --kind fix --caption "Retested live @1440 — thumbnail loads, naturalWidth=480"
+```
+
+`--file <path>` imports the file into `shots/<date>/` and records the relative
+path. Use `--src <relpath>` only if the image is **already** under `shots/<date>/`.
+Captions should state the viewport + the observation, same standard as a verdict
+note. Bug-evidence thumbnails appear in the "Codex found" cell; fix thumbnails in
+the "Claude's fix" cell — both click to expand.
+
 ## Design vs. functional — the hard rule (applies to BOTH agents)
 
 - **Functional** defects (broken behavior, JS/console errors, 4xx/5xx, wrong data,
@@ -126,6 +162,30 @@ observation** — the viewport and the action that proved it (e.g. "live @390px,
 opened Digest modal, scrollY=0"), never "the code looks right" or "deployed". A
 carried-forward classification must say it was carried forward.
 
+## Write it tight — brevity (applies to BOTH agents)
+
+Alex scans this report every day; every wasted word costs him time. Write so the
+problem is obvious at a glance. Shorten anything that can be shortened — but never
+drop a load-bearing fact (a measurement, a root cause, a repro) just to be short.
+
+- **Headline = one line** (≤120 chars), the day's bottom line, result first. Not a
+  paragraph. ✗ "Codex's daily run was sandbox-blocked (DNS + Chromium). Claude
+  cleared the blocker with a full live pass…" → ✓ "Codex sandbox-blocked; Claude's
+  live pass verified 7/7 fixes, 0 new defects. Codex sign-off pending."
+- **Bug title = the symptom in ≤10 words**, present tense, no "the/a"
+  ("390px viewport shows horizontal overflow"). The title *is* the bug.
+- **One scannable line per cell** — `evidence`, `claude_fix.summary`, `verified`,
+  each verdict note. Two facts → two short clauses, not two sentences of narration.
+- **Lead with the result; cut the preamble.** State status plainly — `verified` /
+  `not retested` / `by-design`. ✗ "Addressed in 90e2fdb; carried forward pending a
+  fresh 390px live retest." → ✓ "Fixed (90e2fdb); live @390px scrollWidth 390==390."
+- **A number or a path beats prose**: `0/52 empty headings`, `scrollWidth==clientWidth`.
+- **Don't repeat across columns.** Commit + files already render as chips — don't
+  restate them in prose. Found / fix / verdict each add NEW information.
+- **No hedging or process narration** — drop "classification carried forward
+  pending…", "though the web fetcher can still…", "targeting the … pattern".
+- **Final summary ≤2 sentences**: result first, then what's left for Alex.
+
 ## CLI reference (full surface)
 
 ```
@@ -136,6 +196,7 @@ status <date> <status>                        move along the loop
 headline <date> <text>                        update the one-line headline
 blocker <date> <id> <state> [--title --detail --note --commit]
 add-bug <date> --id --title [--section --severity --codex-status --evidence ...]
+add-shot <date> <bug> (--file <path> | --src <relpath>) [--caption --kind bug|fix]
 claude-fix <date> <bug> --summary [--commit --files --verified --not-done]
 verdict <date> <bug> <verdict> [--note]
 final <date> <verdict> [--summary --needs-alex ...]
@@ -144,5 +205,19 @@ final <date> <verdict> [--summary --needs-alex ...]
 `status`: `codex_testing` `blocked` `claude_fixing` `codex_verifying` `complete`.
 `blocker` state: `open` `claude_cleared` `resolved_by_design`.
 `severity`: `major` `minor` `cosmetic`. `codex-status`: `found` `confirmed` `not_reproduced`.
+`add-shot` `--kind`: `bug` (evidence of the defect) or `fix` (proof it's resolved).
 
 See `qa-report-ui/README.md` for the same flow from Claude's side.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+When the user types `/graphify`, invoke the `skill` tool with `skill: "graphify"` before doing anything else.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

@@ -48,6 +48,17 @@ async function youtubeTrackScrollLeft(carousel: Locator): Promise<number> {
   });
 }
 
+async function uniqueYoutubeVideoIds(cards: Locator): Promise<string[]> {
+  return cards.evaluateAll((els) => {
+    const ids = new Set<string>();
+    els.forEach((el) => {
+      const id = el.getAttribute('data-video-id') || '';
+      if (id) ids.add(id);
+    });
+    return Array.from(ids);
+  });
+}
+
 test.describe('Smoke — alexpavsky.com UI', () => {
   test('home page loads successfully', async ({ homePage }) => {
     await homePage.goto();
@@ -79,7 +90,12 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     await homePage.ytSection.scrollIntoViewIfNeeded();
     await expect(homePage.ytSection).toBeVisible();
     const count = await homePage.ytCards.count();
-    expect(count).toBeGreaterThanOrEqual(1);
+    expect(count).toBeGreaterThanOrEqual(12);
+    const uniqueIds = await uniqueYoutubeVideoIds(homePage.youtubeRealCards);
+    expect(
+      uniqueIds.length,
+      `YouTube carousel must show at least 12 unique videos, got ${uniqueIds.length}: ${uniqueIds.join(', ')}`,
+    ).toBeGreaterThanOrEqual(12);
   });
 
   test('live feed section is visible with cards', async ({ homePage }) => {

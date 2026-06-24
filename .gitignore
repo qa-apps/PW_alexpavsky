@@ -28,3 +28,11 @@ performance-results/
 
 # QA history / defect logs (generated, not source)
 qa-history/
+
+.codex/
+graphify-out/
+qa-report-ui/reports/*.json
+qa-report-ui/shots/
+scripts/*.png
+scripts/files.md
+tests/reg-snapshots/

@@ -150,7 +150,34 @@ tr:last-child td{border-bottom:none}
 .final{font-size:14px}.final .sum{margin-top:10px;line-height:1.55}
 .empty{padding:42px;text-align:center;color:var(--muted)}
 .back{font-size:12.5px}
+/* screenshot thumbnails + lightbox */
+.shots{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.thumb{display:block;width:66px;height:46px;border:1px solid var(--line);border-radius:6px;
+overflow:hidden;cursor:zoom-in;background:var(--panel2);flex:0 0 auto;padding:0;line-height:0}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb:hover{border-color:var(--accent)}
+.lb{position:fixed;inset:0;background:rgba(15,23,36,.85);z-index:60;display:none;
+flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:28px;cursor:zoom-out}
+.lb.show{display:flex}
+.lb img{max-width:95vw;max-height:86vh;border-radius:8px;box-shadow:0 14px 50px rgba(0,0,0,.55);background:#fff}
+.lb-cap{color:#e8f0fb;font-size:13px;max-width:80vw;text-align:center;line-height:1.5}
 """
+
+# Full-screen overlay + the tiny script that drives it. A thumbnail carries its
+# full-size src and caption in data-* attributes; clicking it fills and shows the
+# overlay. Clicking the overlay (or pressing Escape) closes it. No dependencies.
+LIGHTBOX = (
+    '<div id="lb" class="lb" onclick="closeLb()">'
+    '<img id="lbimg" src="" alt=""><div id="lbcap" class="lb-cap"></div></div>'
+    "<script>"
+    "function zoom(el){var lb=document.getElementById('lb');"
+    "document.getElementById('lbimg').src=el.dataset.full;"
+    "document.getElementById('lbcap').textContent=el.dataset.cap||'';"
+    "lb.classList.add('show');}"
+    "function closeLb(){document.getElementById('lb').classList.remove('show');}"
+    "document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLb();});"
+    "</script>"
+)
 
 
 def esc(x) -> str:
@@ -172,7 +199,8 @@ def page(title, body) -> str:
         '<meta name=viewport content="width=device-width, initial-scale=1">'
         f"<title>{esc(title)}</title>"
         "<link rel=icon type=image/svg+xml href=/favicon.svg>"
-        f"<style>{CSS}</style></head><body><div class=wrap>{body}</div></body></html>"
+        f"<style>{CSS}</style></head><body><div class=wrap>{body}</div>"
+        f"{LIGHTBOX}</body></html>"
     )
 
 
@@ -252,6 +280,22 @@ def render_blockers(report) -> str:
     return f'<div class="panel"><h2>Blockers Codex hit</h2>{"".join(rows)}</div>'
 
 
+def shots_html(shots, kind) -> str:
+    """A row of clickable thumbnails for shots of the given kind ('bug'|'fix')."""
+    items = [s for s in (shots or []) if s.get("kind", "bug") == kind]
+    if not items:
+        return ""
+    cells = []
+    for s in items:
+        src = esc("/shot/" + (s.get("src") or ""))
+        cap = esc(s.get("caption") or "")
+        cells.append(
+            f'<span class="thumb" data-full="{src}" data-cap="{cap}" onclick="zoom(this)">'
+            f'<img src="{src}" loading="lazy" alt="{cap}"></span>'
+        )
+    return f'<div class="shots">{"".join(cells)}</div>'
+
+
 def render_bug_row(b) -> str:
     sev_label, sev_cls = SEV_META.get(b.get("severity"), (b.get("severity"), ""))
     # Codex found
@@ -282,8 +326,8 @@ def render_bug_row(b) -> str:
         f'<td><span class="badge {esc(sev_cls)}">{esc(sev_label)}</span></td>'
         f'<td><div class="bug-t">{esc(b.get("title"))}</div>'
         f'<div class="bug-s">{esc(b.get("section"))} · {esc(b.get("id"))}</div></td>'
-        f'<td class="cell-found">{found}</td>'
-        f"<td>{fix}</td>"
+        f'<td class="cell-found">{found}{shots_html(b.get("shots"), "bug")}</td>'
+        f'<td>{fix}{shots_html(b.get("shots"), "fix")}</td>'
         f"<td>{verdict}</td>"
         "</tr>"
     )
@@ -347,6 +391,23 @@ class Handler(BaseHTTPRequestHandler):
         if self.command != "HEAD":
             self.wfile.write(data)
 
+    def _send_shot(self, rel):
+        # Serve an image from SHOTS_DIR. Resolve and confirm it stays inside the
+        # dir so a crafted /shot/../.. path can't read arbitrary files.
+        base = rl.SHOTS_DIR.resolve()
+        target = (base / rel).resolve()
+        if target != base and base not in target.parents:
+            self._send("forbidden", status=403, ctype="text/plain; charset=utf-8")
+            return
+        if not target.is_file():
+            self._send("not found", status=404, ctype="text/plain; charset=utf-8")
+            return
+        ctype = {
+            ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+            ".webp": "image/webp", ".gif": "image/gif", ".svg": "image/svg+xml",
+        }.get(target.suffix.lower(), "application/octet-stream")
+        self._send(target.read_bytes(), ctype=ctype)
+
     def do_HEAD(self):
         self.do_GET()
 
@@ -359,6 +420,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send("ok", ctype="text/plain; charset=utf-8")
             elif path == "/favicon.svg":
                 self._send(FAVICON_SVG, ctype="image/svg+xml")
+            elif path.startswith("/shot/"):
+                self._send_shot(path[len("/shot/"):])
             elif path.startswith("/r/"):
                 run_date = path[3:].strip("/")
                 fp = rl.report_path(run_date)

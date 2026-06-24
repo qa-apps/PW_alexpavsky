@@ -10,6 +10,9 @@ export default defineConfig({
   timeout: 60_000,
   expect: {
     timeout: 10_000,
+    toHaveScreenshot: {
+      pathTemplate: '{testDir}/reg-snapshots/{testFilePath}/{arg}{ext}',
+    },
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -23,7 +26,7 @@ export default defineConfig({
     ['json', { outputFile: 'test-results/results.json' }],
   ],
   use: {
-    baseURL: 'https://www.alexpavsky.com',
+    baseURL: process.env.BASE_URL || 'https://www.alexpavsky.com',
     actionTimeout: 10_000,
     navigationTimeout: 45_000,
     trace: 'retain-on-failure',
