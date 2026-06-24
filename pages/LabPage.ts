@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { expect, Page, Locator } from '@playwright/test';
 import { CommonPage } from './CommonPage';
 
 export class LabPage extends CommonPage {
@@ -121,7 +121,7 @@ export class LabPage extends CommonPage {
         return;
       } catch (error) {
         if (attempt === 2) throw error;
-        await this.page.waitForTimeout(250);
+        await expect(this.openPitestBtn).toBeEnabled({ timeout: 1_000 });
       }
     }
   }
@@ -185,8 +185,9 @@ export class LabPage extends CommonPage {
     if (activeModalCount === 0) return;
 
     const activeCloseBtn = activeModal.locator('.modal-close, [aria-label="Close"]').first();
-    if (await activeCloseBtn.count()) {
-      await activeCloseBtn.click({ force: true });
+    if (await activeCloseBtn.isVisible()) {
+      await activeCloseBtn.scrollIntoViewIfNeeded();
+      await activeCloseBtn.click();
       return;
     }
 
@@ -194,7 +195,8 @@ export class LabPage extends CommonPage {
     for (let i = 0; i < count; i += 1) {
       const button = this.modalCloseBtns.nth(i);
       if (await button.isVisible()) {
-        await button.click({ force: true });
+        await button.scrollIntoViewIfNeeded();
+        await button.click();
         return;
       }
     }

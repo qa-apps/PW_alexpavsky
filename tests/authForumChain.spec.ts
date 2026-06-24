@@ -85,21 +85,20 @@ test.describe('Auth → forum chain @upstream', () => {
     const postBtn = page.locator('#forum-submit-btn');
     await postBtn.click();
 
-    // ── Step 3: assert no inline error ──────────────────────────────────
-    // forum-status shows "not_implemented" / "Network error" / "Could not
-    // post" on failure; "Posted!" or empty on success.
-    await page.waitForTimeout(2_500);
-    const status = (await page.locator('#forum-status').innerText().catch(() => '')) || '';
-    expect(
-      status.toLowerCase(),
-      `forum status must indicate success (empty or "Posted!"), got: "${status}"`,
-    ).not.toMatch(/not_implemented|network error|could not post|failed|error/);
-
-    // ── Step 4: verify the message appears in the rendered feed ─────────
+    // ── Step 3: verify the message appears in the rendered feed ─────────
     // The list re-renders after post; look for the unique stamp inside the
     // post text. The handle (anonymous 4-8 char id) is rendered separately.
     const myPost = page.locator('.forum-post-text, .forum-reply', { hasText: message });
     await expect(myPost.first(), 'newly-posted message must appear in the forum feed')
       .toBeVisible({ timeout: 15_000 });
+
+    // ── Step 4: assert no inline error ──────────────────────────────────
+    // forum-status shows "not_implemented" / "Network error" / "Could not
+    // post" on failure; "Posted!" or empty on success.
+    const status = (await page.locator('#forum-status').innerText().catch(() => '')) || '';
+    expect(
+      status.toLowerCase(),
+      `forum status must indicate success (empty or "Posted!"), got: "${status}"`,
+    ).not.toMatch(/not_implemented|network error|could not post|failed|error/);
   });
 });
