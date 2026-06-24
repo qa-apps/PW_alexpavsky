@@ -1,0 +1,292 @@
+{
+  "schema": "alexpavsky-qa-report/v1",
+  "run_date": "2026-06-14",
+  "site": "https://www.alexpavsky.com",
+  "status": "codex_verifying",
+  "headline": "Codex sandbox-blocked (DNS+Chromium); Claude's live pass re-verified 7/7 fixes, 0 new defects. Codex sign-off pending.",
+  "tester": "codex",
+  "blockers": [
+    {
+      "id": "env-dns",
+      "title": "Shell DNS cannot resolve www.alexpavsky.com",
+      "detail": "getaddrinfo ENOTFOUND www.alexpavsky.com — the Codex runner sandbox has no shell-level DNS egress, though the web fetcher can still pull rendered HTML.",
+      "status": "claude_cleared",
+      "claude_note": "Live pass ran on Claude's network; DNS resolves outside the sandbox. Durable fix: give the Codex runner DNS egress.",
+      "claude_commit": ""
+    },
+    {
+      "id": "env-chromium",
+      "title": "Headless Chromium aborts at launch (Mach port Permission denied 1100)",
+      "detail": "FATAL base/apple/mach_port_rendezvous_mac.cc:155 — bootstrap_check_in org.chromium.Chromium.MachPortRendezvousServer: Permission denied (1100). Chromium dies before navigation, so Codex cannot drive the live site.",
+      "status": "claude_cleared",
+      "claude_note": "Drove the live site via Claude's Chromium (nav, console, 1280/390/820, Digest click). Durable fix: grant the runner the Automation entitlement, or run QA outside the sandbox.",
+      "claude_commit": ""
+    },
+    {
+      "id": "desktop-write",
+      "title": "Cannot create /Users/alexp/Desktop/REPORTS/alexpavsky-e2e (EPERM)",
+      "detail": "EPERM: operation not permitted, mkdir '/Users/alexp/Desktop/REPORTS/alexpavsky-e2e'. The old workflow delivered a PDF to the Desktop, which the sandbox forbids.",
+      "status": "resolved_by_design",
+      "claude_note": "Reports now write to qa-report-ui/reports/ and render in this UI — Desktop write removed by the new workflow.",
+      "claude_commit": ""
+    }
+  ],
+  "bugs": [
+    {
+      "id": "codex-e2e-2026-06-01-001",
+      "title": "YouTube carousel thumbnails fail to load",
+      "section": "Media",
+      "severity": "major",
+      "codex_status": "found",
+      "evidence": [
+        "2026-06-01 manual audit screenshot: test-results/manual-e2e-2026-06-01/10-yt-thumbs.png",
+        "2026-06-03 source commit 90e2fdb changes thumbnail candidate ordering to prefer hqdefault.jpg and treat /api/youtube 404s quietly"
+      ],
+      "claude_fix": {
+        "done": true,
+        "summary": "Prefer hqdefault.jpg ordering; swap away from maxres when naturalWidth stays 0; treat /api/youtube 404s quietly.",
+        "commit": "90e2fdb",
+        "files": [
+          "script.js"
+        ],
+        "verified": "live 2026-06-14: 3/4 carousel thumbs loaded at 480x360 hqdefault; the 4th (SzJ46YA_RaA) is loading=lazy and off-screen, and its hqdefault probed valid in 175ms at 480x360. Zero broken images."
+      },
+      "codex_verdict": "fixed",
+      "codex_verdict_note": "Fixed in 90e2fdb; live retest blocked since 06-04, classification carried forward pending Claude's live pass.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-livefeed-desktop.png",
+          "caption": "Live feed carousel — YouTube thumbnails load (naturalWidth 480, complete). Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
+    },
+    {
+      "id": "codex-e2e-2026-06-01-002",
+      "title": "Document title used the wrong last-name spelling",
+      "section": "First load",
+      "severity": "minor",
+      "codex_status": "found",
+      "evidence": [
+        "2026-06-02 live HTML fetch returned title 'Alex Pavsky — AI & QA Lab'",
+        "2026-06-03 source index.html intentionally brands the site as Alex Pavlovsky"
+      ],
+      "claude_fix": null,
+      "codex_verdict": "not_reproduced",
+      "codex_verdict_note": "Site intentionally brands as Pavlovsky; the earlier title mismatch is no longer an actionable defect."
+    },
+    {
+      "id": "codex-e2e-2026-06-01-003",
+      "title": "Empty heading element present on first load",
+      "section": "First load",
+      "severity": "minor",
+      "codex_status": "found",
+      "evidence": [
+        "2026-06-01 manual audit screenshot: test-results/manual-e2e-2026-06-01/03-empty-heading.png",
+        "2026-06-03 source commit 90e2fdb adds aria-hidden to the empty article-modal H2 until it is populated"
+      ],
+      "claude_fix": {
+        "done": true,
+        "summary": "aria-hidden on the empty article-modal H2 until it is populated, fixing the empty-heading accessibility issue.",
+        "commit": "90e2fdb",
+        "files": [
+          "script.js",
+          "index.html"
+        ],
+        "verified": "live 2026-06-14: 0 empty visible headings across all 52 headings (aria-hidden placeholders correctly excluded)."
+      },
+      "codex_verdict": "fixed",
+      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a live accessibility retest.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-hero-desktop.png",
+          "caption": "Homepage first paint — headings carry text; DOM check 0/52 empty. Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
+    },
+    {
+      "id": "codex-e2e-2026-06-01-004",
+      "title": "Digest nav anchor lands too low",
+      "section": "Header/nav",
+      "severity": "minor",
+      "codex_status": "confirmed",
+      "evidence": [
+        "2026-06-01 manual audit screenshot: test-results/manual-e2e-2026-06-01/05-nav-digest.png",
+        "2026-06-08 live browser retest: clicking Digest opens #digest-modal (active) with window.scrollY = 0 and no hash change"
+      ],
+      "claude_fix": {
+        "done": true,
+        "summary": "Replaced scroll-to-anchor with a modal: clicking #digest opens #digest-modal without scrolling (openDigest calls preventDefault). No offset fix needed.",
+        "commit": "",
+        "files": [
+          "script.js"
+        ],
+        "verified": "live 2026-06-14: clicked the Digest nav -> #digest-modal became 'diff-modal active' and visible, window.scrollY stayed 0, no hash change. The footer-stretch incident does not recur."
+      },
+      "codex_verdict": "fixed",
+      "codex_verdict_note": "Confirmed resolved by a live retest on 2026-06-08.",
+      "shots": [
+        {
+          "src": "2026-06-14/alexpavsky-live-digest-2026-06-14.png",
+          "caption": "Daily Digest opens as a centered modal at scrollY=0; content scrolls inside. Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
+    },
+    {
+      "id": "codex-e2e-2026-06-01-005",
+      "title": "LIVE rail exceeds the 15-item cap",
+      "section": "Live rail",
+      "severity": "minor",
+      "codex_status": "found",
+      "evidence": [
+        "2026-06-01 manual audit screenshot: test-results/manual-e2e-2026-06-01/06-live-rail-count.png",
+        "2026-06-03 source commit 90e2fdb documents the rail intentionally duplicates 15 unique items 3x for the marquee loop"
+      ],
+      "claude_fix": null,
+      "codex_verdict": "not_reproduced",
+      "codex_verdict_note": "Raw count of 45 is the marquee loop (15 unique x3) by design, not a defect."
+    },
+    {
+      "id": "codex-e2e-2026-06-01-006",
+      "title": "LIVE rail pause/play control is missing or obscured",
+      "section": "Live rail",
+      "severity": "minor",
+      "codex_status": "found",
+      "evidence": [
+        "2026-06-01 manual audit screenshot: test-results/manual-e2e-2026-06-01/07-live-rail-pause.png",
+        "2026-06-03 source markup still contains #livePauseBtn; archived screenshot shows the control visible at the drawer footer"
+      ],
+      "claude_fix": null,
+      "codex_verdict": "not_reproduced",
+      "codex_verdict_note": "#livePauseBtn is present and visible at the drawer footer; no current evidence supports the defect."
+    },
+    {
+      "id": "codex-e2e-2026-06-01-007",
+      "title": "Console/network errors still surface on load",
+      "section": "Resources/Console",
+      "severity": "minor",
+      "codex_status": "found",
+      "evidence": [
+        "2026-06-01 manual audit screenshot: test-results/manual-e2e-2026-06-01/12-console-errors.png",
+        "2026-06-03 source commit 90e2fdb adds res.ok guarding for /api/youtube and a cooldown for the rss2json fallback"
+      ],
+      "claude_fix": {
+        "done": true,
+        "summary": "res.ok guard for /api/youtube plus a cooldown for rss2json fallback attempts, targeting the console-noise pattern.",
+        "commit": "90e2fdb",
+        "files": [
+          "script.js"
+        ],
+        "verified": "live 2026-06-14: 0 console errors on a clean load (after isolating an unrelated i-copilot camera-tab websocket error that had polluted the shared automation browser)."
+      },
+      "codex_verdict": "fixed",
+      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a live console retest.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-hero-desktop.png",
+          "caption": "Homepage loads clean — 0 console errors after isolating an unrelated tab. Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
+    },
+    {
+      "id": "codex-e2e-2026-06-01-008",
+      "title": "Hero H1 accessible text lost a space between sentences",
+      "section": "Hero",
+      "severity": "cosmetic",
+      "codex_status": "found",
+      "evidence": [
+        "2026-06-01 manual audit screenshot: test-results/manual-e2e-2026-06-01/04-h1-spacing.png",
+        "2026-06-03 source commit 90e2fdb adds explicit spacing between the hero heading fragments"
+      ],
+      "claude_fix": {
+        "done": true,
+        "summary": "Explicit whitespace separator between hero heading fragments so the accessible combined string reads correctly.",
+        "commit": "90e2fdb",
+        "files": [
+          "index.html",
+          "style.css"
+        ],
+        "verified": "live 2026-06-14: hero H1 accessible text reads 'AI Testing & Integration. Building Trust.' with correct inter-word and post-period spacing."
+      },
+      "codex_verdict": "fixed",
+      "codex_verdict_note": "Addressed in 90e2fdb; cosmetic, carried forward.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-hero-desktop.png",
+          "caption": "Hero 'AI Testing & Integration. Building Trust.' — correct spacing, no word-join. Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
+    },
+    {
+      "id": "codex-e2e-2026-06-01-009",
+      "title": "390px viewport showed horizontal overflow",
+      "section": "Responsive mobile-390",
+      "severity": "major",
+      "codex_status": "found",
+      "evidence": [
+        "2026-06-01 manual audit screenshot: test-results/manual-e2e-2026-06-01/16-mobile-390-overflow-targeted.png",
+        "2026-06-03 source commit 90e2fdb adds overflow-x clip and marquee max-width caps"
+      ],
+      "claude_fix": {
+        "done": true,
+        "summary": "overflow-x clip + marquee max-width caps to remove horizontal scroll at 390px.",
+        "commit": "90e2fdb",
+        "files": [
+          "style.css"
+        ],
+        "verified": "live 2026-06-14 @390px: documentElement scrollWidth 390 == clientWidth 390, no horizontal page scroll (overshoot 0px). Wide LIVE ticker items are the marquee, contained by overflow-x clip."
+      },
+      "codex_verdict": "fixed",
+      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a fresh 390px live retest.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-mobile-390.png",
+          "caption": "iPhone 390px — no horizontal overflow (scrollWidth == 390). Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
+    },
+    {
+      "id": "codex-e2e-2026-06-01-010",
+      "title": "820px viewport showed horizontal overflow",
+      "section": "Responsive tablet-820",
+      "severity": "major",
+      "codex_status": "found",
+      "evidence": [
+        "2026-06-01 manual audit screenshot: test-results/manual-e2e-2026-06-01/18-tablet-820-overflow-targeted.png",
+        "2026-06-03 source commit 90e2fdb adds overflow-x clip and marquee max-width caps"
+      ],
+      "claude_fix": {
+        "done": true,
+        "summary": "overflow-x clip + marquee max-width caps to remove horizontal scroll at 820px.",
+        "commit": "90e2fdb",
+        "files": [
+          "style.css"
+        ],
+        "verified": "live 2026-06-14 @820px: documentElement scrollWidth 820 == clientWidth 820, no horizontal page scroll (overshoot 0px). Only marquee-child nodes extend past the viewport, all contained."
+      },
+      "codex_verdict": "fixed",
+      "codex_verdict_note": "Addressed in 90e2fdb; carried forward pending a fresh 820px live retest.",
+      "shots": [
+        {
+          "src": "2026-06-14/shot-tablet-820.png",
+          "caption": "Tablet 820px — no horizontal overflow (scrollWidth == 820). Verified live 2026-06-14.",
+          "kind": "fix"
+        }
+      ]
+    }
+  ],
+  "codex_final": {
+    "verdict": "pending",
+    "summary": "7/7 fixes re-verified live 2026-06-14 @1280/390/820: thumbs load, 0/52 empty headings, 0 console errors, H1 spacing OK, Digest modal scrollY=0, no overflow @390/820. 0 new defects; 3 prior items by-design; Codex's own sign-off pending (sandbox).",
+    "needs_alex": [
+      "Restore Codex runner sandbox (DNS egress + Chromium Automation entitlement) for independent daily verification."
+    ]
+  },
+  "created_at": "2026-06-14T16:19:16Z",
+  "updated_at": "2026-06-15T03:11:26Z"
+}
