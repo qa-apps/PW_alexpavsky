@@ -28,3 +28,20 @@ performance-results/
 
 # QA history / defect logs (generated, not source)
 qa-history/
+
+# Local agent / graph analysis artifacts
+.codex/
+graphify-out/
+
+# Local QA report runtime artifacts
+qa-report-ui/reports/*.json
+qa-report-ui/screenshots/
+qa-report-ui/server.log
+qa-report-ui/shots/
+
+# Local manual verification screenshots / scratch notes
+scripts/*.png
+scripts/files.md
+
+# Local visual-regression scratch baselines
+tests/reg-snapshots/
