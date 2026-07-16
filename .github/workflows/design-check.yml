@@ -80,6 +80,19 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Notify Slack summary (UI / design)
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          # Daily heartbeat to the dedicated UI / design channel, pass or break.
+          python3 .github/scripts/notify_slack.py \
+            --channel "${{ secrets.SLACK_UI_CODEX_CHANNEL_ID }}" \
+            --pipeline "Daily Design Check" \
+            --results-dir test-results
+
       - name: Post design break to Slack #bug-reports
         if: failure()
         env:

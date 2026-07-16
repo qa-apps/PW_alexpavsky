@@ -12,6 +12,16 @@ async function mockChatReply(page: Page, reply: string) {
   });
 }
 
+async function mockChatPayload(page: Page, payload: Record<string, unknown>) {
+  await page.route('**/api/chat', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(payload),
+    });
+  });
+}
+
 async function sendPromptAndGetLastBotMessage(chatbotPage: ChatbotPage, prompt: string) {
   await chatbotPage.openAndConsent();
   await chatbotPage.sendMessage(prompt);
@@ -60,5 +70,20 @@ test.describe('AI assistant widget regressions', () => {
     expect(renderedText).not.toContain('1. **Bias and Fairness:**');
     expect(renderedText).not.toContain('2. **Accuracy and Robustness:**');
     expect(await lastBotMessage.locator('ol li, ul li, li').count()).toBeGreaterThanOrEqual(4);
+  });
+
+  test('should render generated images when assistant images[] contains plain string entries', async ({ chatbotPage, page }) => {
+    await mockChatPayload(page, {
+      reply: 'Here is your generated image.',
+      images: [
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAukB9oNcamcAAAAASUVORK5CYII=',
+      ],
+    });
+
+    const lastBotMessage = await sendPromptAndGetLastBotMessage(chatbotPage, 'generate image of lake');
+    const renderedImage = lastBotMessage.locator('.chat-generated-image img');
+
+    await expect(renderedImage).toHaveCount(1);
+    await expect(renderedImage.first()).toHaveAttribute('src', /^data:image\/png;base64,/);
   });
 });
