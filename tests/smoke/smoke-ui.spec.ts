@@ -1,4 +1,5 @@
 import { test, expect } from '../../utils/fixtures';
+import type { APIRequestContext, Locator } from '@playwright/test';
 
 test.use({
   video: 'on',
@@ -8,6 +9,55 @@ test.use({
 
 const heroToolCard = (page: import('@playwright/test').Page, name: RegExp) =>
   page.getByRole('button', { name }).or(page.locator('.tool-strip-card, .explore-card, .lab-card').filter({ hasText: name })).first();
+
+async function resolveLinkStatus(request: APIRequestContext, href: string): Promise<number> {
+  try {
+    const head = await request.head(href, { timeout: 10_000, maxRedirects: 5 });
+    if (head.status() < 400) return head.status();
+  } catch {
+    // Some public sites reject HEAD; fall through to a browser-like GET probe.
+  }
+
+  try {
+    const get = await request.get(href, {
+      timeout: 15_000,
+      maxRedirects: 5,
+      headers: {
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'user-agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
+      },
+    });
+    return get.status();
+  } catch {
+    return -1;
+  }
+}
+
+async function clickToolCard(card: Locator): Promise<void> {
+  await expect(card).toBeVisible();
+  await card.scrollIntoViewIfNeeded();
+  await expect(card).toBeInViewport({ ratio: 0.5 });
+  await card.click({ trial: true });
+}
+
+async function youtubeTrackScrollLeft(carousel: Locator): Promise<number> {
+  return carousel.evaluate((el) => {
+    const track = el.querySelector('#yt-carousel-track') as HTMLElement | null;
+    return track?.scrollLeft ?? (el as HTMLElement).scrollLeft;
+  });
+}
+
+async function uniqueYoutubeVideoIds(cards: Locator): Promise<string[]> {
+  return cards.evaluateAll((els) => {
+    const ids = new Set<string>();
+    els.forEach((el) => {
+      const id = el.getAttribute('data-video-id') || '';
+      if (id) ids.add(id);
+    });
+    return Array.from(ids);
+  });
+}
 
 test.describe('Smoke — alexpavsky.com UI', () => {
   test('home page loads successfully', async ({ homePage }) => {
@@ -40,7 +90,12 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     await homePage.ytSection.scrollIntoViewIfNeeded();
     await expect(homePage.ytSection).toBeVisible();
     const count = await homePage.ytCards.count();
-    expect(count).toBeGreaterThanOrEqual(1);
+    expect(count).toBeGreaterThanOrEqual(12);
+    const uniqueIds = await uniqueYoutubeVideoIds(homePage.youtubeRealCards);
+    expect(
+      uniqueIds.length,
+      `YouTube carousel must show at least 12 unique videos, got ${uniqueIds.length}: ${uniqueIds.join(', ')}`,
+    ).toBeGreaterThanOrEqual(12);
   });
 
   test('live feed section is visible with cards', async ({ homePage }) => {
@@ -176,7 +231,7 @@ test.describe('Smoke — alexpavsky.com UI', () => {
       }
     });
     await homePage.goto();
-    await homePage.page.waitForLoadState('networkidle');
+    await expect(homePage.heroSection).toBeVisible();
     const knownExternalNoise = [
       'favicon',
       'google-analytics',
@@ -226,7 +281,7 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     if (!response) throw new Error('Expected navigation to return a response');
     expect(response.status()).toBe(200);
     const start = Date.now();
-    await page.waitForLoadState('networkidle');
+    await expect(homePage.heroSection).toBeVisible({ timeout: 5_000 });
     const duration = Date.now() - start;
     expect(duration).toBeLessThan(5000);
   });
@@ -295,8 +350,7 @@ test.describe('Smoke — alexpavsky.com UI', () => {
   test('nav Challenge link scrolls to challenge section', async ({ homePage, page }) => {
     await homePage.goto();
     await page.locator('nav a[href*="challenge"], nav .nav-link', { hasText: /^Challenge$/i }).first().click();
-    await homePage.page.waitForTimeout(800);
-    await expect(page.locator('#challenge, [id*="challenge"]').first()).toBeVisible();
+    await expect(page.locator('#challenge, [id*="challenge"]').first()).toBeInViewport({ ratio: 0.1 });
   });
 
   test('nav Digest link opens the digest modal without scrolling', async ({ homePage, page }) => {
@@ -333,12 +387,7 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     await homePage.goto();
     const terminal = page.locator('#terminal-body, .terminal-card, .hero-terminal').filter({ hasText: /\S/ }).first();
     await expect(terminal).toBeVisible();
-    const textBefore = await terminal.innerText();
-    // Wait for animation tick
-    await page.waitForTimeout(1500);
-    const textAfter = await terminal.innerText();
-    // Content should be present (non-empty) indicating live rendering
-    expect(textBefore.length + textAfter.length).toBeGreaterThan(0);
+    await expect.poll(async () => (await terminal.innerText()).length).toBeGreaterThan(0);
   });
 
   test('hero AI test result card is visible', async ({ homePage, page }) => {
@@ -443,17 +492,31 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     await homePage.goto();
     await homePage.ytSection.scrollIntoViewIfNeeded();
     await expect(homePage.youtubeRealCards.first()).toBeVisible();
+    const before = await youtubeTrackScrollLeft(homePage.youtubeCarousel);
     await homePage.youtubeNextBtn.click();
-    await page.waitForTimeout(400);
+    await expect.poll(() => youtubeTrackScrollLeft(homePage.youtubeCarousel)).toBeGreaterThan(before);
     await expect(homePage.ytSection).toBeVisible();
     expect(await homePage.youtubeRealCards.count()).toBeGreaterThan(0);
+  });
+
+  test('YouTube carousel auto-scrolls without user input', async ({ homePage, page }) => {
+    await homePage.goto();
+    await homePage.ytSection.scrollIntoViewIfNeeded();
+    await expect(homePage.youtubeRealCards.first()).toBeVisible();
+
+    const before = await youtubeTrackScrollLeft(homePage.youtubeCarousel);
+    await expect
+      .poll(() => youtubeTrackScrollLeft(homePage.youtubeCarousel), {
+        message: `YouTube carousel did not auto-scroll from ${before}`,
+        timeout: 2_000,
+      })
+      .toBeGreaterThan(before);
   });
 
   test('YouTube carousel scrolls left and cards remain visible', async ({ homePage, page }) => {
     await homePage.goto();
     await homePage.ytSection.scrollIntoViewIfNeeded();
     await homePage.youtubePrevBtn.click();
-    await page.waitForTimeout(400);
     await expect(homePage.ytSection).toBeVisible();
   });
 
@@ -577,18 +640,33 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     await expect(homePage.toolCards.filter({ hasText: /phoenix/i })).toBeVisible();
   });
 
-  test('tool cards have outbound redirect links', async ({ homePage, page }) => {
+  test('every tool card is clickable and resolves to a live outbound page', async ({ homePage, page }) => {
     await homePage.goto();
     await homePage.toolsSection.scrollIntoViewIfNeeded();
-    const links = page.locator('#tools a[href*="http"], #tools .tool-card[href*="http"]');
-    if (await links.count()) {
-      const href = await links.first().getAttribute('href');
-      expect(href).toMatch(/^https?:\/\//);
-    } else {
-      // Tool cards may be anchor tags themselves
-      const cardLinks = page.locator('#tools a[href]');
-      expect(await cardLinks.count()).toBeGreaterThan(0);
+
+    const cards = page.locator('#tools a.tool-card[href^="http"]');
+    const count = await cards.count();
+    expect(count, 'tools section must expose outbound tool card links').toBeGreaterThan(0);
+
+    const failures: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const card = cards.nth(i);
+      const name = ((await card.locator('h4').innerText().catch(() => '')) || `card ${i + 1}`).trim();
+      const href = (await card.getAttribute('href')) || '';
+
+      if (!/^https?:\/\//i.test(href)) {
+        failures.push(`${name}: bad href "${href}"`);
+        continue;
+      }
+
+      await clickToolCard(card);
+      const status = await resolveLinkStatus(page.request, href);
+      if (status < 200 || status >= 400) {
+        failures.push(`${name}: ${status} ${href}`);
+      }
     }
+
+    expect(failures, `dead/forbidden tool card links:\n${failures.join('\n')}`).toEqual([]);
   });
 
   // ## AI Lab section cards
@@ -788,13 +866,11 @@ test.describe('Smoke — alexpavsky.com UI', () => {
     await homePage.goto();
     // Scroll to bottom
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForTimeout(300);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     const scrollTopBtn = page.locator('[id*="scroll-top"], [class*="scroll-top"], button[aria-label*="top"]').first();
     if (await scrollTopBtn.isVisible()) {
       await scrollTopBtn.click();
-      await page.waitForTimeout(600);
-      const scrollY = await page.evaluate(() => window.scrollY);
-      expect(scrollY).toBeLessThan(300);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(300);
     } else {
       // No scroll-to-top button — just verify page is scrollable
       const scrollY = await page.evaluate(() => window.scrollY);

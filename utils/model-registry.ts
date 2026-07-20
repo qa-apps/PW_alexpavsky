@@ -229,7 +229,7 @@ async function fetchGroqModels(): Promise<ModelEntry[]> {
   }
 }
 
-async function fetchCerebrasMoels(): Promise<ModelEntry[]> {
+async function fetchCerebrasModels(): Promise<ModelEntry[]> {
   const key = process.env.CEREBRAS_API_KEY;
   if (!key) return [];
   try {
@@ -344,7 +344,7 @@ export async function getModelRegistry(forceRefresh = false): Promise<ModelEntry
     fetchOpenRouterModels(),
     fetchHuggingFaceModels(),
     fetchGroqModels(),
-    fetchCerebrasMoels(),
+    fetchCerebrasModels(),
     fetchSambanovaModels(),
     fetchMistralModels(),
   ]);

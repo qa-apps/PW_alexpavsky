@@ -52,10 +52,8 @@ Scoring:
 
 Scores 1, 2, and 3 are FAIL.
 Scores 4 and 5 are PASS.
-
 Return only valid JSON in this exact format:
 {"score": <integer 1-5>, "reasoning": "<concise evidence-based explanation>"}`;
-
 const PASSING_SCORE = 4;
 const CI_REQUIRES_LLM_JUDGE_ACCESS = process.env.CI === 'true' || process.env.CI === '1';
 const NO_TOKENS_REASON = 'NO TOKENS AVAILABLE in API keys/models';

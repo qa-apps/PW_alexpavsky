@@ -133,7 +133,12 @@ export class HomePage extends CommonPage {
   }
 
   async openFeedArticle(index = 0) {
-    await this.feedCards.nth(index).click();
+    const card = this.feedCards.nth(index);
+    await card.waitFor({ state: 'visible', timeout: 35_000 });
+    await card.evaluate((el) => {
+      el.scrollIntoView({ block: 'center', inline: 'center' });
+      (el as HTMLElement).click();
+    });
   }
 
   async closeArticleModal() {

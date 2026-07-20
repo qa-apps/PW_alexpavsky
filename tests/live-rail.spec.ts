@@ -120,6 +120,8 @@ test.describe('LIVE rail widget', () => {
     const result = await page.evaluate(() => {
       const v = document.querySelector('.live-viewport') as HTMLElement;
       const t = document.getElementById('liveTrack') as HTMLElement;
+      window.scrollTo(0, 650);
+      const pageBefore = window.scrollY;
       t.style.transform = 'translateY(0)';
       const r = v.getBoundingClientRect();
       const cx = r.left + r.width / 2;
@@ -136,12 +138,19 @@ test.describe('LIVE rail widget', () => {
 
       try {
         v.dispatchEvent(makeTouchEvent('touchstart', r.top + 400));
-        v.dispatchEvent(makeTouchEvent('touchmove', r.top + 250)); // finger moves UP 150px
+        const move = makeTouchEvent('touchmove', r.top + 250); // finger moves UP 150px
+        const dispatched = v.dispatchEvent(move);
         v.dispatchEvent(makeTouchEvent('touchend', r.top + 250));
+        return {
+          after: t.style.transform,
+          defaultPrevented: move.defaultPrevented,
+          dispatched,
+          pageBefore,
+          pageAfter: window.scrollY,
+        };
       } catch (e) {
         return { skip: true, reason: String(e) };
       }
-      return { after: t.style.transform };
     });
 
     // Some test browsers don't construct TouchEvent — skip in that case
@@ -151,6 +160,9 @@ test.describe('LIVE rail widget', () => {
       return;
     }
     expect(result.after).not.toBe('translateY(0)');
+    expect(result.defaultPrevented, 'touchmove must be contained inside the rail').toBe(true);
+    expect(result.dispatched, 'preventDefault should make dispatchEvent return false').toBe(false);
+    expect(result.pageAfter, 'touch swipe inside rail must not scroll the page').toBe(result.pageBefore);
   });
 
   test('pause button toggles auto-scroll', async ({ liveRailPage }) => {

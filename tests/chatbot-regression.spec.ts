@@ -2,16 +2,6 @@ import { Page, Route } from '@playwright/test';
 import { test, expect } from '../utils/fixtures';
 import { ChatbotPage } from '../pages/ChatbotPage';
 
-async function mockChatReply(page: Page, reply: string) {
-  await page.route('**/api/chat', async (route: Route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ reply }),
-    });
-  });
-}
-
 async function mockChatPayload(page: Page, payload: Record<string, unknown>) {
   await page.route('**/api/chat', async (route: Route) => {
     await route.fulfill({
@@ -20,6 +10,10 @@ async function mockChatPayload(page: Page, payload: Record<string, unknown>) {
       body: JSON.stringify(payload),
     });
   });
+}
+
+async function mockChatReply(page: Page, reply: string, extra: Record<string, unknown> = {}) {
+  await mockChatPayload(page, { reply, ...extra });
 }
 
 async function sendPromptAndGetLastBotMessage(chatbotPage: ChatbotPage, prompt: string) {
@@ -70,6 +64,41 @@ test.describe('AI assistant widget regressions', () => {
     expect(renderedText).not.toContain('1. **Bias and Fairness:**');
     expect(renderedText).not.toContain('2. **Accuracy and Robustness:**');
     expect(await lastBotMessage.locator('ol li, ul li, li').count()).toBeGreaterThanOrEqual(4);
+  });
+
+  test('should not expose raw image tool-call JSON in chat replies', async ({ chatbotPage, page }) => {
+    await mockChatReply(
+      page,
+      JSON.stringify({
+        action: 'dalle.text2im',
+        action_input: '{"prompt":"A serene lake"}',
+        thought: 'I will generate a serene image of a lake for you.',
+      })
+    );
+
+    const lastBotMessage = await sendPromptAndGetLastBotMessage(chatbotPage, 'generate image of lake');
+    const renderedText = (await lastBotMessage.textContent()) || '';
+
+    expect(renderedText).not.toContain('dalle.text2im');
+    expect(renderedText).not.toContain('action_input');
+    expect(renderedText).not.toContain('"thought"');
+    expect(renderedText).toMatch(/tool-call JSON|image-generation endpoint|картин/i);
+  });
+
+  test('should render generated images returned by the chatbot API', async ({ chatbotPage, page }) => {
+    const onePixelPng =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=';
+    await mockChatReply(page, 'Generated image:', {
+      images: [
+        {
+          data_url: `data:image/png;base64,${onePixelPng}`,
+          alt: 'Generated lake image',
+        },
+      ],
+    });
+
+    const lastBotMessage = await sendPromptAndGetLastBotMessage(chatbotPage, 'generate image of lake');
+    await expect(lastBotMessage.locator('.chat-generated-image img[alt="Generated lake image"]')).toBeVisible();
   });
 
   test('should render generated images when assistant images[] contains plain string entries', async ({ chatbotPage, page }) => {
