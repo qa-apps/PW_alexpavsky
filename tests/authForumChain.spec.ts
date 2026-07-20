@@ -12,14 +12,16 @@
 import { test, expect } from '../utils/fixtures';
 
 const BASE_URL = process.env.SITE_URL || 'https://www.alexpavsky.com';
+const ALLOW_LIVE_FORUM_WRITE = process.env.ALLOW_LIVE_FORUM_WRITE === '1';
+const IS_LIVE_SITE = /^https:\/\/(?:www\.)?alexpavsky\.com\/?$/i.test(BASE_URL);
 
 const POSITIVE_MESSAGES = [
-  'Nice content, very useful!',
-  'Great hub, learned a lot from the red-team docs.',
-  'Very interesting take on RAG evaluation, thanks.',
-  'Loved the prompt injection scanner — bookmarking it.',
-  'Helpful breakdown of LLM observability tools.',
-  'Bookmarked. The hallucination analyzer is gold.',
+  'Clear AI QA notes.',
+  'The red-team examples feel practical and easy to reuse.',
+  'Good RAG evaluation overview.',
+  'Prompt scanner works well.',
+  'The observability section connects drift, cost, and reliability clearly.',
+  'Useful testing hub.',
 ];
 
 function randomUser() {
@@ -38,11 +40,14 @@ function randomUser() {
 
 function pickMessage() {
   const base = POSITIVE_MESSAGES[Math.floor(Math.random() * POSITIVE_MESSAGES.length)];
-  // Append a unique stamp so we can locate this exact post in the rendered feed.
-  return `${base} [tag:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}]`;
+  return `${base} QA check ${Date.now().toString(36)}.`;
 }
 
 test.describe('Auth → forum chain @upstream', () => {
+  test.skip(
+    IS_LIVE_SITE && !ALLOW_LIVE_FORUM_WRITE,
+    'This chain writes to the public forum; run against local/staging, or set ALLOW_LIVE_FORUM_WRITE=1 intentionally.',
+  );
 
   test('new random user registers, posts positive forum message, sees it in the feed', async ({ page }) => {
     const user = randomUser();

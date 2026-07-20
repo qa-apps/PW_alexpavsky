@@ -204,6 +204,38 @@ jobs:
             --flaky 0 \
             --skipped 0
 
+      - name: Notify Giskard Slack
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # Giskard RAG correctness + 7-category vuln scan -> its own channel,
+          # separate from the Ragas faithfulness/relevancy summary above.
+          python .github/scripts/notify_giskard_slack.py \
+            --channel "${{ secrets.SLACK_GISKARD_CHANNEL_ID }}" \
+            --results-dir eval/results \
+            --run-url "$GITHUB_RUN_URL"
+
+      - name: Send failure email (severity-tagged)
+        if: failure()
+        env:
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          MAIL_SERVER: ${{ secrets.MAIL_SERVER }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python .github/scripts/notify_email.py \
+            --severity major \
+            --pipeline "LLM Eval Nightly (Ragas + Giskard)" \
+            --status failure \
+            --run-url "$RUN_URL"
 
       - name: Post bug report to Slack
         if: failure()

@@ -147,6 +147,7 @@ async function fetchOpenRouterModels(): Promise<ModelEntry[]> {
       const pricing = m.pricing || {};
       if (pricing.prompt !== '0' || pricing.completion !== '0') continue;
       const lower = (m.id as string).toLowerCase();
+      if (!lower.endsWith(':free')) continue;
       if (/test|experimental/.test(lower)) continue;
       models.push({
         id:      m.id,
