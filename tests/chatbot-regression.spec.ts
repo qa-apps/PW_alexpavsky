@@ -87,3 +87,25 @@ test.describe('AI assistant widget regressions', () => {
     await expect(renderedImage.first()).toHaveAttribute('src', /^data:image\/png;base64,/);
   });
 });
+
+test.describe('AI assistant response hygiene (real backend, no mocking)', () => {
+  // Model routing is automatic and can pick a reasoning model (DeepSeek R1, etc.)
+  // for any of these. Reasoning models sometimes emit their chain-of-thought as
+  // literal <think>...</think> text instead of a separate reasoning field — that
+  // must never reach the visible chat response. Several prompts run for better
+  // odds of exercising a reasoning-tagged model within a single run.
+  const prompts = [
+    "What is today's date?",
+    'Explain step by step how you would debug a flaky test.',
+    'What is 17 * 24? Show your reasoning.',
+  ];
+
+  for (const prompt of prompts) {
+    test(`should not leak <think> reasoning tags for prompt: "${prompt}"`, async ({ chatbotPage }) => {
+      const response = await chatbotPage.sendAndGetResponse(prompt);
+      const lower = response.toLowerCase();
+      expect(lower, `Response leaked raw reasoning markup: ${response}`).not.toContain('<think>');
+      expect(lower, `Response leaked raw reasoning markup: ${response}`).not.toContain('</think>');
+    });
+  }
+});

@@ -198,14 +198,20 @@ test.describe('Email header injection', () => {
 
 // ─── 5. INFO DISCLOSURE — /api/health must not leak full provider keys ──────
 test.describe('Health endpoint info disclosure', () => {
-  test('/api/health returns booleans only, never raw secrets', async ({ request }) => {
+  test('/api/health returns minimal status and never raw secrets', async ({ request }) => {
     const r = await request.get(`${BASE_URL}/api/health`);
     expect(r.status()).toBe(200);
     const data = await r.json();
-    expect(data).toHaveProperty('providers');
-    // Each provider entry must be a boolean — never the key value itself.
-    for (const [name, val] of Object.entries(data.providers || {})) {
-      expect(typeof val, `provider '${name}' must be boolean, got ${typeof val}`).toBe('boolean');
+    expect(data).toHaveProperty('status');
+    expect(data.status).toBe('ok');
+    // Public payload is intentionally minimal ({ status: 'ok' }). If a
+    // providers map is ever returned, every entry must be a boolean only —
+    // never the key value itself.
+    if (data.providers !== undefined) {
+      expect(typeof data.providers).toBe('object');
+      for (const [name, val] of Object.entries(data.providers || {})) {
+        expect(typeof val, `provider '${name}' must be boolean, got ${typeof val}`).toBe('boolean');
+      }
     }
     // Top-level shape: no keys/tokens/secrets/passwords leaking through.
     const raw = JSON.stringify(data).toLowerCase();

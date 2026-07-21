@@ -43,9 +43,16 @@ const CONTRACTS: Record<string, Probe> = {
     status: 200,
     json: true,
     assertBody: (b) => {
+      // Public health is intentionally minimal — only { status: 'ok' } —
+      // so it does not fingerprint providers/DB. Detailed provider booleans
+      // may appear on authenticated admin probes; never required publicly.
       expect(b.status).toBe('ok');
-      expect(b).toHaveProperty('providers');
-      expect(typeof b.providers).toBe('object');
+      if (b.providers !== undefined) {
+        expect(typeof b.providers).toBe('object');
+        expect(b.providers).not.toBeNull();
+      }
+      const raw = JSON.stringify(b).toLowerCase();
+      expect(raw).not.toMatch(/sk-[a-z0-9]{20,}|gsk_[a-z0-9]{20,}|hf_[a-z0-9]{20,}/);
     },
   },
   '/api/feed': {

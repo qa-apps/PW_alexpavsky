@@ -43,6 +43,9 @@ test.describe('RAG — read-only', () => {
     expect(typeof body.answer).toBe('string');
     expect(Array.isArray(body.sources)).toBe(true);
     expect(Array.isArray(body.contexts)).toBe(true);
+    // Live RAG returns qdrant_results (and may still include pgvector_results
+    // during dual-store transition). Assert the Qdrant path is populated.
+    expect(Array.isArray(body.qdrant_results), 'qdrant_results must be an array').toBe(true);
 
     // Soft assertions on the answer: it must NOT be the upstream-LLM
     // outage sentinel — if it is, the chatbot is broken in prod.
@@ -53,6 +56,7 @@ test.describe('RAG — read-only', () => {
     // For this well-known question the corpus does contain the answer —
     // we should see at least one source chunk back.
     expect(body.sources.length).toBeGreaterThan(0);
+    expect(body.qdrant_results.length).toBeGreaterThan(0);
   });
 
   test('POST /api/rag/query with empty body returns 4xx', async ({ request }) => {
@@ -179,6 +183,12 @@ test.describe('RAG — destructive (RAG_DESTRUCTIVE_TESTS=1)', () => {
     // Backend should report how many chunks were ingested.
     expect(body).toHaveProperty('chunks_indexed');
     expect(body.chunks_indexed).toBeGreaterThan(0);
+    if (body.index_status !== undefined) {
+      expect(body.index_status).toBe('indexed');
+    }
+    if (body.vector_store !== undefined) {
+      expect(body.vector_store).toBe('qdrant');
+    }
   });
 
   test('POST /api/eval/run kicks off an eval and returns a run id', async ({ request }) => {

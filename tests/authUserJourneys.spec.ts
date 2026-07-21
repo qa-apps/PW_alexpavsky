@@ -99,20 +99,18 @@ test.describe('Auth user journeys (UI) @upstream', () => {
     // Modal closes.
     await expect(page.locator('#auth-overlay.open')).toBeHidden({ timeout: 10_000 });
 
-    // Verify the token actually authenticates by hitting /api/auth/me from
-    // within the page's storage — proves the frontend really stored it AND
-    // the backend really minted a valid one. We also use the API response
+    // Verify the HttpOnly session cookie by hitting /api/auth/me from the
+    // page. JavaScript cannot read ap_auth by design, but fetch automatically
+    // sends it for this same-origin request. We also use the API response
     // to derive the expected nav display name (first word), so the test
     // doesn't have to know the exact display name baked into the DB row.
     const me = await page.evaluate(async () => {
-      const t = localStorage.getItem('auth_token');
-      if (!t) return { ok: false };
-      const r = await fetch('/api/auth/me', { headers: { Authorization: 'Bearer ' + t } });
+      const r = await fetch('/api/auth/me', { credentials: 'same-origin' });
       if (r.status !== 200) return { ok: false, status: r.status };
       const data = await r.json();
       return { ok: true, name: data.name, email: data.email };
     });
-    expect(me.ok, 'stored auth_token must validate against /api/auth/me').toBe(true);
+    expect(me.ok, 'HttpOnly auth session must validate against /api/auth/me').toBe(true);
     expect(me.email, '/api/auth/me must echo the logged-in email').toBe(DAILY_USER.email);
 
     // Now assert nav state matches what the API says.

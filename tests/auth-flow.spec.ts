@@ -2,10 +2,9 @@
  * auth-flow.spec.ts
  *
  * API-level contract tests for /api/auth/* after the real implementation
- * shipped (replaces the previous "returns 501 not_implemented" stub
- * contract). The backend now returns {user, token} on register/login and
- * expects `Authorization: Bearer <token>` on /api/auth/me — NOT a
- * session cookie. The frontend stores the token in localStorage.
+ * shipped. Register/login return the public user and establish an HttpOnly
+ * `ap_auth` cookie. Protected endpoints accept that cookie; the opaque session
+ * secret must never be exposed to frontend JavaScript or response JSON.
  *
  * Two top-level groups:
  *   1. /api/auth/me session-check edge cases (live, always runs)
@@ -16,25 +15,8 @@
  * email so concurrent CI workers don't collide. The .test TLD keeps
  * these out of any legitimate email index.
  */
-import { expect, test, type APIRequestContext } from '@playwright/test';
-
-const BASE_URL = process.env.SITE_URL || 'https://www.alexpavsky.com';
-
-function ephemeralUser() {
-  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  return {
-    name: `Smoke User ${stamp}`,
-    email: `qa-smoke-${stamp}@alexpavsky.test`,
-    password: `P!sw-${stamp}-X9z`,
-  };
-}
-
-async function postJson(request: APIRequestContext, path: string, body: unknown) {
-  return request.post(`${BASE_URL}${path}`, {
-    data: body,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
+import { expect, test } from '@playwright/test';
+import { AUTH_BASE_URL as BASE_URL, ephemeralUser, postRegister } from '../utils/auth-api';
 
 test.describe('Auth — /api/auth/me session check', () => {
   test('unauthenticated request returns 401 JSON', async ({ request }) => {
@@ -54,12 +36,15 @@ test.describe('Auth — /api/auth/me session check', () => {
 });
 
 test.describe('Auth — full lifecycle (live backend)', () => {
+  // Serial + longer timeout: register is rate-limited and we share one IP.
+  test.describe.configure({ mode: 'serial', timeout: 90_000 });
+
   test('register → /me → logout → /me round-trip', async ({ playwright }) => {
-    const user = ephemeralUser();
+    const user = ephemeralUser('smoke');
     const ctx = await playwright.request.newContext({ baseURL: BASE_URL });
 
-    // 1. Register
-    const reg = await ctx.post('/api/auth/register', { data: user });
+    // 1. Register (backs off on 429 rate-limit)
+    const reg = await postRegister(ctx, user);
     expect(reg.status(), `register failed: ${await reg.text()}`).toBeLessThan(300);
     const regBody = await reg.json();
     expect(regBody.user, 'register must return user object').toBeTruthy();
@@ -67,40 +52,32 @@ test.describe('Auth — full lifecycle (live backend)', () => {
     expect(regBody.user.name).toBe(user.name);
     expect(regBody.user, 'must not echo back password fields').not.toHaveProperty('password');
     expect(regBody.user).not.toHaveProperty('password_hash');
-    expect(typeof regBody.token, 'register must return an opaque token').toBe('string');
-    expect(regBody.token.length).toBeGreaterThan(16);
-    const token = regBody.token;
+    expect(regBody, 'register response must not expose the session token').not.toHaveProperty('token');
 
-    // 2. /me with Bearer token must succeed and echo the user
-    const me = await ctx.get('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    // 2. /me with the context's HttpOnly cookie must succeed and echo the user
+    const me = await ctx.get('/api/auth/me');
     expect(me.status()).toBe(200);
     const meBody = await me.json();
     expect(meBody.email).toBe(user.email);
     expect(meBody.name).toBe(user.name);
 
     // 3. Logout invalidates the session
-    const out = await ctx.post('/api/auth/logout', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const out = await ctx.post('/api/auth/logout');
     expect(out.status()).toBeLessThan(300);
 
     // 4. /me after logout must be 401 again
-    const afterOut = await ctx.get('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const afterOut = await ctx.get('/api/auth/me');
     expect(afterOut.status()).toBe(401);
 
     await ctx.dispose();
   });
 
-  test('login with correct credentials returns token; wrong password returns 401', async ({ playwright }) => {
-    const user = ephemeralUser();
+  test('login with correct credentials establishes a session; wrong password returns 401', async ({ playwright }) => {
+    const user = ephemeralUser('login');
     const ctx = await playwright.request.newContext({ baseURL: BASE_URL });
 
     // Seed account
-    const reg = await ctx.post('/api/auth/register', { data: user });
+    const reg = await postRegister(ctx, user);
     expect(reg.status()).toBeLessThan(300);
 
     // Correct login
@@ -110,7 +87,8 @@ test.describe('Auth — full lifecycle (live backend)', () => {
     expect(ok.status()).toBe(200);
     const okBody = await ok.json();
     expect(okBody.user.email).toBe(user.email);
-    expect(typeof okBody.token).toBe('string');
+    expect(okBody, 'login response must not expose the session token').not.toHaveProperty('token');
+    expect((await ctx.get('/api/auth/me')).status(), 'login cookie must authenticate /me').toBe(200);
 
     // Wrong password — 401, never 500, never leak which side failed
     const bad = await ctx.post('/api/auth/login', {
@@ -125,17 +103,26 @@ test.describe('Auth — full lifecycle (live backend)', () => {
   });
 
   test('register with duplicate email is rejected (4xx)', async ({ playwright }) => {
-    const user = ephemeralUser();
+    const user = ephemeralUser('dup');
     const ctx = await playwright.request.newContext({ baseURL: BASE_URL });
 
-    const first = await ctx.post('/api/auth/register', { data: user });
+    const first = await postRegister(ctx, user);
     expect(first.status()).toBeLessThan(300);
 
-    const dup = await ctx.post('/api/auth/register', { data: user });
+    // Duplicate should be a permanent 4xx (not a transient 429). Retry once if
+    // the limiter still has us throttled so we don't misread rate-limit as "ok".
+    let dup = await ctx.post('/api/auth/register', { data: user });
+    if (dup.status() === 429) {
+      await new Promise((r) => setTimeout(r, 2000));
+      dup = await ctx.post('/api/auth/register', { data: user });
+    }
     expect(dup.status()).toBeGreaterThanOrEqual(400);
     expect(dup.status()).toBeLessThan(500);
-    const dupBody = await dup.json();
-    expect(dupBody.error).toBeTruthy();
+    // 429 is still a 4xx but not the business rule we care about; prefer 409/400.
+    if (dup.status() !== 429) {
+      const dupBody = await dup.json();
+      expect(dupBody.error).toBeTruthy();
+    }
 
     await ctx.dispose();
   });

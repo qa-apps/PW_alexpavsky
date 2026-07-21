@@ -45,3 +45,6 @@ scripts/files.md
 
 # Local visual-regression scratch baselines
 tests/reg-snapshots/
+
+# Local agent scratch (never commit)
+$CODEX_HOME/

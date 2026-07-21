@@ -26,6 +26,7 @@ Environment variables:
 from __future__ import annotations
 
 import json
+import math
 import os
 import sys
 import time
@@ -134,6 +135,39 @@ def keyword_score(answer: str, expected_any: list[str], min_matches: int = 1) ->
     return {"matched": matches, "match_count": len(matches), "required": min_matches, "passed": passed}
 
 
+REFUSAL_PHRASES = (
+    "does not contain", "doesn't contain", "does not provide",
+    "doesn't provide", "does not mention", "doesn't mention",
+    "no information", "not provided", "cannot find", "can't find",
+    "unable to", "i don't have", "i do not have", "no specific",
+    "not mentioned", "no data", "no details",
+)
+
+
+def is_refusal_answer(answer: str) -> bool:
+    """Return whether an answer explicitly says the requested fact is absent."""
+    normalized = " ".join((answer or "").lower().split())
+    return any(phrase in normalized for phrase in REFUSAL_PHRASES)
+
+
+def record_passed(record: dict[str, Any]) -> bool:
+    """Apply the one canonical per-question gate used by every consumer."""
+    if record.get("category") == "refusal" or record.get("accept_refusal", False):
+        return is_refusal_answer(record.get("answer", "")) or bool(record.get("keyword_passed"))
+
+    if not record.get("keyword_passed"):
+        return False
+    faithfulness = record.get("faithfulness", float("nan"))
+    relevancy = record.get("relevancy", float("nan"))
+    if math.isnan(faithfulness) or math.isnan(relevancy):
+        return True
+    if faithfulness >= MIN_FAITHFULNESS and relevancy >= MIN_RELEVANCY:
+        return True
+    min_credible = 0.3
+    one_strong = faithfulness >= MIN_FAITHFULNESS or relevancy >= MIN_RELEVANCY
+    return one_strong and min(faithfulness, relevancy) >= min_credible
+
+
 def write_report(records: list[dict], summary: dict) -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     lines: list[str] = []
@@ -157,16 +191,19 @@ def write_report(records: list[dict], summary: dict) -> None:
     lines.append(f"")
 
     lines.append(f"## Per-Question Results\n")
-    lines.append("| ID | Category | Faithfulness | Relevancy | Keywords | Answer (preview) |")
+    lines.append("| ID | Category | Faithfulness | Relevancy | Gate | Answer (preview) |")
     lines.append("|---|---|---|---|---|---|")
-    import math
     for r in records:
-        kw = "—" if r["keyword_passed"] is None else ("PASS" if r["keyword_passed"] else "FAIL")
+        gate = "PASS" if r["final_passed"] else "FAIL"
+        if r["final_passed"] and (
+            r.get("category") == "refusal" or r.get("accept_refusal", False)
+        ):
+            gate = "PASS (refusal)"
         ans_prev = (r["answer"] or "")[:100].replace("\n", " ").replace("|", "\\|")
         f_str = "n/a" if math.isnan(r["faithfulness"]) else f"{r['faithfulness']:.2f}"
         r_str = "n/a" if math.isnan(r["relevancy"]) else f"{r['relevancy']:.2f}"
         lines.append(
-            f"| {r['id']} | {r['category']} | {f_str} | {r_str} | {kw} | {ans_prev}... |"
+            f"| {r['id']} | {r['category']} | {f_str} | {r_str} | {gate} | {ans_prev}... |"
         )
 
     OUTPUT_PATH.write_text("\n".join(lines), encoding="utf-8")
@@ -387,8 +424,6 @@ def main() -> int:
         log(f"  (These are usually short answers the judge can't fact-check)")
     log("")
 
-    write_report(records, summary)
-
     # Per-question pass/fail summary, consumed by .github/scripts/notify_slack.py
     # (via ragas-nightly.yml) to populate the #qa-rag-eval Slack post.
     #
@@ -404,49 +439,11 @@ def main() -> int:
     #   - All other categories: PASS iff keyword check matched AND judge
     #     scores cleared thresholds. If the judge couldn't score (NaN), we
     #     fall back to keyword check alone instead of auto-failing.
-    REFUSAL_PHRASES = (
-        "does not contain", "doesn't contain", "does not provide",
-        "doesn't provide", "no information", "not provided",
-        "cannot find", "unable to", "i don't have", "no specific",
-        "not mentioned", "no data", "no details",
-    )
+    for record in records:
+        record["final_passed"] = record_passed(record)
+    write_report(records, summary)
 
-    def _is_refusal_answer(answer: str) -> bool:
-        a = (answer or "").lower()
-        return any(p in a for p in REFUSAL_PHRASES)
-
-    def _is_passed(r: dict) -> bool:
-        cat = r.get("category", "")
-        accept_refusal = r.get("accept_refusal", False)
-        refused = _is_refusal_answer(r.get("answer", ""))
-
-        # Refusal-style scoring: PASS iff model refused honestly.
-        if cat == "refusal" or accept_refusal:
-            return refused or bool(r.get("keyword_passed"))
-
-        # Standard scoring with NaN-tolerant judge fallback.
-        # Requires keyword match. For judge metrics we accept either of:
-        #  - both above their own threshold (strictest, classical pass);
-        #  - one above threshold AND the other still credible (>= 0.3),
-        #    which covers terse-but-correct answers where the judge can
-        #    fact-check one dimension but not the other.
-        # If the judge couldn't score at all (NaN), the keyword match alone
-        # is treated as the signal — punishing keyword-correct answers for
-        # judge availability would be unfair.
-        if not r.get("keyword_passed"):
-            return False
-        f = r.get("faithfulness", float("nan"))
-        rel = r.get("relevancy", float("nan"))
-        if math.isnan(f) or math.isnan(rel):
-            return True
-        if f >= MIN_FAITHFULNESS and rel >= MIN_RELEVANCY:
-            return True
-        MIN_CREDIBLE = 0.3
-        one_strong = f >= MIN_FAITHFULNESS or rel >= MIN_RELEVANCY
-        other_credible = min(f, rel) >= MIN_CREDIBLE
-        return one_strong and other_credible
-
-    passed_count = sum(1 for r in records if _is_passed(r))
+    passed_count = sum(1 for r in records if r["final_passed"])
     summary_json = {
         "passed": passed_count,
         "failed": len(records) - passed_count,

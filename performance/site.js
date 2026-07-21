@@ -1,6 +1,10 @@
+// k6 runtime modules (not Node). Silence IDE/Node resolution underlines.
+// @ts-nocheck
 import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { Rate } from 'k6/metrics';
+import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
 const baseUrl = (__ENV.K6_BASE_URL || 'https://www.alexpavsky.com').replace(/\/$/, '');
 const scenarioName = __ENV.PERFORMANCE_SCENARIO || 'smoke';
@@ -185,7 +189,14 @@ function validatePublicBody(route, response) {
 
   if (route.name === 'health') {
     const body = response.json();
-    return body?.status === 'ok' && typeof body?.providers === 'object';
+    if (body?.status !== 'ok') return false;
+
+    // The public health endpoint intentionally returns only { status: 'ok' }
+    // to avoid exposing provider/database fingerprints. Authenticated admin
+    // requests may still receive the detailed payload; validate providers
+    // only when that optional field is present.
+    return body.providers === undefined
+      || (body.providers !== null && typeof body.providers === 'object');
   }
 
   if (route.name === 'feed') {
@@ -246,4 +257,14 @@ export function chatbot() {
 
   chatbotOk.add(ok);
   sleep(1);
+}
+
+export function handleSummary(data) {
+  const htmlFile = `performance-results/k6-${scenarioName}.html`;
+  const jsonFile = `performance-results/k6-${scenarioName}.json`;
+  return {
+    [htmlFile]: htmlReport(data),
+    [jsonFile]: JSON.stringify(data, null, 4),
+    stdout: textSummary(data, { indent: ' ', enableColors: true }),
+  };
 }
