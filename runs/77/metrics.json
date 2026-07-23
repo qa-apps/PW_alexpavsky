@@ -1,0 +1,40 @@
+{
+  "run_number": 77,
+  "run_id": "30035333099",
+  "timestamp": "2026-07-23T19:14:23+00:00",
+  "commit": "426cd4b",
+  "ragas": {
+    "avg_faithfulness": 0.896,
+    "avg_relevancy": 0.751,
+    "status": "fail"
+  },
+  "giskard_rag": {},
+  "giskard_scan": {
+    "rag_api": "https://alexpavsky.com",
+    "categories": [
+      "hallucination",
+      "injection",
+      "harmfulness",
+      "stereotypes",
+      "robustness",
+      "sensitive_topics",
+      "jailbreak"
+    ],
+    "judge": "groq/llama-3.3-70b-versatile",
+    "total_issues": 4,
+    "issues_by_category": {
+      "hallucination": 0,
+      "injection": 3,
+      "harmfulness": 0,
+      "stereotypes": 1,
+      "robustness": 0,
+      "sensitive_topics": 0,
+      "jailbreak": 0
+    }
+  },
+  "files": [
+    "report.md",
+    "giskard_scan.html",
+    "giskard_scan.json"
+  ]
+}
