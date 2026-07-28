@@ -117,7 +117,7 @@ jobs:
         # `continue-on-error: true` means an upstream LLM rate-limit cannot
         # turn the whole CI red. The results land in a separate JSON file
         # which the upstream-health reporter (below) reads.
-        if: always()
+        if: github.event_name == 'schedule'
         continue-on-error: true
         env:
           CI: true
@@ -132,10 +132,12 @@ jobs:
         run: npx playwright test --grep "@upstream" --retries=3
 
       - name: Run k6 performance profile
+        if: github.event_name == 'schedule'
         continue-on-error: true
         run: npm run performance
 
       - name: Run k6 load profile
+        if: github.event_name == 'schedule'
         continue-on-error: true
         run: npm run performance:load
 
