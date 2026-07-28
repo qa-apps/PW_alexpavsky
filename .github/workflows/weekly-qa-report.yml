@@ -9,6 +9,10 @@ concurrency:
   group: weekly-qa-report
   cancel-in-progress: true
 
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   generate-report:
     runs-on: ubuntu-latest
@@ -18,15 +22,38 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v5
 
-      # Download latest nightly test artifacts so the report has real data
-      - name: Download latest test results
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          workflow: playwright-ci.yml
-          name: test-results
-          path: test-results/
-          if_no_artifact_found: warn
-        continue-on-error: true
+      # Download latest Playwright artifact that actually exists. The workflow
+      # has schedule-gate-only success runs with no artifacts, so picking the
+      # newest successful run blindly creates a green "0 tests" report.
+      - name: Download latest Playwright test results
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p test-results
+          found=0
+
+          for run_id in $(gh run list \
+            --workflow playwright-ci.yml \
+            --branch master \
+            --status success \
+            --limit 50 \
+            --json databaseId \
+            --jq '.[].databaseId'); do
+            echo "Checking Playwright run ${run_id} for test-results artifact"
+            if gh run download "$run_id" -n test-results -D test-results 2>/dev/null; then
+              if find test-results -name 'results-pure.json' -print -quit | grep -q .; then
+                echo "Downloaded test-results from Playwright run ${run_id}"
+                found=1
+                break
+              fi
+              find test-results -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+            fi
+          done
+
+          if [[ "$found" != "1" ]]; then
+            echo "::error::No Playwright test-results artifact with results-pure.json found"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -66,4 +93,5 @@ jobs:
           python .github/scripts/notify_slack.py \
             --channel "${{ secrets.SLACK_WEEKLY_REPORT_CHANNEL_ID }}" \
             --pipeline "Weekly QA Report" \
-            --results-dir test-results
+            --results-dir test-results \
+            --results-pattern "**/results-pure.json"

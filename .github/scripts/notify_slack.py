@@ -12,11 +12,11 @@ import urllib.request
 import urllib.error
 
 
-def load_results(results_dir: str) -> dict:
+def load_results(results_dir: str, pattern: str = "*.json") -> dict:
     """Parse Playwright JSON results. Falls back to zeros if none found."""
     passed = failed = flaky = skipped = 0
 
-    json_files = glob.glob(os.path.join(results_dir, "*.json"))
+    json_files = glob.glob(os.path.join(results_dir, pattern), recursive=True)
     # Also check for the aggregated results file produced by --reporter=json
     for path in json_files:
         try:
@@ -71,7 +71,11 @@ def build_payload(channel: str, pipeline: str, run_url: str,
                   passed: int, failed: int, flaky: int, skipped: int) -> dict:
     total = passed + failed + flaky + skipped
 
-    if failed > 0:
+    if total == 0:
+        color = "#e9a820"
+        status_emoji = "🟠"
+        status_text = "NO RESULTS"
+    elif failed > 0:
         color = "#cc2929"   # red
         status_emoji = "🔴"
         status_text = "FAILED"
@@ -233,6 +237,7 @@ def main() -> None:
     parser.add_argument("--failed",  type=int, default=None, help="Override failed count")
     parser.add_argument("--flaky",   type=int, default=None, help="Override flaky count")
     parser.add_argument("--skipped", type=int, default=None, help="Override skipped count")
+    parser.add_argument("--results-pattern", default="*.json", help="Glob under --results-dir to select result JSON files")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
@@ -255,7 +260,7 @@ def main() -> None:
             "skipped": args.skipped or 0,
         }
     else:
-        stats = load_results(args.results_dir)
+        stats = load_results(args.results_dir, args.results_pattern)
 
     payload = build_payload(
         channel=args.channel,

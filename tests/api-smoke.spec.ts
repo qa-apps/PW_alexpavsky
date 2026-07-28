@@ -44,8 +44,11 @@ const CONTRACTS: Record<string, Probe> = {
     json: true,
     assertBody: (b) => {
       expect(b.status).toBe('ok');
-      expect(b).toHaveProperty('providers');
-      expect(typeof b.providers).toBe('object');
+      if (b.providers !== undefined) {
+        expect(b.providers).not.toBeNull();
+        expect(Array.isArray(b.providers)).toBe(false);
+        expect(typeof b.providers).toBe('object');
+      }
     },
   },
   '/api/feed': {

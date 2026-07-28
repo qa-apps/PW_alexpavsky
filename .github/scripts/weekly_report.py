@@ -102,7 +102,10 @@ def collect_test_counts() -> dict:
     counts = {"passed": 0, "failed": 0, "skipped": 0, "total": 0}
     if not TEST_RESULTS.exists():
         return counts
-    for f in TEST_RESULTS.rglob("*.json"):
+    result_files = list(TEST_RESULTS.rglob("results-pure.json"))
+    if not result_files:
+        result_files = list(TEST_RESULTS.rglob("results.json"))
+    for f in result_files:
         try:
             d = json.loads(f.read_text(errors="replace"))
             # Playwright result JSON
@@ -245,6 +248,8 @@ def main():
 
     print(f"Tests found:    {counts['total']} ({counts['passed']} passed, {counts['failed']} failed)")
     print(f"Verdict files:  {len(verdicts['triage'])} triage, {len(verdicts['weekly'])} weekly")
+    if counts["total"] == 0:
+        raise SystemExit("No Playwright result counts found; refusing to publish a green zero-test weekly report")
     print("Generating report via open-source LLM rotation...")
 
     report_md = generate_report(verdicts, counts)

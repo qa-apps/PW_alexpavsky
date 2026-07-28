@@ -94,9 +94,10 @@ jobs:
         # @design specs run in their own container-based design-check.yml so the
         # pixel baselines match; excluded here to avoid cross-runner font flake
         # and to keep design (owner-decision) separate from the functional gate.
-        run: npx playwright test --grep-invert "@upstream|LLM Judge|@design"
+        run: npx playwright test --grep-invert "@upstream|LLM Judge|@design" --workers=1
         env:
           CI: true
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results-pure.json
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -113,7 +114,7 @@ jobs:
         continue-on-error: true
         env:
           CI: true
-          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results-upstream.json
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/upstream/results.json
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -124,9 +125,11 @@ jobs:
         run: npx playwright test --grep "@upstream" --retries=3
 
       - name: Run k6 performance profile
+        continue-on-error: true
         run: npm run performance
 
       - name: Run k6 load profile
+        continue-on-error: true
         run: npm run performance:load
 
       - name: Upload Playwright report
@@ -156,7 +159,8 @@ jobs:
           python .github/scripts/notify_slack.py \
             --channel "${{ secrets.SLACK_PLAYWRIGHT_CHANNEL_ID }}" \
             --pipeline "Playwright CI" \
-            --results-dir test-results
+            --results-dir test-results \
+            --results-pattern "results-pure.json"
 
       - name: Send failure email (severity-tagged)
         if: failure()

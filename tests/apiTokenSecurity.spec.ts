@@ -1,19 +1,20 @@
 /**
  * apiTokenSecurity.spec.ts
  *
- * Dedicated API auth-token security suite. Complements (does not duplicate)
+ * Dedicated API auth-session security suite. Complements (does not duplicate)
  * auth-flow.spec.ts (happy-path register→login→me→logout) and
  * security-daily.spec.ts (admin endpoints reject forged tokens) by focusing
- * specifically on TOKEN handling against the OWASP API Security Top 10:
+ * specifically on session handling against the OWASP API Security Top 10:
  *
- *   API1 BOLA  — one user's token must not read another user's objects
+ *   API1 BOLA  — one user's session must not read another user's objects
  *   API2 Broken Authentication — malformed/forged/replayed tokens rejected
- *   API3 Broken Object Property Level Auth — token never echoes secrets
- *   API5 Broken Function Level Auth — non-admin token can't reach /api/admin/*
+ *   API3 Broken Object Property Level Auth — session never echoes secrets
+ *   API5 Broken Function Level Auth — non-admin session can't reach /api/admin/*
  *
- * Token model (from chat_server.py): opaque secrets.token_urlsafe(32) stored
- * in the sessions table, presented as `Authorization: Bearer <token>` on
- * /api/auth/me, /api/user/messages, /api/admin/*. No JWT, no cookie.
+ * Session model: auth endpoints set an opaque HttpOnly `ap_auth` cookie.
+ * /api/auth/me, /api/user/messages, and /api/admin/* authenticate from that
+ * cookie. The cookie must not be guessable, exposed in JSON, or replayable
+ * after logout.
  *
  * Every test mints its own ephemeral user(s) so runs are isolated and
  * idempotent. The .test TLD keeps them out of any real email index.
@@ -21,6 +22,8 @@
 import { test, expect, type APIRequestContext } from '@playwright/test';
 
 const BASE_URL = process.env.SITE_URL || 'https://www.alexpavsky.com';
+
+test.describe.configure({ mode: 'serial' });
 
 function ephemeralUser(tag = 'tok') {
   const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -31,40 +34,44 @@ function ephemeralUser(tag = 'tok') {
   };
 }
 
-/** Register a fresh user and return {token, user, body, ctx}. */
+/** Register a fresh user and return {sessionCookie, user, body, ctx}. */
 async function registerUser(playwright: any) {
   const ctx: APIRequestContext = await playwright.request.newContext({ baseURL: BASE_URL });
   const user = ephemeralUser();
   const reg = await ctx.post('/api/auth/register', { data: user });
   expect(reg.status(), `register failed: ${await reg.text()}`).toBeLessThan(300);
   const body = await reg.json();
-  expect(body.token, 'register must return token').toBeTruthy();
-  return { token: body.token as string, user, body, ctx };
+  const setCookie = reg.headers()['set-cookie'] || '';
+  const match = setCookie.match(/(?:^|;\s*)ap_auth=([^;]+)/);
+  expect(match?.[1], 'register must set ap_auth cookie').toBeTruthy();
+  expect(setCookie, 'auth cookie must be HttpOnly').toMatch(/httponly/i);
+  expect(setCookie, 'auth cookie must be Secure').toMatch(/secure/i);
+  return { sessionCookie: match![1], user, body, ctx };
 }
 
-async function me(ctx: APIRequestContext, token: string) {
-  return ctx.get('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+async function me(ctx: APIRequestContext) {
+  return ctx.get('/api/auth/me');
 }
 
-test.describe('API token security — OWASP API2 Broken Authentication', () => {
+test.describe('API session security — OWASP API2 Broken Authentication @upstream', () => {
 
-  test('token is opaque and high-entropy — not a guessable/sequential value', async ({ playwright }) => {
-    // Mint two tokens back to back; they must be unrelated, long, and
+  test('session cookie is opaque and high-entropy — not a guessable/sequential value', async ({ playwright }) => {
+    // Mint two sessions back to back; they must be unrelated, long, and
     // URL-safe (no JWT structure that could leak a signing secret).
     const a = await registerUser(playwright);
     const b = await registerUser(playwright);
 
-    for (const t of [a.token, b.token]) {
-      expect(t.length, 'token must be long (≥32 chars)').toBeGreaterThanOrEqual(32);
-      expect(t, 'token must be URL-safe charset').toMatch(/^[A-Za-z0-9_-]+$/);
+    for (const t of [a.sessionCookie, b.sessionCookie]) {
+      expect(t.length, 'session cookie must be long (≥32 chars)').toBeGreaterThanOrEqual(32);
+      expect(t, 'session cookie must be URL-safe charset').toMatch(/^[A-Za-z0-9_-]+$/);
       // Must NOT look like a JWT (header.payload.signature) — those can leak
       // claims / alg-none vulnerabilities if mis-handled.
-      expect(t.split('.').length, 'token must not be a 3-part JWT').not.toBe(3);
+      expect(t.split('.').length, 'session cookie must not be a 3-part JWT').not.toBe(3);
     }
-    // The two tokens must share no long common prefix (would imply sequential mint).
+    // The two sessions must share no long common prefix (would imply sequential mint).
     let prefix = 0;
-    while (prefix < a.token.length && a.token[prefix] === b.token[prefix]) prefix++;
-    expect(prefix, 'two fresh tokens must not share a long prefix').toBeLessThan(8);
+    while (prefix < a.sessionCookie.length && a.sessionCookie[prefix] === b.sessionCookie[prefix]) prefix++;
+    expect(prefix, 'two fresh sessions must not share a long prefix').toBeLessThan(8);
 
     await a.ctx.dispose();
     await b.ctx.dispose();
@@ -90,7 +97,7 @@ test.describe('API token security — OWASP API2 Broken Authentication', () => {
     }
   });
 
-  test('SQL-injection / special chars in the token do not crash or bypass auth', async ({ request }) => {
+  test('SQL-injection / special chars in a legacy Bearer token do not crash or bypass auth', async ({ request }) => {
     const payloads = [
       "' OR '1'='1",
       "'; DROP TABLE sessions;--",
@@ -112,24 +119,24 @@ test.describe('API token security — OWASP API2 Broken Authentication', () => {
     }
   });
 
-  test('a revoked (logged-out) token cannot be replayed', async ({ playwright }) => {
-    const { token, ctx } = await registerUser(playwright);
+  test('a revoked (logged-out) session cannot be replayed', async ({ playwright }) => {
+    const { ctx } = await registerUser(playwright);
 
-    // Token works pre-logout
-    expect((await me(ctx, token)).status()).toBe(200);
+    // Session works pre-logout
+    expect((await me(ctx)).status()).toBe(200);
 
     // Logout
-    const out = await ctx.post('/api/auth/logout', { headers: { Authorization: `Bearer ${token}` } });
+    const out = await ctx.post('/api/auth/logout');
     expect(out.status()).toBeLessThan(300);
 
-    // Replay the SAME token — must be dead now (no session resurrection)
-    const replay = await me(ctx, token);
-    expect(replay.status(), 'replayed post-logout token must be 401').toBe(401);
+    // Replay the SAME cookie jar — must be dead now (no session resurrection)
+    const replay = await me(ctx);
+    expect(replay.status(), 'post-logout session must be 401').toBe(401);
 
     await ctx.dispose();
   });
 
-  test('no token at all → 401 on every protected endpoint', async ({ request }) => {
+  test('no session at all → 401 on every protected endpoint', async ({ request }) => {
     for (const path of ['/api/auth/me', '/api/user/messages']) {
       const r = await request.get(`${BASE_URL}${path}`);
       expect([401, 403], `${path} with no token must be 401/403`).toContain(r.status());
@@ -137,21 +144,21 @@ test.describe('API token security — OWASP API2 Broken Authentication', () => {
   });
 });
 
-test.describe('API token security — OWASP API1 BOLA (cross-user isolation)', () => {
+test.describe('API session security — OWASP API1 BOLA (cross-user isolation) @upstream', () => {
 
-  test("user A's token cannot read user B's identity via /api/auth/me", async ({ playwright }) => {
+  test("user A's session cannot read user B's identity via /api/auth/me", async ({ playwright }) => {
     const a = await registerUser(playwright);
     const b = await registerUser(playwright);
 
-    // A's token returns A — never B.
-    const asA = await me(a.ctx, a.token);
+    // A's session returns A — never B.
+    const asA = await me(a.ctx);
     expect(asA.status()).toBe(200);
     const aBody = await asA.json();
     expect(aBody.email).toBe(a.user.email);
-    expect(aBody.email, "A's token must never resolve to B").not.toBe(b.user.email);
+    expect(aBody.email, "A's session must never resolve to B").not.toBe(b.user.email);
 
-    // B's token returns B — never A.
-    const asB = await me(b.ctx, b.token);
+    // B's session returns B — never A.
+    const asB = await me(b.ctx);
     const bBody = await asB.json();
     expect(bBody.email).toBe(b.user.email);
     expect(bBody.email).not.toBe(a.user.email);
@@ -160,16 +167,14 @@ test.describe('API token security — OWASP API1 BOLA (cross-user isolation)', (
     await b.ctx.dispose();
   });
 
-  test("user A's token cannot fetch user B's private messages", async ({ playwright }) => {
+  test("user A's session cannot fetch user B's private messages", async ({ playwright }) => {
     const a = await registerUser(playwright);
     const b = await registerUser(playwright);
 
-    // /api/user/messages is scoped to the token's own user_id. A's token
+    // /api/user/messages is scoped to the session's own user_id. A's session
     // must only ever see A's messages — there must be no user_id override
     // (query param, body) that lets A read B's thread.
-    const direct = await a.ctx.get('/api/user/messages', {
-      headers: { Authorization: `Bearer ${a.token}` },
-    });
+    const direct = await a.ctx.get('/api/user/messages');
     // Endpoint is currently a 501 stub for POST but GET returns the caller's
     // own messages. Tolerate 200 (own scope) or 501 (not wired) — what we
     // forbid is a 200 that contains another user's data via override.
@@ -177,9 +182,7 @@ test.describe('API token security — OWASP API1 BOLA (cross-user isolation)', (
 
     if (direct.status() === 200) {
       // Attempt the classic BOLA: override user_id to B via query string.
-      const override = await a.ctx.get(`/api/user/messages?user_id=${encodeURIComponent(b.body.user?.id || 'someone-else')}`, {
-        headers: { Authorization: `Bearer ${a.token}` },
-      });
+      const override = await a.ctx.get(`/api/user/messages?user_id=${encodeURIComponent(b.body.user?.id || 'someone-else')}`);
       // Must NOT return B's data. Either ignores the param (returns A's own,
       // empty) or rejects. The forbidden outcome is leaking another user.
       expect(override.status(), 'user_id override must not 5xx').toBeLessThan(500);
@@ -192,10 +195,10 @@ test.describe('API token security — OWASP API1 BOLA (cross-user isolation)', (
   });
 });
 
-test.describe('API token security — OWASP API5 Broken Function Level Auth', () => {
+test.describe('API session security — OWASP API5 Broken Function Level Auth @upstream', () => {
 
-  test('a normal (non-admin) user token cannot reach admin endpoints', async ({ playwright }) => {
-    const { token, ctx } = await registerUser(playwright);
+  test('a normal (non-admin) user session cannot reach admin endpoints', async ({ playwright }) => {
+    const { ctx } = await registerUser(playwright);
 
     const adminEndpoints = [
       '/api/admin/conversations',
@@ -204,16 +207,15 @@ test.describe('API token security — OWASP API5 Broken Function Level Auth', ()
       '/api/admin-inbox',
     ];
     for (const path of adminEndpoints) {
-      const r = await ctx.get(path, { headers: { Authorization: `Bearer ${token}` } });
+      const r = await ctx.get(path);
       expect(
         [401, 403],
-        `non-admin token on ${path} must be 401/403, got ${r.status()}`,
+        `non-admin session on ${path} must be 401/403, got ${r.status()}`,
       ).toContain(r.status());
     }
 
-    // POST admin action with a non-admin token must also be blocked.
+    // POST admin action with a non-admin session must also be blocked.
     const reply = await ctx.post('/api/admin/reply', {
-      headers: { Authorization: `Bearer ${token}` },
       data: { user_id: 'x', text: 'unauthorised' },
     });
     expect([401, 403, 501], 'non-admin admin/reply must be blocked').toContain(reply.status());
@@ -222,19 +224,20 @@ test.describe('API token security — OWASP API5 Broken Function Level Auth', ()
   });
 });
 
-test.describe('API token security — API3 token never leaks secrets', () => {
+test.describe('API session security — API3 session never leaks secrets @upstream', () => {
 
-  test('register/login responses never expose password or hash', async ({ playwright }) => {
+  test('register responses never expose password, hash, or session cookie value', async ({ playwright }) => {
     const { body, ctx } = await registerUser(playwright);
     const serialized = JSON.stringify(body).toLowerCase();
     expect(serialized, 'must not contain password').not.toContain('password');
     expect(serialized, 'must not contain a hash field').not.toMatch(/password_hash|scrypt|pbkdf2/);
+    expect(serialized, 'must not expose session cookie value in JSON').not.toContain('ap_auth');
     await ctx.dispose();
   });
 
   test('/api/auth/me payload contains only safe public fields', async ({ playwright }) => {
-    const { token, ctx } = await registerUser(playwright);
-    const r = await me(ctx, token);
+    const { ctx } = await registerUser(playwright);
+    const r = await me(ctx);
     const body = await r.json();
     // Allowed public shape: id, name, email, is_admin. No secrets.
     const keys = Object.keys(body);

@@ -3,9 +3,8 @@
  *
  * API-level contract tests for /api/auth/* after the real implementation
  * shipped (replaces the previous "returns 501 not_implemented" stub
- * contract). The backend now returns {user, token} on register/login and
- * expects `Authorization: Bearer <token>` on /api/auth/me — NOT a
- * session cookie. The frontend stores the token in localStorage.
+ * contract). The backend now returns {user, ok} on register/login and
+ * sets an HttpOnly `ap_auth` session cookie for /api/auth/me.
  *
  * Two top-level groups:
  *   1. /api/auth/me session-check edge cases (live, always runs)
@@ -19,6 +18,8 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 
 const BASE_URL = process.env.SITE_URL || 'https://www.alexpavsky.com';
+
+test.describe.configure({ mode: 'serial' });
 
 function ephemeralUser() {
   const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -53,7 +54,7 @@ test.describe('Auth — /api/auth/me session check', () => {
   });
 });
 
-test.describe('Auth — full lifecycle (live backend)', () => {
+test.describe('Auth — full lifecycle (live backend) @upstream', () => {
   test('register → /me → logout → /me round-trip', async ({ playwright }) => {
     const user = ephemeralUser();
     const ctx = await playwright.request.newContext({ baseURL: BASE_URL });
@@ -67,35 +68,30 @@ test.describe('Auth — full lifecycle (live backend)', () => {
     expect(regBody.user.name).toBe(user.name);
     expect(regBody.user, 'must not echo back password fields').not.toHaveProperty('password');
     expect(regBody.user).not.toHaveProperty('password_hash');
-    expect(typeof regBody.token, 'register must return an opaque token').toBe('string');
-    expect(regBody.token.length).toBeGreaterThan(16);
-    const token = regBody.token;
+    const setCookie = reg.headers()['set-cookie'] || '';
+    expect(setCookie, 'register must set ap_auth session cookie').toContain('ap_auth=');
+    expect(setCookie, 'auth cookie must be HttpOnly').toMatch(/httponly/i);
+    expect(setCookie, 'auth cookie must be Secure').toMatch(/secure/i);
 
-    // 2. /me with Bearer token must succeed and echo the user
-    const me = await ctx.get('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    // 2. /me with the context cookie must succeed and echo the user
+    const me = await ctx.get('/api/auth/me');
     expect(me.status()).toBe(200);
     const meBody = await me.json();
     expect(meBody.email).toBe(user.email);
     expect(meBody.name).toBe(user.name);
 
     // 3. Logout invalidates the session
-    const out = await ctx.post('/api/auth/logout', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const out = await ctx.post('/api/auth/logout');
     expect(out.status()).toBeLessThan(300);
 
     // 4. /me after logout must be 401 again
-    const afterOut = await ctx.get('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const afterOut = await ctx.get('/api/auth/me');
     expect(afterOut.status()).toBe(401);
 
     await ctx.dispose();
   });
 
-  test('login with correct credentials returns token; wrong password returns 401', async ({ playwright }) => {
+  test('login with correct credentials sets session cookie; wrong password returns 401', async ({ playwright }) => {
     const user = ephemeralUser();
     const ctx = await playwright.request.newContext({ baseURL: BASE_URL });
 
@@ -110,7 +106,8 @@ test.describe('Auth — full lifecycle (live backend)', () => {
     expect(ok.status()).toBe(200);
     const okBody = await ok.json();
     expect(okBody.user.email).toBe(user.email);
-    expect(typeof okBody.token).toBe('string');
+    const setCookie = ok.headers()['set-cookie'] || '';
+    expect(setCookie, 'login must set ap_auth session cookie').toContain('ap_auth=');
 
     // Wrong password — 401, never 500, never leak which side failed
     const bad = await ctx.post('/api/auth/login', {

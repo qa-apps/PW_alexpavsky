@@ -23,7 +23,7 @@ export default defineConfig({
     ['html', { open: 'never' }],
     // JSON results consumed by .github/scripts/notify_slack.py to build
     // the Slack donut/stats. Without this, the Slack post shows all zeros.
-    ['json', { outputFile: 'test-results/results.json' }],
+    ['json', { outputFile: process.env.PLAYWRIGHT_JSON_OUTPUT_NAME || 'test-results/results.json' }],
   ],
   use: {
     baseURL: process.env.BASE_URL || 'https://www.alexpavsky.com',
