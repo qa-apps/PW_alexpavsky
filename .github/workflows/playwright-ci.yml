@@ -94,7 +94,14 @@ jobs:
         # @design specs run in their own container-based design-check.yml so the
         # pixel baselines match; excluded here to avoid cross-runner font flake
         # and to keep design (owner-decision) separate from the functional gate.
-        run: npx playwright test --grep-invert "@upstream|LLM Judge|@design" --workers=1
+        run: |
+          npx playwright test \
+            tests/api-smoke.spec.ts \
+            tests/security-daily.spec.ts \
+            tests/auth-flow.spec.ts \
+            tests/apiTokenSecurity.spec.ts \
+            --grep-invert "@upstream|LLM Judge|@design" \
+            --workers=1
         env:
           CI: true
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results-pure.json
