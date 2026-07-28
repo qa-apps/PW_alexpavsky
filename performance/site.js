@@ -185,7 +185,10 @@ function validatePublicBody(route, response) {
 
   if (route.name === 'health') {
     const body = response.json();
-    return body?.status === 'ok' && typeof body?.providers === 'object';
+    const providersValid =
+      body?.providers === undefined ||
+      (body.providers !== null && typeof body.providers === 'object' && !Array.isArray(body.providers));
+    return body?.status === 'ok' && providersValid;
   }
 
   if (route.name === 'feed') {
@@ -215,7 +218,9 @@ export default function () {
     });
   });
 
-  sleep(1);
+  if (scenarioName !== 'rps-100') {
+    sleep(1);
+  }
 }
 
 export function chatbot() {
