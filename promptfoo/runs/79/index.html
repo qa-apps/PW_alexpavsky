@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Promptfoo run #79</title>
+<style>
+body { font: 14px/1.45 -apple-system, BlinkMacSystemFont, sans-serif; margin: 0 auto; max-width: 1200px; padding: 24px; color: #1f2328; }
+a { color: #0969da; text-decoration: none; } .meta { color: #656d76; }
+.cards { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:12px; margin:18px 0; }
+.card { border:1px solid #d0d7de; border-radius:6px; padding:12px; background:#f6f8fa; }
+.label { color:#656d76; font-size:12px; text-transform:uppercase; } .value { font-size:24px; font-weight:700; }
+table { width:100%; border-collapse:collapse; } th,td { padding:8px 10px; border-bottom:1px solid #d8dee4; text-align:left; vertical-align:top; }
+th { background:#f6f8fa; } .pass { color:#1a7f37; font-weight:700; } .fail { color:#cf222e; font-weight:700; }
+pre { white-space:pre-wrap; max-width:760px; }
+</style></head><body>
+<p><a href="../../index.html">← all Promptfoo runs</a></p>
+<h1>Promptfoo Basic Eval #79</h1>
+<p class="meta">2026-08-13T07:39:24+00:00 · commit 189452f · <a href="https://github.com/qa-apps/PW_alexpavsky/actions/runs/31678064742">GitHub run</a></p>
+<div class="cards">
+  <div class="card"><div class="label">Passed</div><div class="value pass">0</div></div>
+  <div class="card"><div class="label">Failed</div><div class="value fail">2</div></div>
+  <div class="card"><div class="label">Total</div><div class="value">2</div></div>
+</div>
+<table><thead><tr><th>Status</th><th>Test</th><th>Provider</th><th>Score</th><th>Output</th></tr></thead>
+<tbody><tr><td class='fail'>FAIL</td><td>Standard greeting</td><td>GROQ · Llama 3.3 70B Versatile · reliable</td><td>0</td><td><details><summary>details</summary><pre>RateLimitExhaustedError: Rate limit exceeded for openai:chat:llama-3.3-70b-versatile[f8da4e8405a7] after 4 attempts
+    at ProviderRateLimitState.executeWithRetry (file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/providers-Ch6Mr0gn.js:5009:12)
+    at async RateLimitRegistry.execute (file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/providers-Ch6Mr0gn.js:5292:19)
+    at async runEval (file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/evaluator-BcvOGaam.js:4397:38)
+    at async processEvalStep (file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/evaluator-BcvOGaam.js:5001:17)
+    at async file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/evaluator-BcvOGaam.js:5214:5</pre></details></td></tr><tr><td class='fail'>FAIL</td><td>Standard greeting</td><td>GEMINI · gemini-3.5-flash · reliable [free]</td><td>0</td><td><details><summary>details</summary><pre>API error: 403 Forbidden
+[{&quot;error&quot;:{&quot;code&quot;:403,&quot;message&quot;:&quot;Your API key was reported as leaked. Please use another API key.&quot;,&quot;status&quot;:&quot;PERMISSION_DENIED&quot;}}]</pre></details></td></tr></tbody></table>
+</body></html>
