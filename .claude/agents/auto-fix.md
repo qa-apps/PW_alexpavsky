@@ -1,0 +1,1 @@
+../../agents/auto-fix.agent.md

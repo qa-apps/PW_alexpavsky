@@ -8,20 +8,24 @@ This repo contains tests only — never edit application code from here.
 
 - **Playwright** (`@playwright/test`) — TypeScript, single `chromium` project, `baseURL = https://www.alexpavsky.com`
 - **Promptfoo** — standalone LLM evals for the site's chatbot (`promptfooconfig.yaml`, judges in `utils/llm-judges.ts`)
-- **k6** — performance scenarios in `performance/site.js`
+- **k6** — performance scenarios in `k6/site.js` (results → `k6/results/`)
 - **Python eval tools** in `eval/` — Giskard, RAGAS, rotating-LLM helpers (separate `requirements.txt`)
 - **Playwright MCP** (`@playwright/mcp`) — agent-driven DOM inspection
 
 ## Layout
 
 ```
-tests/         specs (+ smoke/, llm-judge/, rag/, regex/ subfolders)
+tests/         specs by domain (smoke/, api/, security/, admin/rag/, llm/, regression/, …)
 pages/         Page Object Model classes (HomePage, AuthPage, ChatbotPage, …)
 utils/         fixtures.ts, llm-judges.ts, verdict-reporter.ts, model-registry.ts
-performance/   k6 scripts
+k6/            k6 performance script + k6/results/ summaries
 eval/          Python-based LLM eval scripts (Giskard, RAGAS)
 scripts/       provider refresh/ping (ts-node), build_eval_site.py
-judge-verdicts/  generated LLM judge verdict reports (do not hand-edit)
+test-results/  all Playwright + daily evidence artifacts (gitignored)
+playwright-report/  HTML report UI (npm run report)
+qa-report-ui/  daily structured QA report app (:5058)
+agents/        agent prompts + skills; see agents/README.md
+.claude/agents/  symlinks → agents/*.agent.md for `claude --agent`
 ```
 
 ## Common commands
@@ -55,7 +59,7 @@ npm run test:smoke -- -g "footer"                 # smoke + name filter
 - Replace `waitForTimeout(N)` with `locator.waitFor({ state: 'visible' })` or a state assertion (`expect(locator).toBeVisible()`).
 - Avoid `waitForLoadState('networkidle')` on this site — the chat widget and analytics keep network alive and the wait can hang. Use `'domcontentloaded'` + element waits instead.
 - Current hotspots: `tests/live-rail.spec.ts` (~11 `waitForTimeout` calls) and `tests/smoke/smoke-ui.spec.ts`. Fix these before adding similar patterns elsewhere.
-- For intermittent CI failures, check the trace via `npm run report` and look for `recordings/.last-run.json` timing data.
+- For intermittent CI failures, check the trace via `npm run report` and look under `test-results/recordings/`.
 
 ## POM rules
 
@@ -73,8 +77,7 @@ npm run test:smoke -- -g "footer"                 # smoke + name filter
 ## Generated artifacts — don't hand-edit
 
 - `judge-verdicts/<run-id>/*.json` — written by `npm run eval` and CI
-- `test-results/`, `playwright-report/`, `recordings/.last-run.json`
-- `.playwright-report-temp/` — CI scratch space
+- `test-results/` (recordings + daily evidence), `playwright-report/`, `k6/results/`
 
 Stale reports mislead future runs — let the tooling regenerate them.
 

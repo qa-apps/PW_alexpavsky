@@ -33,7 +33,7 @@ find test-results/ -name "*.json" -newer "$(date -d '7 days ago' +%Y-%m-%d)" 2>/
 ls -lt judge-verdicts/ | head -20
 ```
 
-**Performance** — check `performance/site.js` and any k6 output files in `test-results/`.
+**Performance** — check `k6/site.js` and any k6 output files in `k6/results/`.
 
 **Flaky tests** — look for tests that appear in multiple triage reports or have been fixed and broken again.
 

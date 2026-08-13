@@ -1,0 +1,1 @@
+../../agents/playwright-weekly-report.agent.md

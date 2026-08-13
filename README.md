@@ -49,21 +49,29 @@ time gate so it stays aligned with `10:00 PM` across DST changes.
 
 This project includes `@playwright/mcp` so the browser can be attached to an AI orchestrator or agent client for live DOM inspection.
 
-Run the local MCP server:
-
 ```bash
 npm run mcp:playwright
 ```
 
-For Windsurf, this repo includes a project workflow at `.windsurf/workflows/playwright-mcp.md` that describes how to start the MCP server and use it for agent-driven browser inspection and debugging.
+How-to and agent prompts live under **`agents/`** (see `agents/README.md` and
+`agents/playwright-mcp.md`). VS Code MCP server config: `.vscode/mcp.json`.
 
-Example Codex MCP config:
+Example MCP config for other clients:
 
 ```toml
 [mcp_servers.playwright]
 command = "npx"
 args = ["playwright-mcp", "--headless", "--browser", "chrome", "--output-dir", ".playwright-mcp", "--save-trace", "--save-session"]
 ```
+
+## Agents & skills
+
+| Path | Purpose |
+|------|---------|
+| `agents/*.agent.md` | Planner / generator / healer / triage / weekly / auto-fix prompts |
+| `agents/skills/` | Test-automation and Playwright practice notes |
+| `.claude/agents/` | Symlinks for `claude --agent <name>` |
+| `.github/agents/` | GitHub Copilot agents (leave for Copilot / `playwright init-agents`) |
 
 ## PromptFoo AI Evaluation
 
@@ -89,3 +97,16 @@ Available judges: `safety`, `promptLeak`, `jailbreak`, `relevance`, `tone`, `pii
 - AI assistant UI and LLM-as-a-judge checks
 - YouTube/video carousel
 - Responsive navigation and newsletter digest flow
+
+## Artifact layout
+
+| Path | What |
+|------|------|
+| `test-results/recordings/` | Playwright screenshots / video / trace (per test) |
+| `test-results/daily/` | Daily live-QA evidence (images + probe JSON) |
+| `playwright-report/` | HTML report UI — `npm run report` |
+| `k6/site.js` + `k6/results/` | Performance script + run summaries |
+| `qa-report-ui/` | Daily structured QA report app (`python3 serve.py` → :5058) |
+
+All of the above except scripts under `k6/` and `qa-report-ui/*.py` are gitignored runtime data.
+

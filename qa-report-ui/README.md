@@ -80,7 +80,7 @@ python3 report_lib.py add-bug 2026-06-15 --id codex-e2e-2026-06-15-001 \
   --title "..." --section "Hero" --severity major --evidence "screenshot: ..."
 # attach a screenshot of the defect (--file copies it into shots/<date>/):
 python3 report_lib.py add-shot 2026-06-15 codex-e2e-2026-06-15-001 \
-  --file qa-history/shots/hero-broken.png --kind bug --caption "Hero @1440 — word-join"
+  --file test-results/daily/hero-broken.png --kind bug --caption "Hero @1440 — word-join"
 python3 report_lib.py blocker 2026-06-15 env-dns open --title "DNS ENOTFOUND" --detail "..."
 python3 report_lib.py status 2026-06-15 blocked          # hand to Claude
 

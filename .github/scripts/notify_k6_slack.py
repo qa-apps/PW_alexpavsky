@@ -3,7 +3,7 @@
 Post k6 performance summaries to Slack.
 
 Usage:
-  python .github/scripts/notify_k6_slack.py --channel CHANNEL_ID --results-dir performance-results
+  python .github/scripts/notify_k6_slack.py --channel CHANNEL_ID --results-dir k6/results
 """
 import argparse
 import glob
@@ -250,7 +250,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Post k6 results to Slack")
     parser.add_argument("--channel", required=True, help="Slack channel ID or name")
     parser.add_argument("--pipeline", default="k6 Performance", help="Pipeline display name")
-    parser.add_argument("--results-dir", default="performance-results", help="Dir with k6 summary JSON")
+    parser.add_argument("--results-dir", default="k6/results", help="Dir with k6 summary JSON")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")

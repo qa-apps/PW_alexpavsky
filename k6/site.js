@@ -260,8 +260,8 @@ export function chatbot() {
 }
 
 export function handleSummary(data) {
-  const htmlFile = `performance-results/k6-${scenarioName}.html`;
-  const jsonFile = `performance-results/k6-${scenarioName}.json`;
+  const htmlFile = `k6/results/k6-${scenarioName}.html`;
+  const jsonFile = `k6/results/k6-${scenarioName}.json`;
   return {
     [htmlFile]: htmlReport(data),
     [jsonFile]: JSON.stringify(data, null, 4),

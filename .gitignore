@@ -1,53 +1,38 @@
 .env
 node_modules/
 .DS_Store
+
+# Playwright — all generated under test-results/ + HTML report
 test-results/
 playwright-report/
-.playwright-report-temp/
 .playwright-mcp/
-chat.db
-judge-verdicts/
-recordings/
 *.webm
 *.zip
 .last-run.json
 .model-registry-cache.json
 
-# Ragas evaluation artifacts (local runs)
+# k6 run summaries (script lives in k6/; outputs in k6/results/)
+k6/results/
+
+# Ragas / Promptfoo / eval local outputs
 eval/results/
+judge-verdicts/
 
 # GitHub Pages eval site build output — only used by CI
 gh-pages-site/
 gh-pages-existing/
 
-# Local screenshot artifacts from MCP-driven manual verification
-screenshots/
-
-# k6 performance run artifacts (CI uploads these as build artifacts)
-performance-results/
-
-# QA history / defect logs (generated, not source)
-qa-history/
-
 # Local agent / graph analysis artifacts
 .codex/
 graphify-out/
 
-# Local QA report runtime artifacts
+# Daily QA report UI runtime data (app code is tracked)
 qa-report-ui/reports/*.json
 qa-report-ui/screenshots/
 qa-report-ui/server.log
 qa-report-ui/shots/
 
-# Local manual verification screenshots / scratch notes
-scripts/*.png
-scripts/files.md
-
-# Local visual-regression scratch baselines
-tests/reg-snapshots/
-
-# Local agent scratch (never commit)
-$CODEX_HOME/
+# Local IDE / agent scratch
 AGENTS.md
 .idea/
 *.log
@@ -56,4 +41,7 @@ temp_*.txt
 screenshot.png
 .claude/settings.local.json
 .claude/launch.json
+scripts/*.png
+scripts/files.md
+tests/reg-snapshots/
 /-
