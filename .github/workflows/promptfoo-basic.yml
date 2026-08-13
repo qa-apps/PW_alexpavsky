@@ -1,24 +1,13 @@
-name: promptfoo Basic Eval
+name: promptfoo Daily Eval
 
-# Runs the LEAN promptfoo suite (promptfooconfig.basic.yaml) — 5 core
-# general probes across 3 reliable providers (Groq / Gemini / Cerebras),
-# graded by a fixed Groq judge. Separate from the Playwright pipeline and
-# the k6 workflow, the same way k6-performance.yml runs on its own.
-#
-# The FULL 49-probe red-team battery (promptfooconfig.yaml) is NOT run here.
-# Trigger it on demand with `npm run eval:full` locally, or via the
-# workflow_dispatch input `run_full: true` below.
+# Runs the permanent reduced promptfoo suite (promptfooconfig.yaml): 15 probes
+# instead of the old 49-probe battery. Separate from the Playwright pipeline
+# and the k6 workflow, the same way k6-performance.yml runs on its own.
 #
 # Results post to a dedicated Slack channel (SLACK_PROMPTFOO_RESULTS_CHANNEL_ID).
 
 on:
   workflow_dispatch:
-    inputs:
-      run_full:
-        description: "Run the full 49-probe suite instead of basic"
-        required: false
-        type: boolean
-        default: false
   schedule:
     # Daily daytime run, offset from Playwright, Ragas, LLM-quality and k6
     # so we don't collide on runners or LLM provider rate limits.
@@ -66,7 +55,7 @@ jobs:
         continue-on-error: true
         # Step-level cap so a hung eval can't eat the whole job — the
         # always() Notify Slack step below still runs after a step timeout.
-        timeout-minutes: 15
+        timeout-minutes: 25
         env:
           # Non-interactive: promptfoo hangs with zero output in a non-TTY
           # runner if it tries telemetry / update-check / a progress TUI.
@@ -83,10 +72,7 @@ jobs:
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          CONFIG=promptfooconfig.basic.yaml
-          if [[ "${{ inputs.run_full }}" == "true" ]]; then
-            CONFIG=promptfooconfig.yaml
-          fi
+          CONFIG=promptfooconfig.yaml
           echo "Running promptfoo with $CONFIG"
           npx promptfoo eval -c "$CONFIG" \
             --max-concurrency 1 \
@@ -118,6 +104,7 @@ jobs:
           publish_branch: gh-pages
           publish_dir: ./gh-pages-site
           force_orphan: false
+          keep_files: true
           enable_jekyll: false
           commit_message: "promptfoo site: run #${{ github.run_number }}"
           user_name: "github-actions[bot]"

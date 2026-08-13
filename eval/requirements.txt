@@ -8,3 +8,4 @@ requests==2.32.3
 python-dotenv==1.0.1
 giskard[llm]==2.16.0
 pandas==2.2.3
+ipython==8.37.0

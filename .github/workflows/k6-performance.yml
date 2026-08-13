@@ -156,6 +156,7 @@ jobs:
           publish_branch: gh-pages
           publish_dir: ./gh-pages-site
           force_orphan: false
+          keep_files: true
           enable_jekyll: false
           commit_message: "k6 site: run #${{ github.run_number }}"
           user_name: "github-actions[bot]"

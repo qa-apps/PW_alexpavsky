@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-notify_promptfoo_slack.py — post a promptfoo Basic Evaluation summary to Slack.
+notify_promptfoo_slack.py — post a promptfoo Daily Evaluation summary to Slack.
 
 Mirrors notify_k6_slack.py: reads the JSON produced by
 `promptfoo eval -o <file>.json`, builds a Slack Block-Kit message with a
@@ -73,7 +73,7 @@ def build_payload(channel: str, run_url: str, results: list[dict], dashboard_url
 
     blocks = [
         {"type": "header", "text": {"type": "plain_text",
-                                    "text": f"{icon}  promptfoo Basic Eval  —  {status}",
+                                    "text": f"{icon}  promptfoo Daily Eval  —  {status}",
                                     "emoji": True}},
         {"type": "section", "text": {"type": "mrkdwn", "text": build_donut(passed, failed)}},
         {"type": "section", "fields": [
@@ -105,7 +105,7 @@ def build_payload(channel: str, run_url: str, results: list[dict], dashboard_url
         "attachments": [{
             "color": color,
             "blocks": blocks,
-            "fallback": f"promptfoo Basic Eval: {passed}/{total} passed",
+            "fallback": f"promptfoo Daily Eval: {passed}/{total} passed",
         }],
     }
 
