@@ -107,7 +107,7 @@ jobs:
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
           GISKARD_NUM_QUESTIONS: ${{ inputs.giskard_num_questions || '3' }}
         run: |
-          python giskard_rag.py || echo "Giskard RAG eval finished with non-zero exit"
+          python giskard_rag.py
 
       - name: Run Giskard vulnerability scan (7 categories)
         if: ${{ always() && (github.event_name == 'schedule' || inputs.run_giskard_scan == true || inputs.run_giskard_scan == 'true') }}
