@@ -3376,5 +3376,28 @@
       "giskard_rag.html",
       "giskard_rag.json"
     ]
+  },
+  {
+    "run_number": 106,
+    "run_id": "31682154665",
+    "timestamp": "2026-08-13T08:31:54+00:00",
+    "commit": "20474c2",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.982,
+      "status": "pass"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {},
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json"
+    ]
   }
 ]
