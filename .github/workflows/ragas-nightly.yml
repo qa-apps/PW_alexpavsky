@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       max_questions:
-        description: 'Limit questions (0 = all)'
+        description: 'Limit Ragas golden questions (0 = all)'
         required: false
-        default: '0'
+        default: '15'
       rag_api_url:
         description: 'RAG API URL'
         required: false
@@ -86,7 +86,7 @@ jobs:
           # RAG API endpoint (production)
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
           # Quality gates
-          MAX_QUESTIONS: ${{ inputs.max_questions || '0' }}
+          MAX_QUESTIONS: ${{ inputs.max_questions || '15' }}
           MIN_FAITHFULNESS: '0.65'
           MIN_RELEVANCY: '0.55'
           REQUEST_DELAY_SEC: '2.0'
@@ -156,6 +156,7 @@ jobs:
           publish_branch: gh-pages
           publish_dir: ./gh-pages-site
           force_orphan: false
+          keep_files: true
           enable_jekyll: false
           commit_message: "eval site: run #${{ github.run_number }}"
           user_name: "github-actions[bot]"

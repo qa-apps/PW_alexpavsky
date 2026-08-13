@@ -22,13 +22,16 @@
     "performance:spike:instant": "k6 run -e PERFORMANCE_SCENARIO=spike-instant performance/site.js",
     "eval:basic": "promptfoo eval -c promptfooconfig.basic.yaml --max-concurrency 3",
     "eval:basic:fresh": "promptfoo eval -c promptfooconfig.basic.yaml --no-cache --max-concurrency 3",
-    "eval:full": "promptfoo eval -c promptfooconfig.yaml --max-concurrency 1",
-    "eval:full:fresh": "promptfoo eval -c promptfooconfig.yaml --no-cache --max-concurrency 1",
-    "eval": "promptfoo eval -c promptfooconfig.basic.yaml --max-concurrency 3",
+    "eval:daily": "promptfoo eval -c promptfooconfig.yaml --max-concurrency 1",
+    "eval:daily:fresh": "promptfoo eval -c promptfooconfig.yaml --no-cache --max-concurrency 1",
+    "eval": "promptfoo eval -c promptfooconfig.yaml --max-concurrency 1",
     "eval:static": "promptfoo eval --no-cache --max-concurrency 1",
     "eval:view": "promptfoo view",
     "providers:refresh": "ts-node scripts/refresh-promptfoo-providers.ts",
-    "providers:ping": "ts-node scripts/ping-providers.ts"
+    "providers:ping": "ts-node scripts/ping-providers.ts",
+    "test:voice": "vitest run tests/voice",
+    "test:observability": "vitest run tests/observability",
+    "test:agents": "vitest run"
   },
   "repository": {
     "type": "git",
@@ -43,15 +46,22 @@
   },
   "homepage": "https://github.com/qa-apps/PW_alexpavsky#readme",
   "devDependencies": {
+    "@ai-sdk/google": "^2.0.87",
+    "@ai-sdk/openai": "^2.0.118",
+    "@google/genai": "^2.17.0",
+    "@langwatch/scenario": "^1.1.1",
     "@playwright/mcp": "^0.0.68",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.5.0",
+    "ai": "^6.0.253",
     "docx": "^9.7.1",
     "dotenv": "^17.3.1",
     "eslint": "^10.1.0",
     "exceljs": "^4.4.0",
+    "langfuse": "^3.38.20",
     "pdf-lib": "^1.17.1",
     "promptfoo": "^0.121.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   }
 }

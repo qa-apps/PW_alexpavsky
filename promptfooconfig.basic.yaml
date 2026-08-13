@@ -7,10 +7,9 @@ description: 'AI Chatbot Assistant — Basic Evaluation (2 core smoke probes)'
 # (dedicated workflow: .github/workflows/promptfoo-basic.yml, separate from
 # the Playwright pipeline — same way k6 runs on its own).
 #
-# It holds only the most important general/functional smoke probes. The full
-# 49-probe security/jailbreak/red-team battery lives in promptfooconfig.yaml
-# and is run ON DEMAND (npm run eval:full), NOT on every run — to save tokens
-# and free-tier rate limit budget.
+# It holds only the most important general/functional smoke probes. The
+# permanent daily suite lives in promptfooconfig.yaml and is intentionally kept
+# at 15 probes to save tokens and free-tier rate limit budget.
 #
 # Provider: Cerebras only for the daily smoke path. Groq is reserved for the
 # dedicated LLM Judge workflow, and the Gemini secret is currently blocked by

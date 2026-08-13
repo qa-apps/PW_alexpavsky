@@ -100,7 +100,7 @@ th {{ background:#f6f8fa; }} .pass {{ color:#1a7f37; font-weight:700; }} .fail {
 pre {{ white-space:pre-wrap; max-width:760px; }}
 </style></head><body>
 <p><a href="../../index.html">← all Promptfoo runs</a></p>
-<h1>Promptfoo Basic Eval #{escape(str(RUN_NUMBER))}</h1>
+<h1>Promptfoo Daily Eval #{escape(str(RUN_NUMBER))}</h1>
 <p class="meta">{escape(TIMESTAMP)} · commit {escape(COMMIT_SHA or 'unknown')} · {f'<a href="{run_link}">GitHub run</a>' if run_link else 'local run'}</p>
 <div class="cards">
   <div class="card"><div class="label">Passed</div><div class="value pass">{passed}</div></div>
@@ -138,7 +138,7 @@ th,td {{ padding:8px 10px; border-bottom:1px solid #d8dee4; text-align:left; }} 
 .pass {{ color:#1a7f37; font-weight:700; }} .fail {{ color:#cf222e; font-weight:700; }}
 </style></head><body>
 <h1>Promptfoo Eval Dashboard</h1>
-<p>Latest basic prompt regression runs for alexpavsky.com.</p>
+<p>Latest daily prompt regression runs for alexpavsky.com.</p>
 <table><thead><tr><th>Run</th><th>Timestamp UTC</th><th>Pass rate</th><th>Commit</th></tr></thead>
 <tbody>{''.join(rows) or '<tr><td colspan="4">No runs yet.</td></tr>'}</tbody></table>
 </body></html>"""
