@@ -1,0 +1,11 @@
+[
+  {
+    "run_number": "82",
+    "timestamp": "2026-08-13T06:57:45+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 541,
+    "commit": "992a4c0",
+    "run_id": "31675737303"
+  }
+]
