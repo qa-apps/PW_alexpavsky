@@ -114,7 +114,13 @@ pre {{ white-space:pre-wrap; max-width:760px; }}
 
 def index_html(history: list[dict]) -> str:
     rows = []
-    for h in sorted(history, key=lambda x: x.get("run_number", 0), reverse=True)[:50]:
+    def key(record):
+        try:
+            return int(record.get("run_number", 0))
+        except Exception:
+            return 0
+
+    for h in sorted(history, key=key, reverse=True)[:50]:
         failed = h.get("failed", 0)
         cls = "pass" if failed == 0 and h.get("total", 0) else "fail"
         rows.append(
