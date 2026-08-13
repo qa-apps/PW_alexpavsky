@@ -82,6 +82,7 @@ jobs:
           MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           HF_TOKEN:           ${{ secrets.HF_TOKEN }}
+          HF_HUB_DISABLE_IMPLICIT_TOKEN: '1'
           # RAG API endpoint (production)
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
           # Quality gates
@@ -102,6 +103,7 @@ jobs:
           MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           HF_TOKEN:           ${{ secrets.HF_TOKEN }}
+          HF_HUB_DISABLE_IMPLICIT_TOKEN: '1'
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
           GISKARD_NUM_QUESTIONS: ${{ inputs.giskard_num_questions || '3' }}
         run: |
@@ -117,6 +119,7 @@ jobs:
           MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           HF_TOKEN:           ${{ secrets.HF_TOKEN }}
+          HF_HUB_DISABLE_IMPLICIT_TOKEN: '1'
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
         run: |
           python giskard_scan.py || echo "Giskard scan finished with non-zero exit"
