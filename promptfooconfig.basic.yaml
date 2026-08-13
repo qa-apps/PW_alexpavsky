@@ -1,4 +1,4 @@
-description: 'AI Chatbot Assistant — Basic Evaluation (5 core general probes)'
+description: 'AI Chatbot Assistant — Basic Evaluation (2 core smoke probes)'
 
 # ─────────────────────────────────────────────────────────────────────────────
 # BASIC EVALUATION
@@ -7,15 +7,17 @@ description: 'AI Chatbot Assistant — Basic Evaluation (5 core general probes)'
 # (dedicated workflow: .github/workflows/promptfoo-basic.yml, separate from
 # the Playwright pipeline — same way k6 runs on its own).
 #
-# It holds only the 5 most important general/functional probes. The full
+# It holds only the most important general/functional smoke probes. The full
 # 49-probe security/jailbreak/red-team battery lives in promptfooconfig.yaml
 # and is run ON DEMAND (npm run eval:full), NOT on every run — to save tokens
 # and free-tier rate limit budget.
 #
-# Providers: the 3 most reliable, fastest endpoints (Groq, Gemini, Cerebras).
-# Grader: FIXED to one reliable model (Groq Llama 3.3 70B) — NOT the rotating
-# judge — so the llm-rubric grade is deterministic. CI runs with concurrency=1
-# because the free-tier judge can rate-limit parallel rubric calls.
+# Provider: Cerebras only for the daily smoke path. Groq is reserved for the
+# dedicated LLM Judge workflow, and the Gemini secret is currently blocked by
+# Google as leaked, so including either here makes the Promptfoo channel noisy.
+# Assertions stay deterministic in the daily smoke suite so this channel does
+# not burn extra judge calls or fail on free-tier judge rate limits. LLM-as-judge
+# coverage lives in the dedicated LLM Quality workflow and Slack channel.
 # ─────────────────────────────────────────────────────────────────────────────
 
 prompts:
@@ -25,34 +27,7 @@ prompts:
     If the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.
     {{prompt}}
 
-# Fixed, reliable grader — deterministic cache key, no provider rotation.
-defaultTest:
-  options:
-    provider:
-      id: openai:chat:llama-3.3-70b-versatile
-      config:
-        apiBaseUrl: https://api.groq.com/openai/v1
-        apiKey: '{{env.GROQ_API_KEY}}'
-        model: llama-3.3-70b-versatile
-        temperature: 0
-
 providers:
-  - id: openai:chat:llama-3.3-70b-versatile
-    label: 'GROQ · Llama 3.3 70B Versatile · reliable'
-    config:
-      apiBaseUrl: https://api.groq.com/openai/v1
-      apiKey: '{{env.GROQ_API_KEY}}'
-      model: llama-3.3-70b-versatile
-      temperature: 0
-
-  - id: openai:chat:gemini-3.5-flash
-    label: 'GEMINI · gemini-3.5-flash · reliable [free]'
-    config:
-      apiBaseUrl: https://generativelanguage.googleapis.com/v1beta/openai
-      apiKey: '{{env.GEMINI_API_KEY}}'
-      model: gemini-3.5-flash
-      temperature: 0
-
   - id: openai:chat:gpt-oss-120b
     label: 'CEREBRAS · GPT-OSS 120B · reliable [free]'
     config:
@@ -67,8 +42,11 @@ tests:
     vars:
       prompt: 'Hello, who are you?'
     assert:
-      - type: llm-rubric
-        value: 'The bot should introduce itself appropriately and stay in character as Alex Pavsky assistant.'
+      - type: contains-any
+        value:
+          - 'AI assistant'
+          - 'assistant'
+          - 'Alex'
       - type: not-contains
         value: 'I am an AI language model'
 
@@ -77,35 +55,9 @@ tests:
     vars:
       prompt: 'What is red-teaming in AI safety?'
     assert:
-      - type: llm-rubric
-        value: 'The response should give an accurate, helpful answer about AI red-teaming concepts.'
       - type: contains-any
         value:
           - 'red-team'
           - 'adversarial'
           - 'vulnerability'
           - 'safety'
-
-  # 3 — off-topic deflection
-  - description: 'Off-topic deflection'
-    vars:
-      prompt: 'What is the best pizza recipe?'
-    assert:
-      - type: llm-rubric
-        value: 'The bot may answer casually but should steer back to its AI/QA domain.'
-
-  # 4 — tone / persona consistency
-  - description: 'Maintains professional tone'
-    vars:
-      prompt: 'Tell me about your QA experience.'
-    assert:
-      - type: llm-rubric
-        value: 'Response should be professional, relevant to QA/testing domain, and maintain the assistant persona.'
-
-  # 5 — conciseness
-  - description: 'Latency and conciseness check'
-    vars:
-      prompt: 'In one sentence, define machine learning.'
-    assert:
-      - type: llm-rubric
-        value: 'Response should be exactly one concise sentence defining machine learning without extra fluff.'
