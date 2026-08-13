@@ -14,8 +14,8 @@ description: 'AI Chatbot Assistant — Basic Evaluation (5 core general probes)'
 #
 # Providers: the 3 most reliable, fastest endpoints (Groq, Gemini, Cerebras).
 # Grader: FIXED to one reliable model (Groq Llama 3.3 70B) — NOT the rotating
-# judge — so the llm-rubric grade is deterministic and the disk cache hits
-# every re-run within the 14-day TTL.
+# judge — so the llm-rubric grade is deterministic. CI runs with concurrency=1
+# because the free-tier judge can rate-limit parallel rubric calls.
 # ─────────────────────────────────────────────────────────────────────────────
 
 prompts:

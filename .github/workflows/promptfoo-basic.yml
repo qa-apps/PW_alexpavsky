@@ -89,7 +89,7 @@ jobs:
           fi
           echo "Running promptfoo with $CONFIG"
           npx promptfoo eval -c "$CONFIG" \
-            --max-concurrency 3 \
+            --max-concurrency 1 \
             --no-progress-bar \
             -o promptfoo-results.json </dev/null
 
