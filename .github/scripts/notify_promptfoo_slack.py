@@ -54,7 +54,7 @@ def build_donut(passed: int, failed: int) -> str:
     return f"`{'🟩' * filled}{'🟥' * (10 - filled)}`  {passed}/{total} passed"
 
 
-def build_payload(channel: str, run_url: str, results: list[dict]) -> dict:
+def build_payload(channel: str, run_url: str, results: list[dict], dashboard_url: str = "") -> dict:
     passed = sum(1 for r in results if r["passed"])
     failed = len(results) - passed
     total = len(results)
@@ -83,13 +83,22 @@ def build_payload(channel: str, run_url: str, results: list[dict]) -> dict:
     ]
     if detail:
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(detail)}})
-    if run_url:
-        blocks.append({"type": "actions", "elements": [{
+    action_elements = []
+    if dashboard_url:
+        action_elements.append({
             "type": "button",
-            "text": {"type": "plain_text", "text": "🔗 View run", "emoji": True},
-            "url": run_url,
+            "text": {"type": "plain_text", "text": "Open Promptfoo UI", "emoji": True},
+            "url": dashboard_url,
             "style": "primary" if failed == 0 else "danger",
-        }]})
+        })
+    if run_url:
+        action_elements.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "View run", "emoji": True},
+            "url": run_url,
+        })
+    if action_elements:
+        blocks.append({"type": "actions", "elements": action_elements})
 
     return {
         "channel": channel,
@@ -115,6 +124,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--channel", required=True, help="Slack channel ID or name")
     parser.add_argument("--results", required=True, help="promptfoo JSON results file")
+    parser.add_argument("--dashboard-url", default="", help="Optional Promptfoo web UI URL")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
@@ -127,7 +137,7 @@ def main() -> int:
         return 0
 
     results = load_results(args.results)
-    payload = build_payload(args.channel, os.environ.get("GITHUB_RUN_URL", ""), results)
+    payload = build_payload(args.channel, os.environ.get("GITHUB_RUN_URL", ""), results, args.dashboard_url)
 
     # Best-effort auto-join, then post.
     try:

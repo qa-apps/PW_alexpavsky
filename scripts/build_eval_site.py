@@ -118,7 +118,7 @@ def per_run_html(run_dir: Path, metrics: dict) -> str:
   <div class="card"><div class="label">Giskard scan issues</div><div class="value">{gs.get("total_issues", "—")}</div></div>
 </div>
 
-<h2>Ragas report</h2>
+<h2 id="ragas">Ragas report</h2>
 <div id="ragas-md">Loading…</div>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
@@ -127,10 +127,10 @@ fetch('report.md').then(r => r.ok ? r.text() : 'Ragas report not produced for th
 }}).catch(e => {{ document.getElementById('ragas-md').textContent = 'Failed to load Ragas report: ' + e; }});
 </script>
 
-<h2>Giskard RAG evaluation</h2>
+<h2 id="giskard-rag">Giskard RAG evaluation</h2>
 <iframe src="giskard_rag.html" title="Giskard RAG eval"></iframe>
 
-<h2>Giskard vulnerability scan</h2>
+<h2 id="giskard-scan">Giskard vulnerability scan</h2>
 <iframe src="giskard_scan.html" title="Giskard scan"></iframe>
 </body></html>
 """
@@ -243,13 +243,18 @@ def main() -> None:
     SITE.mkdir(parents=True)
     (SITE / ".nojekyll").write_text("")
 
-    # 1. Bring forward any existing site (history + previous runs) so prior
-    # data isn't wiped. EXISTING is the gh-pages branch checked out by CI.
+    # 1. Bring forward the existing site so dashboards for other tools
+    # (/promptfoo, /k6, /llm-judge, etc.) are not wiped by this publish.
     history: list[dict] = []
     if EXISTING.exists():
-        prev_runs = EXISTING / "runs"
-        if prev_runs.is_dir():
-            shutil.copytree(prev_runs, SITE / "runs", dirs_exist_ok=True)
+        for item in EXISTING.iterdir():
+            if item.name == ".git":
+                continue
+            dest = SITE / item.name
+            if item.is_dir():
+                shutil.copytree(item, dest, dirs_exist_ok=True)
+            else:
+                shutil.copy2(item, dest)
         hist_path = EXISTING / "history.json"
         if hist_path.exists():
             try:

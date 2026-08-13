@@ -120,7 +120,7 @@ def fmt_pct(value: float) -> str:
     return f"{value * 100:.2f}%"
 
 
-def build_payload(channel: str, pipeline: str, run_url: str, results: list[dict]) -> dict:
+def build_payload(channel: str, pipeline: str, run_url: str, results: list[dict], dashboard_url: str = "") -> dict:
     passed = sum(1 for r in results if r["passed"])
     failed = sum(1 for r in results if not r["passed"])
     total = passed + failed
@@ -181,17 +181,24 @@ def build_payload(channel: str, pipeline: str, run_url: str, results: list[dict]
     if detail_lines:
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(detail_lines)}})
 
+    action_elements = []
+    if dashboard_url:
+        action_elements.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "Open k6 UI", "emoji": True},
+            "url": dashboard_url,
+            "style": "primary" if failed == 0 else "danger",
+        })
     if run_url:
+        action_elements.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "View run", "emoji": True},
+            "url": run_url,
+        })
+    if action_elements:
         blocks.append({
             "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "🔗 View run", "emoji": True},
-                    "url": run_url,
-                    "style": "primary" if failed == 0 else "danger",
-                }
-            ],
+            "elements": action_elements,
         })
 
     return {
@@ -251,6 +258,7 @@ def main() -> None:
     parser.add_argument("--channel", required=True, help="Slack channel ID or name")
     parser.add_argument("--pipeline", default="k6 Performance", help="Pipeline display name")
     parser.add_argument("--results-dir", default="performance-results", help="Dir with k6 summary JSON")
+    parser.add_argument("--dashboard-url", default="", help="Optional k6 web UI URL")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
@@ -266,7 +274,7 @@ def main() -> None:
             run_url = f"https://github.com/{repo}/actions/runs/{run_id}"
 
     results = load_results(args.results_dir)
-    payload = build_payload(args.channel, args.pipeline, run_url, results)
+    payload = build_payload(args.channel, args.pipeline, run_url, results, args.dashboard_url)
     post_message(token, payload)
 
 

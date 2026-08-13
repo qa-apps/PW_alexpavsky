@@ -25,6 +25,9 @@ concurrency:
   group: k6-performance-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   k6:
     runs-on: ubuntu-latest
@@ -33,6 +36,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Checkout existing gh-pages site (if any)
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: gh-pages-existing
+        continue-on-error: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v5
@@ -129,17 +139,44 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
+      - name: Build k6 Pages UI
+        if: always()
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ID: ${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          REPO_SLUG: ${{ github.repository }}
+        run: python scripts/build_k6_site.py
+
+      - name: Publish k6 Pages UI
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./gh-pages-site
+          force_orphan: false
+          enable_jekyll: false
+          commit_message: "k6 site: run #${{ github.run_number }}"
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
+
       - name: Notify Slack
         if: always()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
+          OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+          K6_DASHBOARD_URL="https://${OWNER_LC}.github.io/${REPO_NAME}/k6/runs/${{ github.run_number }}/"
           python .github/scripts/notify_k6_slack.py \
             --channel "${{ secrets.SLACK_K6_RESULTS_CHANNEL_ID }}" \
             --pipeline "k6 Performance" \
-            --results-dir performance-results
+            --results-dir performance-results \
+            --dashboard-url "$K6_DASHBOARD_URL"
 
       - name: Fail on required public profile regression
         if: always()

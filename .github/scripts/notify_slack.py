@@ -68,7 +68,8 @@ def build_donut(passed: int, failed: int, flaky: int, skipped: int, width: int =
 
 
 def build_payload(channel: str, pipeline: str, run_url: str,
-                  passed: int, failed: int, flaky: int, skipped: int) -> dict:
+                  passed: int, failed: int, flaky: int, skipped: int,
+                  dashboard_url: str = "", dashboard_label: str = "Open results UI") -> dict:
     total = passed + failed + flaky + skipped
 
     if total == 0:
@@ -120,17 +121,24 @@ def build_payload(channel: str, pipeline: str, run_url: str,
         },
     ]
 
+    action_elements = []
+    if dashboard_url:
+        action_elements.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": dashboard_label, "emoji": True},
+            "url": dashboard_url,
+            "style": "primary" if failed == 0 else "danger",
+        })
     if run_url:
+        action_elements.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "View run", "emoji": True},
+            "url": run_url,
+        })
+    if action_elements:
         blocks.append({
             "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "🔗 View run", "emoji": True},
-                    "url": run_url,
-                    "style": "primary" if failed == 0 else "danger"
-                }
-            ]
+            "elements": action_elements,
         })
 
     return {
@@ -238,6 +246,8 @@ def main() -> None:
     parser.add_argument("--flaky",   type=int, default=None, help="Override flaky count")
     parser.add_argument("--skipped", type=int, default=None, help="Override skipped count")
     parser.add_argument("--results-pattern", default="*.json", help="Glob under --results-dir to select result JSON files")
+    parser.add_argument("--dashboard-url", default="", help="Optional web dashboard URL")
+    parser.add_argument("--dashboard-label", default="Open results UI", help="Slack button label for dashboard URL")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
@@ -266,6 +276,8 @@ def main() -> None:
         channel=args.channel,
         pipeline=args.pipeline,
         run_url=run_url,
+        dashboard_url=args.dashboard_url,
+        dashboard_label=args.dashboard_label,
         **stats
     )
     post_message(token, payload)

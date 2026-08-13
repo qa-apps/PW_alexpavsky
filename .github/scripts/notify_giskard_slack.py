@@ -82,16 +82,26 @@ def build_text(rag: dict, scan: dict) -> tuple[str, str]:
     return "Giskard eval results", "\n".join(lines)
 
 
-def post(channel: str, token: str, fallback: str, text: str, run_url: str) -> None:
+def post(channel: str, token: str, fallback: str, text: str, run_url: str, dashboard_url: str) -> None:
     blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": text}}]
+    action_elements = []
+    if dashboard_url:
+        action_elements.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "Open Giskard UI"},
+            "url": dashboard_url,
+            "style": "primary",
+        })
     if run_url:
+        action_elements.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "Open workflow run"},
+            "url": run_url,
+        })
+    if action_elements:
         blocks.append({
             "type": "actions",
-            "elements": [{
-                "type": "button",
-                "text": {"type": "plain_text", "text": "Open workflow run"},
-                "url": run_url,
-            }],
+            "elements": action_elements,
         })
     payload = json.dumps(
         {"channel": channel, "text": fallback, "blocks": blocks}
@@ -118,6 +128,7 @@ def main() -> int:
     parser.add_argument("--channel", default="")
     parser.add_argument("--results-dir", default="eval/results")
     parser.add_argument("--run-url", default=os.environ.get("GITHUB_RUN_URL", ""))
+    parser.add_argument("--dashboard-url", default="")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "").strip()
@@ -130,7 +141,7 @@ def main() -> int:
     rag = _load(results / "giskard_rag.json")
     scan = _load(results / "giskard_scan.json")
     fallback, text = build_text(rag, scan)
-    post(channel, token, fallback, text, args.run_url)
+    post(channel, token, fallback, text, args.run_url, args.dashboard_url)
     print("Posted Giskard summary to Slack.")
     return 0
 

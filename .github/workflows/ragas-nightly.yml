@@ -186,7 +186,10 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          OWNER_LC: ${{ github.repository_owner }}
         run: |
+          OWNER_LC=$(echo "$OWNER_LC" | tr '[:upper:]' '[:lower:]')
           # Read pass/fail counts written by eval/ragas_eval.py (summary.json).
           # The old grep-the-markdown approach never matched anything because
           # report.md has no "passed: N" / "failed: N" lines — that's why
@@ -202,20 +205,26 @@ jobs:
             --passed "${PASSED:-0}" \
             --failed "${FAILED:-0}" \
             --flaky 0 \
-            --skipped 0
+            --skipped 0 \
+            --dashboard-url "https://${OWNER_LC}.github.io/${REPO_NAME}/runs/${{ github.run_number }}/#ragas" \
+            --dashboard-label "Open Ragas UI"
 
       - name: Notify Giskard Slack
         if: always()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          OWNER_LC: ${{ github.repository_owner }}
         run: |
+          OWNER_LC=$(echo "$OWNER_LC" | tr '[:upper:]' '[:lower:]')
           # Giskard RAG correctness + 7-category vuln scan -> its own channel,
           # separate from the Ragas faithfulness/relevancy summary above.
           python .github/scripts/notify_giskard_slack.py \
             --channel "${{ secrets.SLACK_GISKARD_CHANNEL_ID }}" \
             --results-dir eval/results \
-            --run-url "$GITHUB_RUN_URL"
+            --run-url "$GITHUB_RUN_URL" \
+            --dashboard-url "https://${OWNER_LC}.github.io/${REPO_NAME}/runs/${{ github.run_number }}/#giskard-rag"
 
       - name: Send failure email (severity-tagged)
         if: failure()

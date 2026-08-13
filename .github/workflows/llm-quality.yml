@@ -23,6 +23,9 @@ concurrency:
   group: llm-quality-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   llm-quality:
     runs-on: ubuntu-latest
@@ -31,6 +34,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Checkout existing gh-pages site (if any)
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: gh-pages-existing
+        continue-on-error: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v5
@@ -96,17 +106,45 @@ jobs:
           echo "- \`llm-quality-report-${{ github.run_number }}\` — full Playwright HTML report" >> "$GITHUB_STEP_SUMMARY"
           echo "- \`judge-verdicts-${{ github.run_number }}\` — per-prompt judge scores + reasoning" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Build LLM Judge Pages UI
+        if: always()
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ID: ${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          REPO_SLUG: ${{ github.repository }}
+        run: python scripts/build_llm_judge_site.py
+
+      - name: Publish LLM Judge Pages UI
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./gh-pages-site
+          force_orphan: false
+          enable_jekyll: false
+          commit_message: "llm judge site: run #${{ github.run_number }}"
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
+
       - name: Notify Slack
         if: always()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
+          OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+          LLM_JUDGE_DASHBOARD_URL="https://${OWNER_LC}.github.io/${REPO_NAME}/llm-judge/runs/${{ github.run_number }}/"
           python .github/scripts/notify_slack.py \
             --channel "${{ secrets.SLACK_LLM_QUALITY_CHANNEL_ID }}" \
             --pipeline "LLM Quality" \
-            --results-dir test-results
+            --results-dir test-results \
+            --dashboard-url "$LLM_JUDGE_DASHBOARD_URL" \
+            --dashboard-label "Open LLM Judge UI"
 
 
       - name: Post bug report to Slack
