@@ -48,3 +48,12 @@ tests/reg-snapshots/
 
 # Local agent scratch (never commit)
 $CODEX_HOME/
+AGENTS.md
+.idea/
+*.log
+temp_*.md
+temp_*.txt
+screenshot.png
+.claude/settings.local.json
+.claude/launch.json
+/-
