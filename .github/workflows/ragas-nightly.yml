@@ -12,6 +12,15 @@ on:
         description: 'RAG API URL'
         required: false
         default: 'https://alexpavsky.com'
+      giskard_num_questions:
+        description: 'Giskard RAG questions for manual light runs'
+        required: false
+        default: '1'
+      run_giskard_scan:
+        description: 'Run the full Giskard vulnerability scan'
+        required: false
+        type: boolean
+        default: false
 
   # Daily daytime run at 13:45 America/New_York during EDT.
   # GitHub cron is UTC; during EST this runs one hour earlier locally.
@@ -94,12 +103,12 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           HF_TOKEN:           ${{ secrets.HF_TOKEN }}
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
-          GISKARD_NUM_QUESTIONS: '3'
+          GISKARD_NUM_QUESTIONS: ${{ inputs.giskard_num_questions || '3' }}
         run: |
           python giskard_rag.py || echo "Giskard RAG eval finished with non-zero exit"
 
       - name: Run Giskard vulnerability scan (7 categories)
-        if: always()
+        if: ${{ always() && (github.event_name == 'schedule' || inputs.run_giskard_scan == true || inputs.run_giskard_scan == 'true') }}
         working-directory: eval
         env:
           GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
