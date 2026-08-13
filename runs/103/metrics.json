@@ -1,0 +1,16 @@
+{
+  "run_number": 103,
+  "run_id": "31680489385",
+  "timestamp": "2026-08-13T08:08:33+00:00",
+  "commit": "d673b03",
+  "ragas": {
+    "avg_faithfulness": 1.0,
+    "avg_relevancy": 0.912,
+    "status": "pass"
+  },
+  "giskard_rag": {},
+  "giskard_scan": {},
+  "files": [
+    "report.md"
+  ]
+}
