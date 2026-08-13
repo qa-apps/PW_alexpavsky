@@ -40,7 +40,7 @@ import requests
 # Configuration
 # ---------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent.parent
-QUESTIONS_PATH = ROOT / "tests" / "rag" / "golden_questions.json"
+QUESTIONS_PATH = ROOT / "tests" / "admin" / "rag" / "golden_questions.json"
 RESULTS_DIR = ROOT / "eval" / "results"
 
 RAG_API_URL = os.environ.get("RAG_API_URL", "http://localhost:8001").rstrip("/")
@@ -101,7 +101,7 @@ def query_rag_api(question: str, max_retries: int = 3) -> dict[str, Any]:
         try:
             r = requests.post(
                 f"{RAG_API_URL}/api/rag/query",
-                json={"query": question},
+                json={"query": question, "skip_metrics": True},  # client-side Ragas scores; skip server Ragas LLM calls
                 timeout=60,
             )
             r.raise_for_status()
@@ -425,7 +425,7 @@ def main() -> int:
     log("")
 
     # Per-question pass/fail summary, consumed by .github/scripts/notify_slack.py
-    # (via ragas-nightly.yml) to populate the #qa-rag-eval Slack post.
+    # (via ragas-nightly.yml) to populate the #ragas-giskard Slack post.
     #
     # Pass/fail policy is category-aware:
     #   - `refusal` category: the question is intentionally provocative or

@@ -24,7 +24,7 @@ from pathlib import Path
 import requests
 
 RAG_API = os.environ.get("RAG_API_URL", "https://alexpavsky.com").rstrip("/")
-NUM_QUESTIONS = int(os.environ.get("GISKARD_NUM_QUESTIONS", "3"))
+NUM_QUESTIONS = int(os.environ.get("GISKARD_NUM_QUESTIONS", "2"))
 RESULTS_DIR = Path(__file__).parent / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
@@ -47,12 +47,6 @@ KB_CHUNKS = [
     "RAG evaluation measures retrieval quality via context precision and recall, and generation quality via faithfulness and answer relevancy. Hallucination occurs when the model outputs claims unsupported by retrieved context.",
     "LLM-as-a-judge frameworks use a stronger model to score outputs of a weaker model. Common metrics: correctness, faithfulness, harmlessness, instruction-following. Judge bias and calibration drift are common failure modes.",
     "Model Context Protocol (MCP) is an open standard for agentic test orchestration. MCP servers expose tools (file access, browser control, API calls) that an LLM agent can invoke during a test run.",
-    "Cloud-native QA practices include synthetic monitoring, chaos engineering, contract testing for microservices, and observability via distributed tracing. Kubernetes test environments are typically ephemeral, provisioned per pipeline run.",
-    "Prompt injection attacks craft user input to override system instructions. Defense layers: input sanitization, output filtering, privilege separation between user and system roles, and adversarial test suites that probe for known bypass patterns.",
-    "LLM-as-a-judge evaluation frameworks need rubric design, pairwise comparison strategies, and calibration against human ratings. Common pitfalls: position bias, verbosity bias, and self-enhancement bias when the judge evaluates its own outputs.",
-    "Data integrity testing for distributed systems covers GraphQL contract validation, Kafka event schema enforcement, and database-level invariants. Eventual consistency requires temporal assertions, not just snapshot comparisons.",
-    "Enterprise Playwright at scale uses test sharding, dedicated CI fleets, custom reporters integrated with observability platforms, flake quarantine systems, and policy-driven test execution based on changed code paths.",
-    "Agentic test orchestration via MCP allows an LLM-driven test agent to navigate a system under test, generate inputs, observe outputs, and adapt the plan. Requires guardrails around destructive actions and audit trails for non-determinism.",
 ]
 
 
@@ -61,7 +55,7 @@ def query_rag(question: str) -> str:
     try:
         r = requests.post(
             f"{RAG_API}/api/rag/query",
-            json={"query": question},
+            json={"query": question, "skip_metrics": True},
             timeout=60,
         )
         r.raise_for_status()

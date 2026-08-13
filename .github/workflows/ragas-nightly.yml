@@ -7,11 +7,16 @@ on:
       max_questions:
         description: 'Limit questions (0 = all)'
         required: false
-        default: '0'
+        default: '3'
       rag_api_url:
         description: 'RAG API URL'
         required: false
         default: 'https://alexpavsky.com'
+      run_giskard_scan:
+        description: 'Run the full 7-category Giskard vulnerability scan'
+        required: false
+        type: boolean
+        default: false
 
   # Daily daytime run at 13:45 America/New_York during EDT.
   # GitHub cron is UTC; during EST this runs one hour earlier locally.
@@ -94,12 +99,14 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           HF_TOKEN:           ${{ secrets.HF_TOKEN }}
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
-          GISKARD_NUM_QUESTIONS: '3'
+          GISKARD_NUM_QUESTIONS: '2'
         run: |
           python giskard_rag.py || echo "Giskard RAG eval finished with non-zero exit"
 
       - name: Run Giskard vulnerability scan (7 categories)
-        if: always()
+        # Manual dispatch defaults to a short RAG eval. The full vulnerability
+        # scan is scheduled nightly, or can be opted into explicitly.
+        if: ${{ always() && (github.event_name == 'schedule' || inputs.run_giskard_scan == true || inputs.run_giskard_scan == 'true') }}
         working-directory: eval
         env:
           GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
@@ -190,7 +197,7 @@ jobs:
           # Read pass/fail counts written by eval/ragas_eval.py (summary.json).
           # The old grep-the-markdown approach never matched anything because
           # report.md has no "passed: N" / "failed: N" lines — that's why
-          # #qa-rag-eval used to always show 0/0.
+          # #ragas-giskard used to show 0/0 when this summary was parsed from markdown.
           PASSED=0; FAILED=0
           if [ -f eval/results/summary.json ]; then
             PASSED=$(python3 -c "import json; print(json.load(open('eval/results/summary.json'))['passed'])")

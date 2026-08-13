@@ -497,7 +497,7 @@ export async function resolveBestProvider(
   if (process.env.GEMINI_API_KEY) {
     return {
       baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3.5-flash',
       headers: {
         Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
         'Content-Type': 'application/json',
@@ -561,7 +561,7 @@ export async function resolveAllProviders(
     if (m) candidates.push({ baseUrl: `https://api-inference.huggingface.co/models/${m.id}/v1/chat/completions`, model: m.id, headers: { Authorization: `Bearer ${process.env.HF_TOKEN}`, 'Content-Type': 'application/json' }, providerName: 'huggingface' });
   }
   if (process.env.GEMINI_API_KEY) {
-    candidates.push({ baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', model: 'gemini-2.0-flash', headers: { Authorization: `Bearer ${process.env.GEMINI_API_KEY}`, 'Content-Type': 'application/json' }, providerName: 'gemini' });
+    candidates.push({ baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', model: 'gemini-3.5-flash', headers: { Authorization: `Bearer ${process.env.GEMINI_API_KEY}`, 'Content-Type': 'application/json' }, providerName: 'gemini' });
   }
 
   return candidates;

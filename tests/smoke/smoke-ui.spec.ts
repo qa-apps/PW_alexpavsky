@@ -9,7 +9,9 @@ test.use({
 const heroToolCard = (page: import('@playwright/test').Page, name: RegExp) =>
   page.getByRole('button', { name }).or(page.locator('.tool-strip-card, .explore-card, .lab-card').filter({ hasText: name })).first();
 
-test.describe('Smoke — alexpavsky.com UI', () => {
+test.describe('Smoke — alexpavsky.com UI', {
+  tag: ['@smoke', '@pure'],
+}, () => {
   test('home page loads successfully', async ({ homePage }) => {
     await homePage.goto();
     await expect(homePage.page).toHaveTitle(/Alex Pavsky|QA|AI/);

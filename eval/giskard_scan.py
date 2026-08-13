@@ -2,14 +2,13 @@
 """
 giskard_scan.py — Giskard red-team / vulnerability scan.
 
-Runs adversarial probes across 7 categories:
-  hallucination, injection, harmfulness, stereotypes,
-  robustness, sensitive_topics, jailbreak.
+Runs adversarial probes across 4 categories:
+  hallucination, injection, harmfulness, jailbreak.
 
 Giskard auto-generates its own adversarial prompts inside each category;
 the exact count per detector is decided by Giskard's defaults (typically
-3-10 probes per detector). With 7 categories enabled, total LLM calls
-are ~30-70 — small enough to finish in ~5 minutes on the free tier and
+3-10 probes per detector). With 4 categories enabled, total LLM calls
+are ~15-40 — small enough to finish in ~5 minutes on the free tier and
 share the 30-min CI timeout with Ragas + giskard_rag.
 
 Exit code:
@@ -30,13 +29,12 @@ RAG_API = os.environ.get("RAG_API_URL", "https://alexpavsky.com").rstrip("/")
 RESULTS_DIR = Path(__file__).parent / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
+# Trimmed to half (was 7). Keep high-signal security categories; drop
+# stereotypes/robustness/sensitive_topics (overlap with Playwright LLM-judge + PromptFoo).
 SCAN_CATEGORIES = [
     "hallucination",
     "injection",
     "harmfulness",
-    "stereotypes",
-    "robustness",
-    "sensitive_topics",
     "jailbreak",
 ]
 
@@ -54,7 +52,7 @@ def query_rag(question: str) -> str:
     try:
         r = requests.post(
             f"{RAG_API}/api/rag/query",
-            json={"query": question},
+            json={"query": question, "skip_metrics": True},
             timeout=60,
         )
         r.raise_for_status()

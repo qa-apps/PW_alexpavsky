@@ -67,7 +67,7 @@ jobs:
       - name: Run design regression (structural + visual)
         env:
           CI: true
-        run: npx playwright test design-regression --project=chromium
+        run: npx playwright test --grep "@design" --project=chromium
 
       - name: Upload report + visual diffs
         if: always()

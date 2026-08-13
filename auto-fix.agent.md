@@ -91,8 +91,8 @@ an assertion about footer height / layout / spacing / colour / sizing /
 typography / modal appearance), STOP. Design is the owner's call, not the
 agent's. Do not "fix the test" by updating a baseline or loosening an assertion —
 that would silently accept a design change. The daily design-check workflow has
-already posted the diff to Slack `#bug-reports`; log: "🎨 DESIGN regression —
-owner decision, not auto-fixing (see #bug-reports)." Mark the run processed and
+already posted the diff to Slack `#codex-cloud-daily-run`; log: "🎨 DESIGN regression —
+owner decision, not auto-fixing (see #codex-cloud-daily-run)." Mark the run processed and
 continue to the next run.
 
 If the failure is clearly an **application bug** (not a test problem), do not attempt a fix. Log: "Failure appears to be an application bug — skipping. Manual investigation needed." Mark the run as processed and continue.

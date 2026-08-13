@@ -45,12 +45,12 @@ providers:
       model: llama-3.3-70b-versatile
       temperature: 0
 
-  - id: openai:chat:gemini-2.0-flash
-    label: 'GEMINI · gemini-2.0-flash · reliable [free]'
+  - id: openai:chat:gemini-3.5-flash
+    label: 'GEMINI · gemini-3.5-flash · reliable [free]'
     config:
       apiBaseUrl: https://generativelanguage.googleapis.com/v1beta/openai
       apiKey: '{{env.GEMINI_API_KEY}}'
-      model: gemini-2.0-flash
+      model: gemini-3.5-flash
       temperature: 0
 
   - id: openai:chat:gpt-oss-120b
