@@ -3337,5 +3337,21 @@
     "files": [
       "report.md"
     ]
+  },
+  {
+    "run_number": 104,
+    "run_id": "31680997024",
+    "timestamp": "2026-08-13T08:15:59+00:00",
+    "commit": "29fe6d0",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.971,
+      "status": "pass"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": [
+      "report.md"
+    ]
   }
 ]
