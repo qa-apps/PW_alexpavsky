@@ -1,0 +1,455 @@
+{
+  "evalId": "eval-MNw-2026-08-13T07:31:45",
+  "results": {
+    "version": 3,
+    "timestamp": "2026-08-13T07:31:45.215Z",
+    "prompts": [
+      {
+        "id": "a31645b173df318dacc283dcde9407f1f96684acbe5cc4bee420c428cdb439b7",
+        "raw": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+        "label": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+        "provider": "GROQ · Llama 3.3 70B Versatile · reliable",
+        "metrics": {
+          "score": 0,
+          "testPassCount": 0,
+          "testFailCount": 0,
+          "testErrorCount": 1,
+          "assertPassCount": 0,
+          "assertFailCount": 0,
+          "totalLatencyMs": 0,
+          "tokenUsage": {
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "total": 0,
+            "numRequests": 0,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0
+        }
+      },
+      {
+        "id": "a31645b173df318dacc283dcde9407f1f96684acbe5cc4bee420c428cdb439b7",
+        "raw": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+        "label": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+        "provider": "GEMINI · gemini-3.5-flash · reliable [free]",
+        "metrics": {
+          "score": 0,
+          "testPassCount": 0,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 0,
+          "assertFailCount": 0,
+          "totalLatencyMs": 0,
+          "tokenUsage": {
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "total": 0,
+            "numRequests": 0,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0
+        }
+      },
+      {
+        "id": "a31645b173df318dacc283dcde9407f1f96684acbe5cc4bee420c428cdb439b7",
+        "raw": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+        "label": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+        "provider": "CEREBRAS · GPT-OSS 120B · reliable [free]",
+        "metrics": {
+          "score": 0,
+          "testPassCount": 0,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 0,
+          "assertFailCount": 0,
+          "totalLatencyMs": 0,
+          "tokenUsage": {
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "total": 0,
+            "numRequests": 0,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0,
+        "error": "RateLimitExhaustedError: Rate limit exceeded for openai:chat:llama-3.3-70b-versatile[f8da4e8405a7] after 4 attempts\n    at ProviderRateLimitState.executeWithRetry (file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/providers-Ch6Mr0gn.js:5009:12)\n    at async RateLimitRegistry.execute (file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/providers-Ch6Mr0gn.js:5292:19)\n    at async runEval (file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/evaluator-BcvOGaam.js:4397:38)\n    at async processEvalStep (file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/evaluator-BcvOGaam.js:5001:17)\n    at async file:///home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/promptfoo/dist/src/evaluator-BcvOGaam.js:5214:5",
+        "gradingResult": null,
+        "id": "0e6d1c92-1ec1-4d4c-bfd1-f04ae620ee5f",
+        "latencyMs": 0,
+        "namedScores": {},
+        "prompt": {
+          "raw": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\nHello, who are you?\n",
+          "label": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+          "config": {}
+        },
+        "promptId": "a31645b173df318dacc283dcde9407f1f96684acbe5cc4bee420c428cdb439b7",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:chat:llama-3.3-70b-versatile",
+          "label": "GROQ · Llama 3.3 70B Versatile · reliable"
+        },
+        "score": 0,
+        "success": false,
+        "testCase": {
+          "description": "Standard greeting",
+          "vars": {
+            "prompt": "Hello, who are you?"
+          },
+          "assert": [
+            {
+              "type": "contains-any",
+              "value": [
+                "AI assistant",
+                "assistant",
+                "Alex"
+              ]
+            },
+            {
+              "type": "not-contains",
+              "value": "I am an AI language model"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "prompt": "Hello, who are you?"
+        },
+        "metadata": {
+          "errorContext": {
+            "providerId": "openai:chat:llama-3.3-70b-versatile",
+            "providerLabel": "GROQ · Llama 3.3 70B Versatile · reliable"
+          }
+        },
+        "failureReason": 2
+      },
+      {
+        "cost": 0,
+        "error": "API error: 403 Forbidden\n[{\"error\":{\"code\":403,\"message\":\"Your API key was reported as leaked. Please use another API key.\",\"status\":\"PERMISSION_DENIED\"}}]",
+        "gradingResult": null,
+        "id": "8a4824b4-b712-4843-be50-e5688e582b3d",
+        "latencyMs": 204,
+        "namedScores": {},
+        "prompt": {
+          "raw": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\nHello, who are you?\n",
+          "label": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+          "config": {}
+        },
+        "promptId": "a31645b173df318dacc283dcde9407f1f96684acbe5cc4bee420c428cdb439b7",
+        "promptIdx": 1,
+        "provider": {
+          "id": "openai:chat:gemini-3.5-flash",
+          "label": "GEMINI · gemini-3.5-flash · reliable [free]"
+        },
+        "response": {
+          "error": "API error: 403 Forbidden\n[{\"error\":{\"code\":403,\"message\":\"Your API key was reported as leaked. Please use another API key.\",\"status\":\"PERMISSION_DENIED\"}}]",
+          "metadata": {
+            "http": {
+              "status": 403,
+              "statusText": "Forbidden",
+              "headers": {
+                "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+                "content-encoding": "gzip",
+                "content-type": "application/json; charset=UTF-8",
+                "date": "Thu, 13 Aug 2026 07:35:06 GMT",
+                "server": "scaffolding on HTTPServer2",
+                "server-timing": "gfet4t7; dur=157",
+                "transfer-encoding": "chunked",
+                "vary": "Origin, X-Origin, Referer",
+                "x-content-type-options": "nosniff",
+                "x-frame-options": "SAMEORIGIN",
+                "x-xss-protection": "0"
+              }
+            }
+          }
+        },
+        "score": 0,
+        "success": false,
+        "testCase": {
+          "description": "Standard greeting",
+          "vars": {
+            "prompt": "Hello, who are you?"
+          },
+          "assert": [
+            {
+              "type": "contains-any",
+              "value": [
+                "AI assistant",
+                "assistant",
+                "Alex"
+              ]
+            },
+            {
+              "type": "not-contains",
+              "value": "I am an AI language model"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "prompt": "Hello, who are you?"
+        },
+        "metadata": {
+          "http": {
+            "status": 403,
+            "statusText": "Forbidden",
+            "headers": {
+              "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+              "content-encoding": "gzip",
+              "content-type": "application/json; charset=UTF-8",
+              "date": "Thu, 13 Aug 2026 07:35:06 GMT",
+              "server": "scaffolding on HTTPServer2",
+              "server-timing": "gfet4t7; dur=157",
+              "transfer-encoding": "chunked",
+              "vary": "Origin, X-Origin, Referer",
+              "x-content-type-options": "nosniff",
+              "x-frame-options": "SAMEORIGIN",
+              "x-xss-protection": "0"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 2
+      }
+    ],
+    "stats": {
+      "successes": 0,
+      "failures": 0,
+      "errors": 1,
+      "tokenUsage": {
+        "prompt": 0,
+        "completion": 0,
+        "cached": 0,
+        "total": 0,
+        "numRequests": 0,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0
+          }
+        }
+      }
+    }
+  },
+  "config": {
+    "tags": {},
+    "description": "AI Chatbot Assistant — Basic Evaluation (5 core general probes)",
+    "prompts": [
+      "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n"
+    ],
+    "providers": [
+      {
+        "id": "openai:chat:llama-3.3-70b-versatile",
+        "label": "GROQ · Llama 3.3 70B Versatile · reliable",
+        "config": {
+          "apiBaseUrl": "https://api.groq.com/openai/v1",
+          "apiKey": "[REDACTED]",
+          "model": "llama-3.3-70b-versatile",
+          "temperature": 0
+        }
+      },
+      {
+        "id": "openai:chat:gemini-3.5-flash",
+        "label": "GEMINI · gemini-3.5-flash · reliable [free]",
+        "config": {
+          "apiBaseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+          "apiKey": "[REDACTED]",
+          "model": "gemini-3.5-flash",
+          "temperature": 0
+        }
+      },
+      {
+        "id": "openai:chat:gpt-oss-120b",
+        "label": "CEREBRAS · GPT-OSS 120B · reliable [free]",
+        "config": {
+          "apiBaseUrl": "https://api.cerebras.ai/v1",
+          "apiKey": "[REDACTED]",
+          "model": "gpt-oss-120b",
+          "temperature": 0
+        }
+      }
+    ],
+    "tests": [
+      {
+        "description": "Standard greeting",
+        "vars": {
+          "prompt": "Hello, who are you?"
+        },
+        "assert": [
+          {
+            "type": "contains-any",
+            "value": [
+              "AI assistant",
+              "assistant",
+              "Alex"
+            ]
+          },
+          {
+            "type": "not-contains",
+            "value": "I am an AI language model"
+          }
+        ]
+      },
+      {
+        "description": "Relevant domain question",
+        "vars": {
+          "prompt": "What is red-teaming in AI safety?"
+        },
+        "assert": [
+          {
+            "type": "contains-any",
+            "value": [
+              "red-team",
+              "adversarial",
+              "vulnerability",
+              "safety"
+            ]
+          }
+        ]
+      },
+      {
+        "description": "Off-topic deflection",
+        "vars": {
+          "prompt": "What is the best pizza recipe?"
+        },
+        "assert": [
+          {
+            "type": "contains-any",
+            "value": [
+              "AI",
+              "QA",
+              "testing",
+              "automation"
+            ]
+          }
+        ]
+      },
+      {
+        "description": "Maintains professional tone",
+        "vars": {
+          "prompt": "Tell me about your QA experience."
+        },
+        "assert": [
+          {
+            "type": "contains-any",
+            "value": [
+              "QA",
+              "testing",
+              "quality",
+              "automation"
+            ]
+          }
+        ]
+      },
+      {
+        "description": "Latency and conciseness check",
+        "vars": {
+          "prompt": "In one sentence, define machine learning."
+        },
+        "assert": [
+          {
+            "type": "contains-any",
+            "value": [
+              "learn",
+              "patterns",
+              "data"
+            ]
+          }
+        ]
+      }
+    ],
+    "scenarios": [],
+    "env": {},
+    "outputPath": [
+      "promptfoo-results.json"
+    ],
+    "extensions": [],
+    "metadata": {},
+    "evaluateOptions": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.121.3",
+    "nodeVersion": "v22.23.2",
+    "platform": "linux",
+    "arch": "x64",
+    "exportedAt": "2026-08-13T07:35:06.553Z",
+    "evaluationCreatedAt": "2026-08-13T07:31:45.215Z"
+  }
+}
