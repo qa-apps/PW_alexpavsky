@@ -1,0 +1,14 @@
+{
+  "run_number": 101,
+  "run_id": "31680066117",
+  "timestamp": "2026-08-13T08:02:48+00:00",
+  "commit": "313822e",
+  "ragas": {
+    "avg_faithfulness": null,
+    "avg_relevancy": null,
+    "status": "unknown"
+  },
+  "giskard_rag": {},
+  "giskard_scan": {},
+  "files": []
+}
