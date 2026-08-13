@@ -1,0 +1,50 @@
+name: Agent Observability Dashboards
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily lightweight Slack visibility check. Does not call the chat/voice LLM paths.
+    - cron: "10 20 * * *"
+
+concurrency:
+  group: agent-observability-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  slack-observability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Notify Langfuse Slack channel
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          LANGFUSE_CHANNEL_ID: ${{ secrets.SLACK_LANGFUSE_CHANNEL_ID }}
+          LANGFUSE_DASHBOARD_URL: ${{ vars.LANGFUSE_DASHBOARD_URL || secrets.LANGFUSE_DASHBOARD_URL || 'https://cloud.langfuse.com' }}
+          ALEXPAVSKY_HEALTH_URL: ${{ vars.ALEXPAVSKY_HEALTH_URL || secrets.ALEXPAVSKY_HEALTH_URL || 'https://www.alexpavsky.com/api/health' }}
+        run: |
+          python .github/scripts/notify_observability_slack.py \
+            --mode langfuse \
+            --channel "$LANGFUSE_CHANNEL_ID" \
+            --dashboard-url "$LANGFUSE_DASHBOARD_URL" \
+            --health-url "$ALEXPAVSKY_HEALTH_URL"
+
+      - name: Notify LangWatch Slack channel
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          LANGWATCH_CHANNEL_ID: ${{ secrets.SLACK_LANGWATCH_CHANNEL_ID }}
+          LANGWATCH_DASHBOARD_URL: ${{ vars.LANGWATCH_DASHBOARD_URL || secrets.LANGWATCH_DASHBOARD_URL || 'https://app.langwatch.ai' }}
+          VOICE_AGENT_HEALTH_URL: ${{ vars.VOICE_AGENT_HEALTH_URL || secrets.VOICE_AGENT_HEALTH_URL || '' }}
+        run: |
+          python .github/scripts/notify_observability_slack.py \
+            --mode langwatch \
+            --channel "$LANGWATCH_CHANNEL_ID" \
+            --dashboard-url "$LANGWATCH_DASHBOARD_URL" \
+            --health-url "$VOICE_AGENT_HEALTH_URL"
