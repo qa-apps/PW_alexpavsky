@@ -3293,37 +3293,5 @@
       "giskard_scan.html",
       "giskard_scan.json"
     ]
-  },
-  {
-    "run_number": 99,
-    "run_id": "31675798497",
-    "timestamp": "2026-08-13T07:01:18+00:00",
-    "commit": "6d548b8",
-    "ragas": {
-      "avg_faithfulness": 1.0,
-      "avg_relevancy": 1.0,
-      "status": "pass"
-    },
-    "giskard_rag": {},
-    "giskard_scan": {},
-    "files": [
-      "report.md"
-    ]
-  },
-  {
-    "run_number": 100,
-    "run_id": "31675809840",
-    "timestamp": "2026-08-13T07:05:20+00:00",
-    "commit": "6d548b8",
-    "ragas": {
-      "avg_faithfulness": 1.0,
-      "avg_relevancy": 1.0,
-      "status": "pass"
-    },
-    "giskard_rag": {},
-    "giskard_scan": {},
-    "files": [
-      "report.md"
-    ]
   }
 ]
