@@ -213,10 +213,9 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
     auto-fall-back through the remaining providers when LiteLLM raises a
     rate-limit / quota error.
 
-    Embeddings always go through HuggingFace router (free, has the embedding
-    endpoint we need) — `huggingface/sentence-transformers/all-MiniLM-L6-v2`.
-    Requires HF_TOKEN; if missing, skip embedding config and let Giskard
-    fall back to its default (will error if it tries to embed).
+    Embeddings prefer Mistral (`mistral/mistral-embed`) because the public
+    HuggingFace token used by CI can expire and break Giskard's testset
+    generation. HuggingFace is deliberately excluded from Giskard fallbacks.
 
     Returns the primary model id string for logging / report metadata.
     """
@@ -239,8 +238,11 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
         if envvar and p["api_key"]:
             os.environ[envvar] = p["api_key"]
 
-    # Build (primary, fallbacks) using LiteLLM id format.
-    litellm_ids = [m for m in (_litellm_model_id(p) for p in providers) if m]
+    # Build (primary, fallbacks) using LiteLLM id format. Giskard calls can
+    # retry internally, so keep HuggingFace out of the fallback chain; an
+    # expired HF token turns otherwise valid light runs into DNS/auth failures.
+    giskard_providers = [p for p in providers if p["name"] != "huggingface"]
+    litellm_ids = [m for m in (_litellm_model_id(p) for p in giskard_providers) if m]
     if not litellm_ids:
         raise RuntimeError("No provider in list maps to a LiteLLM-supported id")
 
@@ -260,16 +262,13 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
     except Exception as e:
         log_fn(f"  WARN: set_llm_model failed: {e}")
 
-    # Embedding: HuggingFace router serves it for free with HF_TOKEN.
-    if os.environ.get("HF_TOKEN"):
+    if os.environ.get("MISTRAL_API_KEY"):
         try:
-            giskard.llm.set_embedding_model(
-                "huggingface/sentence-transformers/all-MiniLM-L6-v2"
-            )
-            log_fn("  Embeddings: huggingface/sentence-transformers/all-MiniLM-L6-v2")
+            giskard.llm.set_embedding_model("mistral/mistral-embed")
+            log_fn("  Embeddings: mistral/mistral-embed")
         except Exception as e:
             log_fn(f"  WARN: set_embedding_model failed: {e}")
     else:
-        log_fn("  WARN: HF_TOKEN missing — embeddings unconfigured")
+        log_fn("  WARN: MISTRAL_API_KEY missing — embeddings unconfigured")
 
     return primary
