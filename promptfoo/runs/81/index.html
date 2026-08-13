@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Promptfoo run #81</title>
+<style>
+body { font: 14px/1.45 -apple-system, BlinkMacSystemFont, sans-serif; margin: 0 auto; max-width: 1200px; padding: 24px; color: #1f2328; }
+a { color: #0969da; text-decoration: none; } .meta { color: #656d76; }
+.cards { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:12px; margin:18px 0; }
+.card { border:1px solid #d0d7de; border-radius:6px; padding:12px; background:#f6f8fa; }
+.label { color:#656d76; font-size:12px; text-transform:uppercase; } .value { font-size:24px; font-weight:700; }
+table { width:100%; border-collapse:collapse; } th,td { padding:8px 10px; border-bottom:1px solid #d8dee4; text-align:left; vertical-align:top; }
+th { background:#f6f8fa; } .pass { color:#1a7f37; font-weight:700; } .fail { color:#cf222e; font-weight:700; }
+pre { white-space:pre-wrap; max-width:760px; }
+</style></head><body>
+<p><a href="../../index.html">← all Promptfoo runs</a></p>
+<h1>Promptfoo Basic Eval #81</h1>
+<p class="meta">2026-08-13T07:53:50+00:00 · commit fbe38e0 · <a href="https://github.com/qa-apps/PW_alexpavsky/actions/runs/31679630180">GitHub run</a></p>
+<div class="cards">
+  <div class="card"><div class="label">Passed</div><div class="value pass">2</div></div>
+  <div class="card"><div class="label">Failed</div><div class="value fail">0</div></div>
+  <div class="card"><div class="label">Total</div><div class="value">2</div></div>
+</div>
+<table><thead><tr><th>Status</th><th>Test</th><th>Provider</th><th>Score</th><th>Output</th></tr></thead>
+<tbody><tr><td class='pass'>PASS</td><td>Standard greeting</td><td>CEREBRAS · GPT-OSS 120B · reliable [free]</td><td>1</td><td><details><summary>details</summary><pre>Thinking: We need to respond as a helpful AI assistant for Alex Pavsky, focusing on QA, AI testing, red teaming, automation, safe use of AI. The user asks &quot;Hello, who are you?&quot; We should answer directly, introduce ourselves as the assistant for Alex Pavsky, mention the focus areas, and ask how we can help. If unrelated, steer back. So answer accordingly.
+
+Hello! I’m an AI assistant dedicated to supporting Alex Pavsky’s work in software quality assurance, AI testing, red‑team exercises, automation, and the safe, responsible use of artificial intelligence. I’m here to help you with questions, troubleshooting, or ideas in any of those areas. How can I assist you today?</pre></details></td></tr><tr><td class='pass'>PASS</td><td>Relevant domain question</td><td>CEREBRAS · GPT-OSS 120B · reliable [free]</td><td>1</td><td><details><summary>details</summary><pre>Thinking: We need to answer directly about red-teaming in AI safety. Provide concise explanation, purpose, methods, best practices, examples. Also mention QA, automation, safe use. Keep tone helpful.
+
+**Red‑teaming in AI safety** is a systematic, adversarial approach to probing an AI system for weaknesses, unintended behaviors, and security vulnerabilities before the model is deployed widely. Think of it as a “controlled attack” where a dedicated team (the “red team”) tries to make the model do things it shouldn’t—whether that’s leaking private data, generating harmful content, or being manipulated into biased decisions. The goal is to surface failure modes early so they can be patched, mitigated, or documented.
+
+---
+
+### Core Elements of an AI Red‑Team
+
+| Element | What It Means | Typical Techniques |
+|---------|---------------|--------------------|
+| **Threat Modeling** | Identify realistic adversarial goals (e.g., jailbreak, data extraction, bias amplification). | Scenario brainstorming, threat‑tree construction. |
+| **Attack Surface Mapping** | List all ways an attacker can interact with the model (API calls, prompts, fine‑tuning pipelines, embeddings, etc.). | Documentation review, code audit. |
+| **Adversarial Prompting** | Craft inputs that coax the model into disallowed behavior. | Prompt injection, jailbreak strings, “jailbreak‑chain” prompts, multi‑turn conversations. |
+| **Data‑Poisoning Simulations** | Pretend to inject malicious data into training or fine‑tuning sets. | Synthetic poisoned samples, label‑flipping attacks. |
+| **Model Extraction / Inference Attacks** | Try to reconstruct model parameters or proprietary knowledge. | Membership inference, query‑based model stealing. |
+| **Robustness Testing** | Stress the model with out‑of‑distribution or noisy inputs. | Perturbations, paraphrasing, adversarial examples. |
+| **Safety Metric Evaluation** | Quantify how often the model violates policy or produces unsafe output. | Automated scoring (e.g., toxicity, factuality), human‑in‑the‑loop review. |
+| **Reporting &amp; Mitigation** | Document findings, prioritize fixes, and verify remediation. | Bug‑track tickets, regression test suites, policy updates. |
+
+---
+
+### Why Red‑Teaming Matters for AI Safety
+
+1. **Pre‑deployment Risk Reduction** – Finds exploitable bugs before users encounter them.
+2. **Regulatory &amp; Compliance Alignment** – Demonstrates due diligence for standards like ISO/IEC 42001 (AI governance) or upcoming AI‑specific regulations.
+3. **Improved Trustworthiness** – Shows stakeholders that the model has been stress‑tested against malicious use.
+4. **Feedback Loop for QA &amp; Automation** – Many red‑team findings become part of automated regression suites, turning “ad‑hoc” attacks into repeatable test cases.
+
+---
+
+### Typical Red‑Team Workflow (QA‑friendly)
+
+1. **Scope Definition** – Agree on which model version, APIs, and policy boundaries are in scope.
+2. **Baseline Measurement** – Run the model through existing safety test suites to establish a “before” state.
+3. **Adversarial Exploration** – Use a mix of manual prompt engineering and scripted generators (e.g., Python scripts that mutate prompts) to discover failures.
+4. **Logging &amp; Reproducibility** – Capture full request/response logs, random seeds, and environment details.
+5. **Severity Rating** – Classify each issue (e.g., *Critical* if it enables unrestricted jailbreak, *Medium* for mild policy violations).
+6. **Mitigation Sprint** – Engineers apply defenses (prompt sanitization, reinforcement‑learning‑from‑human‑feedback (RLHF) updates, guardrails) and re‑run the same attacks.
+7. **Regression Automation** – Convert successful attacks into automated unit/integration tests that run on every CI build.
+8. **Post‑mortem &amp; Knowledge Base** – Summarize tactics, share with the broader team, and update threat models.
+
+---
+
+### Practical Tips for an Effective Red‑Team
+
+- **Diverse Skill Sets** – Include prompt engineers, security researchers, ethicists, and dom</pre></details></td></tr></tbody></table>
+</body></html>
