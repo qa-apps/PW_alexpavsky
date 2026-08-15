@@ -16,5 +16,14 @@
     "max_p95_ms": 503,
     "commit": "221294d",
     "run_id": "31835455817"
+  },
+  {
+    "run_number": "86",
+    "timestamp": "2026-08-15T19:34:53+00:00",
+    "profiles": 2,
+    "requests": 1513,
+    "max_p95_ms": 428,
+    "commit": "221294d",
+    "run_id": "31904234955"
   }
 ]
