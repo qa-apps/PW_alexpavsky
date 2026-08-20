@@ -3728,5 +3728,52 @@
       "giskard_scan.html",
       "giskard_scan.json"
     ]
+  },
+  {
+    "run_number": 114,
+    "run_id": "32400884254",
+    "timestamp": "2026-08-20T18:22:45+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.921,
+      "avg_relevancy": 0.78,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.3333333333333333
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 11,
+      "issues_by_category": {
+        "hallucination": 2,
+        "injection": 7,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
   }
 ]
