@@ -1,0 +1,288 @@
+{
+  "config": {
+    "configFile": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/playwright.config.ts",
+    "rootDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+        "commitHash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+        "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/32407124699"
+      },
+      "gitCommit": {
+        "shortHash": "221294d",
+        "hash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+        "subject": "Reduce daily eval suites and add agent observability checks",
+        "body": "Reduce daily eval suites and add agent observability checks\n\nMerged by Codex after CI passed. Ragas and Promptfoo daily suites are now 15 tests; Pages publishers keep existing dashboards; Langfuse/LangWatch agent checks are included.",
+        "author": {
+          "name": "Alexander Pavlovsky",
+          "email": "40374796+qa-apps@users.noreply.github.com",
+          "time": 1786640177000
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "time": 1786640177000
+        },
+        "branch": "master"
+      }
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "commitHash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/32407124699"
+          },
+          "gitCommit": {
+            "shortHash": "221294d",
+            "hash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "subject": "Reduce daily eval suites and add agent observability checks",
+            "body": "Reduce daily eval suites and add agent observability checks\n\nMerged by Codex after CI passed. Ragas and Promptfoo daily suites are now 15 tests; Pages publishers keep existing dashboards; Langfuse/LangWatch agent checks are included.",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "40374796+qa-apps@users.noreply.github.com",
+              "time": 1786640177000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1786640177000
+            },
+            "branch": "master"
+          }
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "commitHash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/32407124699"
+          },
+          "gitCommit": {
+            "shortHash": "221294d",
+            "hash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "subject": "Reduce daily eval suites and add agent observability checks",
+            "body": "Reduce daily eval suites and add agent observability checks\n\nMerged by Codex after CI passed. Ragas and Promptfoo daily suites are now 15 tests; Pages publishers keep existing dashboards; Langfuse/LangWatch agent checks are included.",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "40374796+qa-apps@users.noreply.github.com",
+              "time": 1786640177000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1786640177000
+            },
+            "branch": "master"
+          }
+        },
+        "id": "iphone-13",
+        "name": "iphone-13",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/tests\\/crossDevice\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "commitHash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/32407124699"
+          },
+          "gitCommit": {
+            "shortHash": "221294d",
+            "hash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "subject": "Reduce daily eval suites and add agent observability checks",
+            "body": "Reduce daily eval suites and add agent observability checks\n\nMerged by Codex after CI passed. Ragas and Promptfoo daily suites are now 15 tests; Pages publishers keep existing dashboards; Langfuse/LangWatch agent checks are included.",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "40374796+qa-apps@users.noreply.github.com",
+              "time": 1786640177000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1786640177000
+            },
+            "branch": "master"
+          }
+        },
+        "id": "pixel-7",
+        "name": "pixel-7",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/tests\\/crossDevice\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "commitHash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/32407124699"
+          },
+          "gitCommit": {
+            "shortHash": "221294d",
+            "hash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "subject": "Reduce daily eval suites and add agent observability checks",
+            "body": "Reduce daily eval suites and add agent observability checks\n\nMerged by Codex after CI passed. Ragas and Promptfoo daily suites are now 15 tests; Pages publishers keep existing dashboards; Langfuse/LangWatch agent checks are included.",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "40374796+qa-apps@users.noreply.github.com",
+              "time": 1786640177000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1786640177000
+            },
+            "branch": "master"
+          }
+        },
+        "id": "ipad-pro-11",
+        "name": "ipad-pro-11",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/tests\\/crossDevice\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "commitHash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/32407124699"
+          },
+          "gitCommit": {
+            "shortHash": "221294d",
+            "hash": "221294df851f6d8fefbfc35d7c88667c9f9e79a9",
+            "subject": "Reduce daily eval suites and add agent observability checks",
+            "body": "Reduce daily eval suites and add agent observability checks\n\nMerged by Codex after CI passed. Ragas and Promptfoo daily suites are now 15 tests; Pages publishers keep existing dashboards; Langfuse/LangWatch agent checks are included.",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "40374796+qa-apps@users.noreply.github.com",
+              "time": 1786640177000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1786640177000
+            },
+            "branch": "master"
+          }
+        },
+        "id": "galaxy-tab-s4",
+        "name": "galaxy-tab-s4",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/tests\\/crossDevice\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 3,
+    "webServer": null
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "Error: Vitest cannot be imported in a CommonJS module using require(). Please use \"import\" instead.\n\nIf you are using \"import\" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.",
+      "stack": "Error: Vitest cannot be imported in a CommonJS module using require(). Please use \"import\" instead.\n\nIf you are using \"import\" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.\n    at Object.<anonymous> (/home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/vitest/index.cjs:1:7)\n    at Object.<anonymous> (/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests/observability/langfuse-agent-tracking.test.ts:1:1)",
+      "location": {
+        "file": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests/observability/langfuse-agent-tracking.test.ts",
+        "column": 1,
+        "line": 1
+      },
+      "snippet": "   at observability/langfuse-agent-tracking.test.ts:1\n\n\u001b[0m\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 1 |\u001b[39m \u001b[36mimport\u001b[39m { describe\u001b[33m,\u001b[39m it\u001b[33m,\u001b[39m expect } \u001b[36mfrom\u001b[39m \u001b[32m\"vitest\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m   |\u001b[39m \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 2 |\u001b[39m\n \u001b[90m 3 |\u001b[39m \u001b[90m/**\u001b[39m\n \u001b[90m 4 |\u001b[39m \u001b[90m * Langfuse check for the AI chat agent's token tracking + agentic workflow.\u001b[39m\u001b[0m"
+    },
+    {
+      "message": "Error: Vitest cannot be imported in a CommonJS module using require(). Please use \"import\" instead.\n\nIf you are using \"import\" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.",
+      "stack": "Error: Vitest cannot be imported in a CommonJS module using require(). Please use \"import\" instead.\n\nIf you are using \"import\" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.\n    at Object.<anonymous> (/home/runner/work/PW_alexpavsky/PW_alexpavsky/node_modules/vitest/index.cjs:1:7)\n    at Object.<anonymous> (/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests/voice/voice-agent.scenario.test.ts:1:1)",
+      "location": {
+        "file": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests/voice/voice-agent.scenario.test.ts",
+        "column": 1,
+        "line": 1
+      },
+      "snippet": "   at voice/voice-agent.scenario.test.ts:1\n\n\u001b[0m\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 1 |\u001b[39m \u001b[36mimport\u001b[39m { describe\u001b[33m,\u001b[39m it\u001b[33m,\u001b[39m expect } \u001b[36mfrom\u001b[39m \u001b[32m\"vitest\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m   |\u001b[39m \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 2 |\u001b[39m \u001b[36mimport\u001b[39m scenario \u001b[36mfrom\u001b[39m \u001b[32m\"@langwatch/scenario\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 3 |\u001b[39m \u001b[36mimport\u001b[39m { voiceAgent\u001b[33m,\u001b[39m \u001b[33mSAY_URL\u001b[39m } \u001b[36mfrom\u001b[39m \u001b[32m\"../support/voiceAgentAdapter\"\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m 4 |\u001b[39m \u001b[36mimport\u001b[39m { judgeModel\u001b[33m,\u001b[39m hasJudgeModel } \u001b[36mfrom\u001b[39m \u001b[32m\"../support/scenarioModel\"\u001b[39m\u001b[33m;\u001b[39m\u001b[0m"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-08-20T19:11:12.353Z",
+    "duration": 1396.5079999999998,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
