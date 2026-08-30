@@ -1,0 +1,6 @@
+{
+  "rag_api": "https://alexpavsky.com",
+  "num_questions": 3,
+  "judge": "groq/llama-3.3-70b-versatile",
+  "correctness": 0.6666666666666666
+}
