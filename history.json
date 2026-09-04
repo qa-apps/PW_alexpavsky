@@ -4386,5 +4386,19 @@
       "giskard_scan.html",
       "giskard_scan.json"
     ]
+  },
+  {
+    "run_number": 129,
+    "run_id": "33913257690",
+    "timestamp": "2026-09-04T19:53:59+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": []
   }
 ]
