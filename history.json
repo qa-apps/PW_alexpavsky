@@ -4400,5 +4400,19 @@
     "giskard_rag": {},
     "giskard_scan": {},
     "files": []
+  },
+  {
+    "run_number": 130,
+    "run_id": "33987283374",
+    "timestamp": "2026-09-05T19:33:01+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": []
   }
 ]
