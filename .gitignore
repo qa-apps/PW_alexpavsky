@@ -32,6 +32,10 @@ qa-history/
 # Local agent / graph analysis artifacts
 .codex/
 graphify-out/
+$CODEX_HOME/
+
+# CI daily-completion markers (written on the runner, cached via actions/cache)
+.ci-markers/
 
 # Local QA report runtime artifacts
 qa-report-ui/reports/*.json

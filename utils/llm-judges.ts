@@ -367,9 +367,10 @@ async function postJudgeRequest(
   model: string,
 ): Promise<JudgeApiResult> {
   const reqContext = await request.newContext();
+  const timeout = Number(process.env.LOCAL_LLM_TIMEOUT_MS || 180_000);
 
   try {
-    const response = await reqContext.post(baseUrl, { headers, data });
+    const response = await reqContext.post(baseUrl, { headers, data, timeout });
     const bodyText = await response.text();
 
     if (!response.ok()) {

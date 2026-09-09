@@ -15,9 +15,9 @@ name: LLM Quality (LLM Judge tests)
 on:
   workflow_dispatch:
   schedule:
-    # Daily daytime run at 14:30 America/New_York during EDT, offset from
-    # Playwright and Ragas so we don't fight for runners or LLM rate limits.
-    - cron: '30 18 * * *'
+    # Check hourly. The daily marker below runs the suite once per New York day;
+    # queued runs resume automatically when the bosgame runner comes online.
+    - cron: '30 * * * *'
 
 concurrency:
   group: llm-quality-${{ github.ref }}
@@ -28,14 +28,89 @@ permissions:
 
 jobs:
   llm-quality:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
+    runs-on: [self-hosted, Linux, X64, bosgame]
+    timeout-minutes: 180
+    env:
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      LOCAL_LLM_BASE_URL: http://127.0.0.1:11434/v1
+      LOCAL_LLM_MODEL: gpt-oss:120b
+      LOCAL_EMBEDDING_MODEL: qwen3-embedding:4b
+      LOCAL_LLM_API_KEY: ollama
+      LOCAL_LLM_TIMEOUT_SEC: '180'
+      LOCAL_LLM_TIMEOUT_MS: '180000'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Resolve daily evaluation date
+        id: eval_day
+        shell: bash
+        run: |
+          now_minutes=$((10#$(TZ=America/New_York date +%H) * 60 + 10#$(TZ=America/New_York date +%M)))
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$now_minutes" -lt 870 ]; then
+            eval_day=$(TZ=America/New_York date -d yesterday +%F)
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            eval_day=$(TZ=America/New_York date +%F)
+          else
+            eval_day="manual-${{ github.run_id }}"
+          fi
+          echo "date=$eval_day" >> "$GITHUB_OUTPUT"
+
+      - name: Restore daily completion marker
+        id: daily_marker
+        uses: actions/cache/restore@v4
+        with:
+          path: .ci-markers/llm-quality.done
+          key: bosgame-llm-quality-${{ steps.eval_day.outputs.date }}
+
+      - name: Check local GPT-OSS availability
+        id: local_llm
+        if: steps.daily_marker.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error "$OLLAMA_BASE_URL/v1/models") && \
+             python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("id") == wanted for m in data.get("data", [])) else 1)' "$LOCAL_LLM_MODEL" <<<"$models"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Local model $LOCAL_LLM_MODEL is ready."
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Local model unavailable; the next hourly schedule will retry."
+          fi
+
+      - name: Nightly Bosgame — report unavailable
+        if: steps.daily_marker.outputs.cache-hit != 'true' && steps.local_llm.outputs.run != 'true'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          python3 .github/scripts/notify_bosgame_run_slack.py \
+            --channel "${{ secrets.SLACK_NIGHTLY_BOSGAME_CHANNEL_ID }}" \
+            --suite "LLM Quality" --event down
+
+      - name: Nightly Bosgame — report available
+        if: steps.local_llm.outputs.run == 'true'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          python3 .github/scripts/notify_bosgame_run_slack.py \
+            --channel "${{ secrets.SLACK_NIGHTLY_BOSGAME_CHANNEL_ID }}" \
+            --suite "LLM Quality" --event up
+
+      - name: Warm up local model (up to 2 min)
+        if: steps.local_llm.outputs.run == 'true'
+        shell: bash
+        run: |
+          echo "Warming $LOCAL_LLM_MODEL (cold load ~30s; budget 150s)…"
+          curl -s --max-time 150 "$OLLAMA_BASE_URL/api/generate" \
+            -d "{\"model\":\"$LOCAL_LLM_MODEL\",\"prompt\":\"ok\",\"stream\":false,\"keep_alive\":-1,\"options\":{\"num_predict\":1}}" \
+            >/dev/null || echo "warm-up request timed out (continuing anyway)"
+          if [ -n "${LOCAL_EMBEDDING_MODEL:-}" ]; then
+            curl -s --max-time 60 "$OLLAMA_BASE_URL/api/embed" \
+              -d "{\"model\":\"$LOCAL_EMBEDDING_MODEL\",\"input\":\"ok\",\"keep_alive\":-1}" >/dev/null || true
+          fi
+
       - name: Checkout existing gh-pages site (if any)
+        if: steps.local_llm.outputs.run == 'true'
         uses: actions/checkout@v5
         with:
           ref: gh-pages
@@ -43,37 +118,38 @@ jobs:
         continue-on-error: true
 
       - name: Set up Node.js
+        if: steps.local_llm.outputs.run == 'true'
         uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
 
       - name: Install dependencies
+        if: steps.local_llm.outputs.run == 'true'
         run: npm ci
 
       - name: Install Playwright browsers
+        if: steps.local_llm.outputs.run == 'true'
         run: npx playwright install --with-deps
 
       - name: Run LLM Judge tests
+        if: steps.local_llm.outputs.run == 'true'
         # continue-on-error: failures here are non-blocking — they reflect
         # LLM availability, not code regressions. Trends in the report
         # artifact tell us whether quality is sliding over time; the
         # job status is informational.
         continue-on-error: true
         id: run_tests
-        run: npx playwright test --grep "LLM Judge"
+        # "LLM Judge" = the dedicated judge suite; "Content quality" = the
+        # @upstream article-quality-judge specs, migrated here so their judge
+        # runs on local gpt-oss instead of free-tier providers.
+        run: npx playwright test --grep "LLM Judge|Content quality" --reporter=list,json
         env:
           CI: true
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
-          SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
-          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
 
       - name: Upload Playwright report
-        if: always()
+        if: always() && steps.local_llm.outputs.run == 'true'
         uses: actions/upload-artifact@v5
         with:
           name: llm-quality-report-${{ github.run_number }}
@@ -81,7 +157,7 @@ jobs:
           retention-days: 30
 
       - name: Upload judge verdicts
-        if: always()
+        if: always() && steps.local_llm.outputs.run == 'true'
         uses: actions/upload-artifact@v5
         with:
           name: judge-verdicts-${{ github.run_number }}
@@ -92,7 +168,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Post summary to job
-        if: always()
+        if: always() && steps.local_llm.outputs.run == 'true'
         run: |
           echo "## LLM Quality Run #${{ github.run_number }}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -107,7 +183,7 @@ jobs:
           echo "- \`judge-verdicts-${{ github.run_number }}\` — per-prompt judge scores + reasoning" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build LLM Judge Pages UI
-        if: always()
+        if: always() && steps.local_llm.outputs.run == 'true'
         env:
           RUN_NUMBER: ${{ github.run_number }}
           RUN_ID: ${{ github.run_id }}
@@ -116,7 +192,7 @@ jobs:
         run: python scripts/build_llm_judge_site.py
 
       - name: Publish LLM Judge Pages UI
-        if: always()
+        if: always() && steps.local_llm.outputs.run == 'true'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -130,7 +206,7 @@ jobs:
           user_email: "github-actions[bot]@users.noreply.github.com"
 
       - name: Notify Slack
-        if: always()
+        if: always() && steps.local_llm.outputs.run == 'true'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -149,7 +225,7 @@ jobs:
 
 
       - name: Post bug report to Slack
-        if: steps.run_tests.outcome == 'failure'
+        if: steps.local_llm.outputs.run == 'true' && steps.run_tests.outcome == 'failure'
         env:
           SLACK_BOT_TOKEN:    ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_RUN_URL:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -158,18 +234,33 @@ jobs:
           GITHUB_REF:         ${{ github.ref }}
           PR_NUMBER:          ${{ github.event.pull_request.number }}
           PR_TITLE:           ${{ github.event.pull_request.title }}
-          # Full LLM rotation — same set as auto-fix.yml and playwright-ci.yml
-          # so root-cause analysis isn't crippled by one provider being down.
-          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
-          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
-          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
-          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL:    ${{ secrets.OPENAI_BASE_URL }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
         run: |
           python .github/scripts/bug_report_slack.py \
             --channel "${{ secrets.BUG_REPORTS_CHANNEL_ID }}" \
             --pipeline "LLM Quality" \
             --results-dir test-results
+
+      - name: Nightly Bosgame — post results
+        if: always() && steps.local_llm.outputs.run == 'true'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 .github/scripts/notify_bosgame_run_slack.py \
+            --channel "${{ secrets.SLACK_NIGHTLY_BOSGAME_CHANNEL_ID }}" \
+            --suite "LLM Quality" --event result \
+            --format playwright --results test-results/results.json
+
+      - name: Save daily completion marker
+        if: always() && steps.local_llm.outputs.run == 'true' && github.event_name == 'schedule'
+        shell: bash
+        run: |
+          mkdir -p .ci-markers
+          date -u +%FT%TZ > .ci-markers/llm-quality.done
+
+      - name: Cache daily completion marker
+        if: always() && steps.local_llm.outputs.run == 'true' && github.event_name == 'schedule'
+        uses: actions/cache/save@v4
+        with:
+          path: .ci-markers/llm-quality.done
+          key: bosgame-llm-quality-${{ steps.eval_day.outputs.date }}

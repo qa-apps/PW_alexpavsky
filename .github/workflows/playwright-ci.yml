@@ -129,7 +129,10 @@ jobs:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           SAMBANOVA_API_KEY: ${{ secrets.SAMBANOVA_API_KEY }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-        run: npx playwright test --grep "@upstream" --retries=3
+        # contentQuality (@upstream) uses our LLM judge — it now runs on the
+        # bosgame self-hosted runner (llm-quality.yml) against local gpt-oss,
+        # so exclude it here to keep this cloud runner off free-tier providers.
+        run: npx playwright test --grep "@upstream" --grep-invert "Content quality" --retries=3
 
       - name: Run k6 performance profile
         if: github.event_name == 'schedule'

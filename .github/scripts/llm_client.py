@@ -29,6 +29,14 @@ import urllib.request
 # all listed providers' models as of 2026-05.
 _PROVIDERS = [
     {
+        "name": "ollama",
+        "key_env": "LOCAL_LLM_API_KEY",
+        "base_url_env": "LOCAL_LLM_BASE_URL",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model_env": "LOCAL_LLM_MODEL",
+        "model": "gpt-oss:120b",
+    },
+    {
         "name": "groq",
         "key_env": "GROQ_API_KEY",
         "base_url": "https://api.groq.com/openai/v1",
@@ -153,7 +161,7 @@ def chat(
     tools: list | None = None,
     max_tokens: int = 2000,
     temperature: float = 0.1,
-    timeout: int = 45,
+    timeout: int | None = None,
     quiet: bool = False,
 ) -> dict:
     """
@@ -167,9 +175,13 @@ def chat(
           "errors": list[str],             # per-provider error strings
         }
     """
+    timeout = timeout or int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180"))
     errors: list[str] = []
-    for prov in _PROVIDERS:
+    providers = _PROVIDERS[:1] if os.environ.get("LOCAL_LLM_BASE_URL") else _PROVIDERS[1:]
+    for prov in providers:
         key = os.environ.get(prov["key_env"], "").strip()
+        if prov["name"] == "ollama" and os.environ.get("LOCAL_LLM_BASE_URL"):
+            key = key or "ollama"
         if not key:
             continue
 
@@ -186,15 +198,14 @@ def chat(
         }
         headers.update(prov.get("extra_headers", {}))
 
-        payload = _build_payload(
-            prov["model"], messages, system, tools, max_tokens, temperature
-        )
+        model = os.environ.get(prov.get("model_env", ""), "").strip() or prov["model"]
+        payload = _build_payload(model, messages, system, tools, max_tokens, temperature)
         body = json.dumps(payload).encode()
 
         try:
             resp = _post(url, headers, body, timeout)
         except Exception as e:
-            err_text = f"[{prov['name']}/{prov['model']}] {e}"
+            err_text = f"[{prov['name']}/{model}] {e}"
             errors.append(err_text)
             if not quiet:
                 print(f"  {err_text} — trying next", file=sys.stderr)
@@ -231,10 +242,9 @@ def chat(
 
 def configured_providers() -> list[str]:
     """List names of providers whose API key is set. Useful for diagnostics."""
-    return [
-        p["name"] for p in _PROVIDERS
-        if os.environ.get(p["key_env"], "").strip()
-    ]
+    if os.environ.get("LOCAL_LLM_BASE_URL"):
+        return ["ollama"]
+    return [p["name"] for p in _PROVIDERS[1:] if os.environ.get(p["key_env"], "").strip()]
 
 
 if __name__ == "__main__":

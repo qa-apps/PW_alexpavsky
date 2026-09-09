@@ -1,10 +1,9 @@
 """
-rotating_llm.py — Custom LangChain ChatModel that auto-rotates across providers.
+rotating_llm.py — Local LangChain ChatModel for evaluation jobs.
 
-When one provider hits a rate limit, quota, or transient error, the next
-provider in the ordered list is tried automatically. Designed for Ragas
-evaluation where we want resilience across:
-  Groq, OpenRouter, Cerebras, Mistral, Sambanova, Hugging Face, Gemini.
+The evaluation stack uses the GPT-OSS model hosted by Ollama on the bosgame
+self-hosted runner. The provider list shape is retained so existing Ragas and
+Giskard integrations do not need a wider rewrite.
 
 All providers below expose an OpenAI-compatible chat-completions API, so a
 single LangChain ChatOpenAI client works for each one — only base_url, model,
@@ -27,61 +26,16 @@ from pydantic import ConfigDict, Field
 log = logging.getLogger("rotating-llm")
 
 
-# OpenAI-compatible endpoints for each provider. Models picked for high quality
-# + generous free tiers. Order = priority (first provider tried first).
+# Ollama exposes an OpenAI-compatible endpoint. CI runs on bosgame itself, so
+# localhost is both private and independent of external provider quotas.
 def build_provider_list() -> list[dict[str, str]]:
-    """Build the ordered provider list from environment variables."""
-    candidates = [
-        {
-            "name": "groq",
-            "api_key": os.environ.get("GROQ_API_KEY", ""),
-            "base_url": "https://api.groq.com/openai/v1",
-            "model": "llama-3.3-70b-versatile",
-        },
-        {
-            "name": "cerebras",
-            "api_key": os.environ.get("CEREBRAS_API_KEY", ""),
-            "base_url": "https://api.cerebras.ai/v1",
-            "model": "llama-3.3-70b",
-        },
-        {
-            "name": "sambanova",
-            "api_key": os.environ.get("SAMBANOVA_API_KEY", ""),
-            "base_url": "https://api.sambanova.ai/v1",
-            "model": "Meta-Llama-3.3-70B-Instruct",
-        },
-        {
-            "name": "mistral",
-            "api_key": os.environ.get("MISTRAL_API_KEY", ""),
-            "base_url": "https://api.mistral.ai/v1",
-            "model": "mistral-small-latest",
-        },
-        {
-            "name": "openrouter-llama",
-            "api_key": os.environ.get("OPENROUTER_API_KEY", ""),
-            "base_url": "https://openrouter.ai/api/v1",
-            "model": "meta-llama/llama-3.3-70b-instruct:free",
-        },
-        {
-            "name": "openrouter-deepseek",
-            "api_key": os.environ.get("OPENROUTER_API_KEY", ""),
-            "base_url": "https://openrouter.ai/api/v1",
-            "model": "deepseek/deepseek-r1-0528:free",
-        },
-        {
-            "name": "openrouter-qwen",
-            "api_key": os.environ.get("OPENROUTER_API_KEY", ""),
-            "base_url": "https://openrouter.ai/api/v1",
-            "model": "qwen/qwen3-coder:free",
-        },
-        {
-            "name": "huggingface",
-            "api_key": os.environ.get("HF_TOKEN", ""),
-            "base_url": "https://router.huggingface.co/v1",
-            "model": "meta-llama/Llama-3.3-70B-Instruct:cerebras",
-        },
-    ]
-    return [p for p in candidates if p["api_key"]]
+    """Build the single local provider from environment variables."""
+    return [{
+        "name": "ollama",
+        "api_key": os.environ.get("LOCAL_LLM_API_KEY", "ollama"),
+        "base_url": os.environ.get("LOCAL_LLM_BASE_URL", "http://127.0.0.1:11434/v1").rstrip("/"),
+        "model": os.environ.get("LOCAL_LLM_MODEL", "gpt-oss:120b"),
+    }]
 
 
 # Errors that should trigger rotation (rate limit, quota, auth, etc.)
@@ -103,7 +57,7 @@ class RotatingJudgeLLM(BaseChatModel):
 
     providers: list[dict[str, str]] = Field(default_factory=list)
     temperature: float = 0.0
-    timeout: int = 30
+    timeout: int = int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180"))
     max_retries: int = 1
     _last_used_idx: int = 0
 
@@ -181,94 +135,41 @@ class RotatingJudgeLLM(BaseChatModel):
         return await asyncio.to_thread(self._generate, messages, stop, None, **kwargs)
 
 
-# Map our provider names → LiteLLM native model id format.
-# LiteLLM auto-reads <PROVIDER>_API_KEY from env, so we don't need OPENAI_API_BASE.
+# Map our provider name to LiteLLM's Ollama model id format.
 def _litellm_model_id(provider: dict[str, str]) -> Optional[str]:
     name = provider["name"]
     model = provider["model"]
-    if name == "groq":
-        return f"groq/{model}"
-    if name == "cerebras":
-        return f"cerebras/{model}"
-    if name == "sambanova":
-        return f"sambanova/{model}"
-    if name == "mistral":
-        return f"mistral/{model}"
-    if name.startswith("openrouter"):
-        return f"openrouter/{model}"
-    if name == "huggingface":
-        # LiteLLM uses 'huggingface/<repo>' for the HF inference endpoint.
-        return f"huggingface/{model}"
+    if name == "ollama":
+        return f"ollama/{model}"
     return None
 
 
 def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
-    """Point Giskard's LLM + embedding judge at our providers.
-
-    Uses LiteLLM-native provider prefixes (groq/, cerebras/, mistral/, ...)
-    rather than the OpenAI-compat shim — the shim breaks because Groq et al.
-    don't expose every OpenAI endpoint (notably embeddings).
-
-    Picks the first provider with a key as primary, configures Giskard to
-    auto-fall-back through the remaining providers when LiteLLM raises a
-    rate-limit / quota error.
-
-    Embeddings prefer Mistral (`mistral/mistral-embed`) because the public
-    HuggingFace token used by CI can expire and break Giskard's testset
-    generation. HuggingFace is deliberately excluded from Giskard fallbacks.
-
-    Returns the primary model id string for logging / report metadata.
-    """
+    """Point Giskard's text judge and embeddings at local Ollama models."""
     import giskard
 
-    # LiteLLM auto-reads provider keys from env. Our providers list already
-    # filters to ones with non-empty api_key, so set the env explicitly here
-    # so LiteLLM finds them even if the runner didn't export some of them.
-    env_map = {
-        "groq": "GROQ_API_KEY",
-        "cerebras": "CEREBRAS_API_KEY",
-        "sambanova": "SAMBANOVA_API_KEY",
-        "mistral": "MISTRAL_API_KEY",
-        "openrouter": "OPENROUTER_API_KEY",
-        "huggingface": "HF_TOKEN",
-    }
-    for p in providers:
-        base = p["name"].split("-", 1)[0]  # "openrouter-llama" -> "openrouter"
-        envvar = env_map.get(base)
-        if envvar and p["api_key"]:
-            os.environ[envvar] = p["api_key"]
+    provider = providers[0]
+    ollama_root = provider["base_url"].removesuffix("/v1")
+    os.environ["OLLAMA_API_BASE"] = ollama_root
+    os.environ["OLLAMA_BASE_URL"] = ollama_root
+    os.environ["LITELLM_REQUEST_TIMEOUT"] = os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")
 
-    # Build (primary, fallbacks) using LiteLLM id format. Giskard calls can
-    # retry internally, so keep HuggingFace out of the fallback chain; an
-    # expired HF token turns otherwise valid light runs into DNS/auth failures.
-    giskard_providers = [p for p in providers if p["name"] != "huggingface"]
-    litellm_ids = [m for m in (_litellm_model_id(p) for p in giskard_providers) if m]
+    litellm_ids = [m for m in (_litellm_model_id(p) for p in providers) if m]
     if not litellm_ids:
         raise RuntimeError("No provider in list maps to a LiteLLM-supported id")
 
-    primary, fallbacks = litellm_ids[0], litellm_ids[1:]
+    primary = litellm_ids[0]
     log_fn(f"  Judge (LiteLLM): {primary}")
-    if fallbacks:
-        log_fn(f"  Fallbacks: {len(fallbacks)} ({', '.join(fallbacks[:3])}...)")
-
-    # set_llm_model signature varies across Giskard versions; pass fallbacks
-    # via kwargs and accept that some versions may ignore them (the primary
-    # still works on its own — Ragas + Giskard share the same env keys).
     try:
-        giskard.llm.set_llm_model(primary, fallbacks=fallbacks)
-    except TypeError:
-        # Older Giskard without fallbacks kwarg.
         giskard.llm.set_llm_model(primary)
     except Exception as e:
         log_fn(f"  WARN: set_llm_model failed: {e}")
 
-    if os.environ.get("MISTRAL_API_KEY"):
-        try:
-            giskard.llm.set_embedding_model("mistral/mistral-embed")
-            log_fn("  Embeddings: mistral/mistral-embed")
-        except Exception as e:
-            log_fn(f"  WARN: set_embedding_model failed: {e}")
-    else:
-        log_fn("  WARN: MISTRAL_API_KEY missing — embeddings unconfigured")
+    embedding_model = os.environ.get("LOCAL_EMBEDDING_MODEL", "qwen3-embedding:4b")
+    try:
+        giskard.llm.set_embedding_model(f"ollama/{embedding_model}")
+        log_fn(f"  Embeddings: ollama/{embedding_model}")
+    except Exception as e:
+        log_fn(f"  WARN: set_embedding_model failed: {e}")
 
     return primary

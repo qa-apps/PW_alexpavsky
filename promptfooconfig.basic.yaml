@@ -11,12 +11,9 @@ description: 'AI Chatbot Assistant — Basic Evaluation (2 core smoke probes)'
 # permanent daily suite lives in promptfooconfig.yaml and is intentionally kept
 # at 15 probes to save tokens and free-tier rate limit budget.
 #
-# Provider: Cerebras only for the daily smoke path. Groq is reserved for the
-# dedicated LLM Judge workflow, and the Gemini secret is currently blocked by
-# Google as leaked, so including either here makes the Promptfoo channel noisy.
-# Assertions stay deterministic in the daily smoke suite so this channel does
-# not burn extra judge calls or fail on free-tier judge rate limits. LLM-as-judge
-# coverage lives in the dedicated LLM Quality workflow and Slack channel.
+# Provider: GPT-OSS 120B on the local bosgame Ollama service. Assertions stay
+# deterministic in this smoke suite; LLM-as-judge coverage lives in the full
+# Promptfoo and dedicated LLM Quality workflows.
 # ─────────────────────────────────────────────────────────────────────────────
 
 prompts:
@@ -27,13 +24,13 @@ prompts:
     {{prompt}}
 
 providers:
-  - id: openai:chat:gpt-oss-120b
-    label: 'CEREBRAS · GPT-OSS 120B · reliable [free]'
+  - id: ollama:chat:gpt-oss:120b
+    label: 'BOSGAME · GPT-OSS 120B · local'
     config:
-      apiBaseUrl: https://api.cerebras.ai/v1
-      apiKey: '{{env.CEREBRAS_API_KEY}}'
-      model: gpt-oss-120b
       temperature: 0
+      think: true
+      num_predict: 1024
+      keep_alive: 30m
 
 tests:
   # 1 — basic identity / greeting

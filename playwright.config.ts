@@ -6,13 +6,14 @@ dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 export default defineConfig({
   testDir: './tests',
+  testIgnore: [
+    '**/voice/**/*.test.ts',
+    '**/observability/**/*.test.ts',
+  ],
   outputDir: 'test-results/recordings',
   timeout: 60_000,
   expect: {
     timeout: 10_000,
-    toHaveScreenshot: {
-      pathTemplate: '{testDir}/reg-snapshots/{testFilePath}/{arg}{ext}',
-    },
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
