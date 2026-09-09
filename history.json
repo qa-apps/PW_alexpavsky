@@ -4472,5 +4472,21 @@
     "files": [
       "report.md"
     ]
+  },
+  {
+    "run_number": 136,
+    "run_id": "34386278918",
+    "timestamp": "2026-09-09T18:08:17+00:00",
+    "commit": "8bc8d3d",
+    "ragas": {
+      "avg_faithfulness": 0.0,
+      "avg_relevancy": 0.0,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": [
+      "report.md"
+    ]
   }
 ]
