@@ -125,6 +125,7 @@ export async function runArticleQualityJudge(
     try {
       const resp = await reqContext.post(baseUrl, {
         headers,
+        timeout: Number(process.env.LOCAL_LLM_TIMEOUT_MS || 180_000),
         data: {
           model,
           messages: [

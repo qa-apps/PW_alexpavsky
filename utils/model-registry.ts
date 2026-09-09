@@ -19,7 +19,7 @@ import * as https from 'https';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ModelTier = 'S' | 'M' | 'H';
-export type ProviderName = 'groq' | 'openrouter' | 'huggingface' | 'gemini' | 'cerebras' | 'sambanova' | 'mistral';
+export type ProviderName = 'ollama' | 'groq' | 'openrouter' | 'huggingface' | 'gemini' | 'cerebras' | 'sambanova' | 'mistral';
 
 export interface ModelEntry {
   id: string;
@@ -38,6 +38,27 @@ export interface ResolvedProvider {
   model: string;
   headers: Record<string, string>;
   providerName: ProviderName;
+}
+
+function resolveLocalProvider(): ResolvedProvider | null {
+  const configuredBaseUrl = process.env.LOCAL_LLM_BASE_URL || process.env.OLLAMA_BASE_URL;
+  if (!configuredBaseUrl) return null;
+
+  const apiRoot = configuredBaseUrl.replace(/\/$/, '');
+  const baseUrl = apiRoot.endsWith('/v1')
+    ? `${apiRoot}/chat/completions`
+    : `${apiRoot}/v1/chat/completions`;
+  const apiKey = process.env.LOCAL_LLM_API_KEY || process.env.OLLAMA_API_KEY || 'ollama';
+
+  return {
+    baseUrl,
+    model: process.env.LOCAL_LLM_MODEL || 'gpt-oss:120b',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    providerName: 'ollama',
+  };
 }
 
 // ─── Cache ────────────────────────────────────────────────────────────────────
@@ -378,6 +399,9 @@ export async function getModelRegistry(forceRefresh = false): Promise<ModelEntry
 export async function resolveBestProvider(
   preferTier: ModelTier = 'M',
 ): Promise<ResolvedProvider> {
+  const local = resolveLocalProvider();
+  if (local) return local;
+
   const models = await getModelRegistry();
 
   const tierOrder: ModelTier[] = preferTier === 'H'
@@ -517,6 +541,9 @@ export async function resolveBestProvider(
 export async function resolveAllProviders(
   preferTier: ModelTier = 'M',
 ): Promise<ResolvedProvider[]> {
+  const local = resolveLocalProvider();
+  if (local) return [local];
+
   const models = await getModelRegistry();
 
   const tierOrder: ModelTier[] = preferTier === 'H'
@@ -572,6 +599,11 @@ export async function resolveAllProviders(
  * Useful for debugging / logging in CI.
  */
 export async function getProviderSummary(): Promise<string> {
+  const local = resolveLocalProvider();
+  if (local) {
+    return `[model-registry] Provider summary:\n  ollama       endpoint=OK model=${local.model}`;
+  }
+
   const models = await getModelRegistry();
   const providers: ProviderName[] = ['groq', 'cerebras', 'sambanova', 'mistral', 'openrouter', 'huggingface', 'gemini'];
   const lines: string[] = ['[model-registry] Provider summary:'];

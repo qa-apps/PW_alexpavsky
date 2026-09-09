@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const BASE_URL = process.env.SITE_URL || 'https://www.alexpavsky.com';
-const INCIDENT_RE = /di-era-ai-yang-menang-bukan-yang-kerja-paling-banyak|yang menang bukan yang kerja paling banyak|kielltampubolon/i;
+const INCIDENT_RE = /di-era-ai-yang-menang-bukan-yang-kerja-paling-banyak|yang menang bukan yang kerja paling banyak|kielltampubolon|sessioni sicure|protezione anti-fixation/i;
 
 type FeedArticle = {
   source?: string;
@@ -22,6 +22,9 @@ const LATIN_NON_ENGLISH_STOPWORDS = new Set([
   'dari', 'dengan', 'di', 'ini', 'itu', 'jadi', 'kalau', 'karena',
   'kerja', 'lebih', 'mana', 'menang', 'mereka', 'paling', 'pada',
   'saya', 'sebagai', 'sebuah', 'semua', 'tidak', 'untuk', 'yang',
+  'articolo', 'come', 'degli', 'della', 'delle', 'dopo', 'gli', 'italiana',
+  'italiano', 'perche', 'protezione', 'questa', 'quello', 'sessioni',
+  'sicure', 'sono', 'sulla', 'tutto', 'una',
 ]);
 
 const ENGLISH_STOPWORDS = new Set([
@@ -88,6 +91,14 @@ test.describe('Live feed language quality', () => {
             date: new Date().toISOString(),
           },
           {
+            category: 'dev',
+            title: 'Sessioni sicure: flash data, timeout e protezione anti-fixation',
+            source: 'Dev.to',
+            link: 'https://dev.to/dev_iadicola/sessioni-sicure-flash-data-timeout-e-protezione-anti-fixation-1lai',
+            description: 'Una panoramica pratica sulla protezione delle sessioni web.',
+            date: new Date().toISOString(),
+          },
+          {
             category: 'qa',
             title: 'Playwright regression checks keep public feeds clean',
             source: 'QA Automation',
@@ -104,5 +115,6 @@ test.describe('Live feed language quality', () => {
 
     await expect(page.locator('.live-item-title', { hasText: /Playwright regression checks/i }).first()).toBeVisible();
     await expect(page.locator('.live-item-title', { hasText: /yang menang bukan yang kerja/i })).toHaveCount(0);
+    await expect(page.locator('.live-item-title', { hasText: /Sessioni sicure/i })).toHaveCount(0);
   });
 });

@@ -42,24 +42,29 @@ def load_results(path: str) -> list[dict]:
             "label": label or "provider",
             "description": desc or "test",
             "passed": bool(r.get("success")),
+            "error": r.get("error") or (r.get("response") or {}).get("error") or "",
         })
     return flat
 
 
-def build_donut(passed: int, failed: int) -> str:
-    total = passed + failed
+def build_donut(passed: int, failed: int, errors: int = 0) -> str:
+    total = passed + failed + errors
     if not total:
         return "—"
     filled = round((passed / total) * 10)
-    return f"`{'🟩' * filled}{'🟥' * (10 - filled)}`  {passed}/{total} passed"
+    failed_width = 10 - filled
+    return f"`{'🟩' * filled}{'🟥' * failed_width}`  {passed}/{total} passed"
 
 
 def build_payload(channel: str, run_url: str, results: list[dict], dashboard_url: str = "") -> dict:
     passed = sum(1 for r in results if r["passed"])
-    failed = len(results) - passed
+    errors = sum(1 for r in results if r.get("error"))
+    failed = len(results) - passed - errors
     total = len(results)
 
-    if failed:
+    if errors:
+        color, icon, status = "#cc2929", "🔴", "ERROR"
+    elif failed:
         color, icon, status = "#cc2929", "🔴", "FAILED"
     elif total:
         color, icon, status = "#2eb886", "✅", "PASSED"
@@ -68,19 +73,25 @@ def build_payload(channel: str, run_url: str, results: list[dict], dashboard_url
 
     detail = []
     for r in results[:15]:
-        mark = "✅" if r["passed"] else "🔴"
+        mark = "✅" if r["passed"] else ("⚠️" if r.get("error") else "🔴")
         detail.append(f"{mark} *{r['description']}* · {r['label']}")
 
     blocks = [
         {"type": "header", "text": {"type": "plain_text",
                                     "text": f"{icon}  promptfoo Daily Eval  —  {status}",
                                     "emoji": True}},
-        {"type": "section", "text": {"type": "mrkdwn", "text": build_donut(passed, failed)}},
+        {"type": "section", "text": {"type": "mrkdwn", "text": build_donut(passed, failed, errors)}},
         {"type": "section", "fields": [
             {"type": "mrkdwn", "text": f"*✅ Passed*\n{passed}"},
             {"type": "mrkdwn", "text": f"*🔴 Failed*\n{failed}"},
+            {"type": "mrkdwn", "text": f"*⚠️ Errors*\n{errors}"},
+            {"type": "mrkdwn", "text": f"*📊 Total*\n{total}"},
         ]},
     ]
+    first_error = next((r.get("error", "") for r in results if r.get("error")), "")
+    if first_error:
+        first_line = first_error.splitlines()[0][:280]
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f"*First error:*\n`{first_line}`"}})
     if detail:
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "\n".join(detail)}})
     action_elements = []
@@ -89,7 +100,7 @@ def build_payload(channel: str, run_url: str, results: list[dict], dashboard_url
             "type": "button",
             "text": {"type": "plain_text", "text": "Open Promptfoo UI", "emoji": True},
             "url": dashboard_url,
-            "style": "primary" if failed == 0 else "danger",
+            "style": "primary" if failed == 0 and errors == 0 else "danger",
         })
     if run_url:
         action_elements.append({

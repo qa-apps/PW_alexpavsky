@@ -154,7 +154,11 @@
         "grounding",
         "context",
         "claim",
-        "verification"
+        "verification",
+        "ground-truth",
+        "rubric",
+        "monitoring",
+        "Ragas"
       ],
       "min_keyword_matches": 2,
       "min_faithfulness": 0.6,
@@ -189,7 +193,11 @@
         "regression",
         "promptfoo",
         "deepeval",
-        "hallucination"
+        "hallucination",
+        "validation",
+        "scorecard",
+        "monitoring",
+        "evidence"
       ],
       "min_keyword_matches": 2,
       "min_faithfulness": 0.6,
