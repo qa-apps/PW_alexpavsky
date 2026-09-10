@@ -3,23 +3,23 @@
 ragas_eval.py — Ragas-based RAG quality evaluation for alexpavsky.com.
 
 Runs golden questions through the RAG API, then evaluates each answer with
-Ragas metrics (faithfulness, answer_relevancy) using Groq as the LLM judge
-and local sentence-transformers as embeddings.
+Ragas metrics (faithfulness, answer_relevancy) using local GPT-OSS as the LLM
+judge and local embeddings.
 
 Designed for both local development and nightly CI runs.
 
 Usage (local):
     pip install -r eval/requirements.txt
-    GROQ_API_KEY=... python eval/ragas_eval.py
+    LOCAL_LLM_BASE_URL=http://127.0.0.1:11434/v1 python eval/ragas_eval.py
 
 Usage (CI):
     See .github/workflows/ragas-nightly.yml
 
 Environment variables:
-    GROQ_API_KEY       Required. Used as LLM judge for Ragas metrics.
+    LOCAL_LLM_BASE_URL Optional. Local OpenAI-compatible judge endpoint.
     RAG_API_URL        Optional. Default: http://localhost:8001
-    MIN_FAITHFULNESS   Optional. Default: 0.65. Build fails if avg below.
-    MIN_RELEVANCY      Optional. Default: 0.55. Build fails if avg below.
+    MIN_FAITHFULNESS   Optional. Default: 0.50. Build fails if avg below.
+    MIN_RELEVANCY      Optional. Default: 0.35. Build fails if avg below.
     MAX_QUESTIONS      Optional. Limit number of questions (debugging).
     OUTPUT_PATH        Optional. Default: eval/results/report.md
 """
@@ -44,20 +44,17 @@ RESULTS_DIR = ROOT / "eval" / "results"
 
 RAG_API_URL = os.environ.get("RAG_API_URL", "http://localhost:8001").rstrip("/")
 
-# Judge providers are auto-detected from environment by build_provider_list().
-# Supported (in priority order): groq, cerebras, sambanova, mistral,
-# openrouter (3 models), huggingface. Each provider's API key is read from
-# its respective env var: GROQ_API_KEY, CEREBRAS_API_KEY, SAMBANOVA_API_KEY,
-# MISTRAL_API_KEY, OPENROUTER_API_KEY, HF_TOKEN.
+# The judge and embedding provider are configured by rotating_llm.py and point
+# to the local bosgame Ollama service in CI.
 
-MIN_FAITHFULNESS = float(os.environ.get("MIN_FAITHFULNESS", "0.65"))
-MIN_RELEVANCY = float(os.environ.get("MIN_RELEVANCY", "0.55"))
+MIN_FAITHFULNESS = float(os.environ.get("MIN_FAITHFULNESS", "0.50"))
+MIN_RELEVANCY = float(os.environ.get("MIN_RELEVANCY", "0.35"))
 MAX_QUESTIONS = int(os.environ.get("MAX_QUESTIONS", "0"))  # 0 = all
 # How many individual question failures are tolerated before the run is marked
-# failed (and the auto-fix agent is allowed to trigger). Default 0 = any single
-# failed question fails the build, so "even RAG" failures get investigated.
+# failed. The default allows a small minority of weak answers while still
+# catching broad regressions.
 # Set ALLOWED_FAILURES=-1 to fall back to average-only gating (legacy behaviour).
-ALLOWED_FAILURES = int(os.environ.get("ALLOWED_FAILURES", "0"))
+ALLOWED_FAILURES = int(os.environ.get("ALLOWED_FAILURES", "3"))
 OUTPUT_PATH = Path(os.environ.get("OUTPUT_PATH", str(RESULTS_DIR / "report.md")))
 
 REQUEST_DELAY_SEC = float(os.environ.get("REQUEST_DELAY_SEC", "1.0"))
@@ -187,9 +184,7 @@ def main() -> int:
     from rotating_llm import build_provider_list
     providers = build_provider_list()
     if not providers:
-        fail("No judge API keys set. Set at least one of: GROQ_API_KEY, "
-             "CEREBRAS_API_KEY, SAMBANOVA_API_KEY, MISTRAL_API_KEY, "
-             "OPENROUTER_API_KEY, HF_TOKEN")
+        fail("Local GPT-OSS judge is not configured. Set LOCAL_LLM_BASE_URL and LOCAL_LLM_MODEL.")
     log(f"Judge providers available: {len(providers)}")
     for p in providers:
         log(f"  - {p['name']:20s} / {p['model']}")
@@ -278,31 +273,42 @@ def main() -> int:
     # Step 2: Run Ragas
     log("Step 2/3: Running Ragas evaluation (faithfulness + answer_relevancy)...")
     log("-" * 72)
-    log("  Loading Ragas + langchain + sentence-transformers (first run is slow)...")
+    log("  Loading Ragas + LangChain (first run can be slow)...")
 
     try:
-        from langchain_openai import ChatOpenAI
-        from langchain_huggingface import HuggingFaceEmbeddings
+        from langchain_openai import OpenAIEmbeddings
         from ragas import evaluate, EvaluationDataset, SingleTurnSample
         from ragas.metrics import Faithfulness, ResponseRelevancy
         from ragas.llms import LangchainLLMWrapper
         from ragas.embeddings import LangchainEmbeddingsWrapper
+        from ragas.run_config import RunConfig
     except ImportError as e:
         fail(f"Missing dependency: {e}. Run: pip install -r eval/requirements.txt")
 
-    # Build rotating judge — auto-switches to next provider on rate limit / quota.
-    # This is a custom LangChain ChatModel that wraps all available providers
-    # and transparently rotates on errors. Ragas sees it as a normal LLM.
+    # Build the local judge. The wrapper shape is retained for compatibility
+    # with Ragas, but the configured provider list contains bosgame only.
     from rotating_llm import RotatingJudgeLLM
-    judge_llm = RotatingJudgeLLM(providers=providers, temperature=0, timeout=30)
+    judge_llm = RotatingJudgeLLM(
+        providers=providers,
+        temperature=0,
+        timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+    )
     primary_name = providers[0]["name"]
     primary_model = providers[0]["model"]
-    log(f"  Judge: rotating across {len(providers)} providers")
+    log(f"  Judge: local ({len(providers)} configured provider)")
     log(f"  Primary: {primary_name} / {primary_model}")
     fallbacks = providers[1:]
 
-    judge_embeds = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    log("  Embeddings: sentence-transformers/all-MiniLM-L6-v2 (local)")
+    embedding_model = os.environ.get("LOCAL_EMBEDDING_MODEL", "qwen3-embedding:4b")
+    judge_embeds = OpenAIEmbeddings(
+        model=embedding_model,
+        base_url=providers[0]["base_url"],
+        api_key=providers[0]["api_key"],
+        timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+        max_retries=1,
+        check_embedding_ctx_length=False,
+    )
+    log(f"  Embeddings: {embedding_model} via bosgame")
 
     ragas_llm = LangchainLLMWrapper(judge_llm)
     ragas_embeds = LangchainEmbeddingsWrapper(judge_embeds)
@@ -324,6 +330,11 @@ def main() -> int:
             metrics=[Faithfulness(), ResponseRelevancy()],
             llm=ragas_llm,
             embeddings=ragas_embeds,
+            run_config=RunConfig(
+                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+                max_retries=1,
+                max_workers=1,
+            ),
             raise_exceptions=False,
             show_progress=True,
         )

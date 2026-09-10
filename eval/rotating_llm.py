@@ -147,6 +147,11 @@ def _litellm_model_id(provider: dict[str, str]) -> Optional[str]:
 def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
     """Point Giskard's text judge and embeddings at local Ollama models."""
     import giskard
+    import numpy as np
+    import openai
+    import requests
+    from giskard.llm.client.openai import OpenAIClient
+    from giskard.llm.embeddings import BaseEmbedding, set_default_embedding
 
     provider = providers[0]
     ollama_root = provider["base_url"].removesuffix("/v1")
@@ -159,17 +164,37 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
         raise RuntimeError("No provider in list maps to a LiteLLM-supported id")
 
     primary = litellm_ids[0]
-    log_fn(f"  Judge (LiteLLM): {primary}")
-    try:
-        giskard.llm.set_llm_model(primary)
-    except Exception as e:
-        log_fn(f"  WARN: set_llm_model failed: {e}")
+    # The native OpenAI-compatible client preserves JSON response mode more
+    # reliably than Giskard's LiteLLM adapter for GPT-OSS on Ollama.
+    openai_client = openai.OpenAI(
+        base_url=provider["base_url"],
+        api_key=provider["api_key"],
+        timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+        max_retries=1,
+    )
+    giskard.llm.set_default_client(
+        OpenAIClient(model=provider["model"], client=openai_client, json_mode=True)
+    )
+    log_fn(f"  Judge: {provider['model']} via {provider['base_url']}")
 
     embedding_model = os.environ.get("LOCAL_EMBEDDING_MODEL", "qwen3-embedding:4b")
-    try:
-        giskard.llm.set_embedding_model(f"ollama/{embedding_model}")
-        log_fn(f"  Embeddings: ollama/{embedding_model}")
-    except Exception as e:
-        log_fn(f"  WARN: set_embedding_model failed: {e}")
 
-    return primary
+    class OllamaOpenAIEmbedding(BaseEmbedding):
+        def embed(self, texts):
+            response = requests.post(
+                f"{provider['base_url']}/embeddings",
+                headers={"Authorization": f"Bearer {provider['api_key']}"},
+                json={"model": embedding_model, "input": list(texts)},
+                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+            )
+            response.raise_for_status()
+            rows = sorted(response.json()["data"], key=lambda row: row["index"])
+            return np.asarray([row["embedding"] for row in rows], dtype=np.float32)
+
+    # Giskard 2.16 resets a custom default when no model name is registered.
+    # Register a marker first, then install the direct adapter it will reuse.
+    giskard.llm.set_embedding_model(f"local/{embedding_model}")
+    set_default_embedding(OllamaOpenAIEmbedding())
+    log_fn(f"  Embeddings: {embedding_model} via {provider['base_url']}/embeddings")
+
+    return f"local/{provider['model']}"

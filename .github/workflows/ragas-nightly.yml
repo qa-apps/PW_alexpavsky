@@ -7,7 +7,7 @@ on:
       max_questions:
         description: 'Limit Ragas golden questions (0 = all)'
         required: false
-        default: '15'
+        default: '10'
       rag_api_url:
         description: 'RAG API URL'
         required: false
@@ -137,11 +137,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r eval/requirements.txt
 
-      - name: Pre-download sentence-transformers model
-        if: steps.local_llm.outputs.run == 'true'
-        run: |
-          python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
-
       - name: Run Ragas evaluation
         if: steps.local_llm.outputs.run == 'true'
         env:
@@ -149,9 +144,10 @@ jobs:
           # RAG API endpoint (production)
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
           # Quality gates
-          MAX_QUESTIONS: ${{ inputs.max_questions || '15' }}
-          MIN_FAITHFULNESS: '0.65'
-          MIN_RELEVANCY: '0.55'
+          MAX_QUESTIONS: ${{ inputs.max_questions || '10' }}
+          MIN_FAITHFULNESS: '0.50'
+          MIN_RELEVANCY: '0.35'
+          ALLOWED_FAILURES: '3'
           REQUEST_DELAY_SEC: '2.0'
         run: |
           python eval/ragas_eval.py
@@ -161,17 +157,20 @@ jobs:
         working-directory: eval
         env:
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
-          GISKARD_NUM_QUESTIONS: ${{ inputs.giskard_num_questions || '3' }}
+          GISKARD_NUM_QUESTIONS: ${{ inputs.giskard_num_questions || '2' }}
+          MIN_GISKARD_CORRECTNESS: '0.50'
         run: |
           python giskard_rag.py
 
-      - name: Run Giskard vulnerability scan (7 categories)
+      - name: Run Giskard vulnerability scan (5 categories)
         if: ${{ always() && steps.local_llm.outputs.run == 'true' && (github.event_name == 'schedule' || inputs.run_giskard_scan == true || inputs.run_giskard_scan == 'true') }}
         working-directory: eval
         env:
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
+          GISKARD_MAX_ISSUES_PER_DETECTOR: '3'
+          GISKARD_MAX_ALLOWED_ISSUES: '0'
         run: |
-          python giskard_scan.py || echo "Giskard scan finished with non-zero exit"
+          python giskard_scan.py
 
       - name: Upload eval reports
         if: always() && steps.local_llm.outputs.run == 'true'

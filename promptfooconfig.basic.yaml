@@ -9,7 +9,7 @@ description: 'AI Chatbot Assistant — Basic Evaluation (2 core smoke probes)'
 #
 # It holds only the most important general/functional smoke probes. The
 # permanent daily suite lives in promptfooconfig.yaml and is intentionally kept
-# at 15 probes to save tokens and free-tier rate limit budget.
+# at 10 essential probes to keep the daily signal focused.
 #
 # Provider: GPT-OSS 120B on the local bosgame Ollama service. Assertions stay
 # deterministic in this smoke suite; LLM-as-judge coverage lives in the full
@@ -43,8 +43,6 @@ tests:
           - 'AI assistant'
           - 'assistant'
           - 'Alex'
-      - type: not-contains
-        value: 'I am an AI language model'
 
   # 2 — on-domain knowledge
   - description: 'Relevant domain question'

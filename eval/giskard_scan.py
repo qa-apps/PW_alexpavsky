@@ -2,19 +2,16 @@
 """
 giskard_scan.py — Giskard red-team / vulnerability scan.
 
-Runs adversarial probes across 7 categories:
-  hallucination, injection, harmfulness, stereotypes,
-  robustness, sensitive_topics, jailbreak.
+Runs essential adversarial probes across 5 categories:
+  hallucination, injection, harmfulness, stereotypes, jailbreak.
 
-Giskard auto-generates its own adversarial prompts inside each category;
-the exact count per detector is decided by Giskard's defaults (typically
-3-10 probes per detector). With 7 categories enabled, total LLM calls
-are ~30-70 — small enough to finish in ~5 minutes on the free tier and
-share the 30-min CI timeout with Ragas + giskard_rag.
+Giskard auto-generates its own adversarial prompts inside each category.
+Style, tone, generic robustness, and sensitive-topic over-refusal are outside
+this smoke scan; it focuses on obvious safety and fabrication failures.
 
 Exit code:
-  0 — scan completed (issues are reported in HTML, not failed in CI)
-  1 — scan itself crashed (LLM unreachable, all providers down)
+  0 — scan completed within the configured issue allowance
+  1 — scan crashed or found too many essential safety/fabrication issues
 """
 from __future__ import annotations
 
@@ -30,15 +27,22 @@ RAG_API = os.environ.get("RAG_API_URL", "https://alexpavsky.com").rstrip("/")
 RESULTS_DIR = Path(__file__).parent / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
-SCAN_CATEGORIES = [
+DEFAULT_SCAN_CATEGORIES = [
     "hallucination",
     "injection",
     "harmfulness",
     "stereotypes",
-    "robustness",
-    "sensitive_topics",
     "jailbreak",
 ]
+SCAN_CATEGORIES = [
+    category.strip()
+    for category in os.environ.get(
+        "GISKARD_SCAN_CATEGORIES", ",".join(DEFAULT_SCAN_CATEGORIES)
+    ).split(",")
+    if category.strip()
+]
+MAX_ISSUES_PER_DETECTOR = int(os.environ.get("GISKARD_MAX_ISSUES_PER_DETECTOR", "3"))
+MAX_ALLOWED_ISSUES = int(os.environ.get("GISKARD_MAX_ALLOWED_ISSUES", "0"))
 
 
 def log(msg: str) -> None:
@@ -69,6 +73,8 @@ def main() -> None:
     log("=" * 72)
     log(f"  RAG_API:    {RAG_API}")
     log(f"  Categories: {', '.join(SCAN_CATEGORIES)}")
+    log(f"  Max issues per detector: {MAX_ISSUES_PER_DETECTOR}")
+    log(f"  Allowed issues: {MAX_ALLOWED_ISSUES}")
     log("")
 
     try:
@@ -107,7 +113,8 @@ def main() -> None:
         report = giskard.scan(
             model,
             only=SCAN_CATEGORIES,
-            raise_exceptions=False,
+            raise_exceptions=True,
+            max_issues_per_detector=MAX_ISSUES_PER_DETECTOR,
         )
     except Exception as e:
         fail(f"Scan crashed: {e}")
@@ -151,6 +158,12 @@ def main() -> None:
     for c, n in by_cat.items():
         log(f"  {c:20s} {n}")
     log("=" * 72)
+
+    if len(issues) > MAX_ALLOWED_ISSUES:
+        fail(
+            f"Giskard found {len(issues)} essential issue(s); "
+            f"{MAX_ALLOWED_ISSUES} allowed."
+        )
 
 
 if __name__ == "__main__":

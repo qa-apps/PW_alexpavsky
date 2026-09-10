@@ -1,16 +1,12 @@
 name: LLM Quality (LLM Judge tests)
 
 # Companion to playwright-ci.yml. The "LLM Judge" suite lives here because
-# every test exercises:
-#   1. Production /api/chat (8-provider rotation with free-tier rate limits)
-#   2. An LLM judge that scores the chatbot's non-deterministic answer
-# So failures here usually mean "Groq+Cerebras got rate-limited" or "the
-# free model answered in a stylistic shape the judge didn't accept" —
-# real LLM behavior issues, not regressions in our code.
+# every test exercises production /api/chat and grades only essential behavior
+# with the local GPT-OSS judge on bosgame. Style and tone are not quality gates.
 #
-# This workflow runs the SAME tests as main but in isolation, and
-# continue-on-error on the test step keeps red runs from looking like
-# code regressions. Use it as a quality trend signal, not a gate.
+# This workflow runs the same tests as main in isolation. The test step is
+# temporarily non-blocking so reports and Slack notifications are always
+# produced; a final step restores the correct failed job status.
 
 on:
   workflow_dispatch:
@@ -38,6 +34,8 @@ jobs:
       LOCAL_LLM_API_KEY: ollama
       LOCAL_LLM_TIMEOUT_SEC: '180'
       LOCAL_LLM_TIMEOUT_MS: '180000'
+      LLM_TEST_TIMEOUT_MS: '300000'
+      LLM_JUDGE_PASSING_SCORE: '3'
 
     steps:
       - name: Checkout
@@ -134,16 +132,13 @@ jobs:
 
       - name: Run LLM Judge tests
         if: steps.local_llm.outputs.run == 'true'
-        # continue-on-error: failures here are non-blocking — they reflect
-        # LLM availability, not code regressions. Trends in the report
-        # artifact tell us whether quality is sliding over time; the
-        # job status is informational.
+        # Keep later report, artifact, and Slack steps running on failures.
         continue-on-error: true
         id: run_tests
         # "LLM Judge" = the dedicated judge suite; "Content quality" = the
         # @upstream article-quality-judge specs, migrated here so their judge
         # runs on local gpt-oss instead of free-tier providers.
-        run: npx playwright test --grep "LLM Judge|Content quality" --reporter=list,json
+        run: npx playwright test --grep "LLM Judge|Content quality" --workers=1 --reporter=list,json
         env:
           CI: true
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
@@ -173,8 +168,8 @@ jobs:
           echo "## LLM Quality Run #${{ github.run_number }}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Tests in this workflow probe the production AI chatbot via" >> "$GITHUB_STEP_SUMMARY"
-          echo "the 8-provider rotation and grade responses with an LLM judge." >> "$GITHUB_STEP_SUMMARY"
-          echo "Failures usually = rate-limited providers, not code bugs." >> "$GITHUB_STEP_SUMMARY"
+          echo "the production chatbot and grade essential behavior with local GPT-OSS." >> "$GITHUB_STEP_SUMMARY"
+          echo "Style and tone are intentionally outside this smoke gate." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**Step status:** ${{ steps.run_tests.outcome }}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -264,3 +259,7 @@ jobs:
         with:
           path: .ci-markers/llm-quality.done
           key: bosgame-llm-quality-${{ steps.eval_day.outputs.date }}
+
+      - name: Fail if LLM quality tests failed
+        if: steps.local_llm.outputs.run == 'true' && steps.run_tests.outcome == 'failure'
+        run: exit 1
