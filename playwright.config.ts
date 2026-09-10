@@ -5,6 +5,7 @@ import * as path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 export default defineConfig({
+  globalSetup: require.resolve('./utils/global-setup'),
   testDir: './tests',
   testIgnore: [
     '**/voice/**/*.test.ts',
