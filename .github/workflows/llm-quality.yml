@@ -25,11 +25,14 @@ permissions:
 jobs:
   llm-quality:
     runs-on: [self-hosted, Linux, X64, bosgame]
-    timeout-minutes: 180
+    timeout-minutes: 480
     env:
-      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      LLM_CATALOG_URL: http://127.0.0.1:11434
+      OLLAMA_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445' || 'http://127.0.0.1:11434' }}
       LOCAL_LLM_BASE_URL: http://127.0.0.1:11434/v1
-      LOCAL_LLM_MODEL: gpt-oss:120b
+      LOCAL_LLM_MODEL: ${{ github.event_name == 'schedule' && 'scheduled/gpt-oss:120b' || 'gpt-oss:120b' }}
+      LOCAL_LLM_UPSTREAM_MODEL: gpt-oss:120b
+      LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '0' }}
       LOCAL_EMBEDDING_MODEL: qwen3-embedding:4b
       LOCAL_LLM_API_KEY: ollama
       LOCAL_LLM_TIMEOUT_SEC: '180'
@@ -67,7 +70,7 @@ jobs:
         if: steps.daily_marker.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error "$OLLAMA_BASE_URL/v1/models") && \
+          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error "$LLM_CATALOG_URL/v1/models") && \
              python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("id") == wanted for m in data.get("data", [])) else 1)' "$LOCAL_LLM_MODEL" <<<"$models"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Local model $LOCAL_LLM_MODEL is ready."
@@ -98,12 +101,14 @@ jobs:
         if: steps.local_llm.outputs.run == 'true'
         shell: bash
         run: |
-          echo "Warming $LOCAL_LLM_MODEL (cold load ~30s; budget 150s)…"
+          echo "Warming $LOCAL_LLM_UPSTREAM_MODEL (scheduled work waits behind interactive use)…"
           curl -s --max-time 150 "$OLLAMA_BASE_URL/api/generate" \
-            -d "{\"model\":\"$LOCAL_LLM_MODEL\",\"prompt\":\"ok\",\"stream\":false,\"keep_alive\":-1,\"options\":{\"num_predict\":1}}" \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" -H "X-LLM-Model: $LOCAL_LLM_UPSTREAM_MODEL" \
+            -d "{\"model\":\"$LOCAL_LLM_UPSTREAM_MODEL\",\"prompt\":\"ok\",\"stream\":false,\"keep_alive\":-1,\"options\":{\"num_predict\":1}}" \
             >/dev/null || echo "warm-up request timed out (continuing anyway)"
           if [ -n "${LOCAL_EMBEDDING_MODEL:-}" ]; then
             curl -s --max-time 60 "$OLLAMA_BASE_URL/api/embed" \
+              -H "X-LLM-Job-ID: $GITHUB_RUN_ID" -H "X-LLM-Model: $LOCAL_EMBEDDING_MODEL" \
               -d "{\"model\":\"$LOCAL_EMBEDDING_MODEL\",\"input\":\"ok\",\"keep_alive\":-1}" >/dev/null || true
           fi
 

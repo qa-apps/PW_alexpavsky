@@ -21,6 +21,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -104,17 +105,27 @@ def _should_rotate(err_text: str) -> bool:
 
 
 def _post(url: str, headers: dict, body: bytes, timeout: int) -> dict:
-    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.loads(r.read())
-    except urllib.error.HTTPError as e:
-        # Read response body to get the actual error message
+    max_wait = max(0, int(os.environ.get("LOCAL_LLM_PRIORITY_MAX_WAIT_SEC", "0")))
+    deadline = time.monotonic() + max_wait
+    while True:
+        req = urllib.request.Request(url, data=body, headers=headers, method="POST")
         try:
-            err_body = e.read().decode("utf-8", errors="replace")[:300]
-        except Exception:
-            err_body = ""
-        raise RuntimeError(f"HTTP {e.code}: {err_body or e.reason}") from e
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            try:
+                err_body = e.read().decode("utf-8", errors="replace")[:300]
+            except Exception:
+                err_body = ""
+            if e.code == 503 and time.monotonic() < deadline:
+                time.sleep(min(5.0, max(0.0, deadline - time.monotonic())))
+                continue
+            raise RuntimeError(f"HTTP {e.code}: {err_body or e.reason}") from e
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError):
+            if time.monotonic() < deadline:
+                time.sleep(min(5.0, max(0.0, deadline - time.monotonic())))
+                continue
+            raise
 
 
 def _build_payload(model: str, messages: list, system: str | None,

@@ -121,46 +121,60 @@ export async function runArticleQualityJudge(
   for (const { baseUrl, model, headers, providerName } of providers) {
     const tag = `${providerName}:${model}`;
     console.log(`[article-quality-judge] via ${tag} — title="${clip(articleTitle, 60)}"`);
-    const reqContext = await request.newContext();
-    try {
-      const resp = await reqContext.post(baseUrl, {
-        headers,
-        timeout: Number(process.env.LOCAL_LLM_TIMEOUT_MS || 180_000),
-        data: {
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPayload },
-          ],
-          temperature: 0,
-          response_format: { type: 'json_object' },
-        },
-      });
-      const text = await resp.text();
-      if (!resp.ok()) {
-        lastReason = `${tag} HTTP ${resp.status()}: ${clip(text, 200)}`;
-        continue;
+    const priorityDeadline = Date.now() + Number(process.env.LOCAL_LLM_PRIORITY_MAX_WAIT_SEC || 0) * 1000;
+    while (true) {
+      const reqContext = await request.newContext();
+      try {
+        const resp = await reqContext.post(baseUrl, {
+          headers,
+          timeout: Number(process.env.LOCAL_LLM_TIMEOUT_MS || 180_000),
+          data: {
+            model,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPayload },
+            ],
+            temperature: 0,
+            response_format: { type: 'json_object' },
+          },
+        });
+        const text = await resp.text();
+        if (!resp.ok()) {
+          if (resp.status() === 503 && Date.now() < priorityDeadline) {
+            console.log(`[article-quality-judge] interactive work owns GPU; retrying ${tag} in 5s`);
+            await new Promise((resolve) => setTimeout(resolve, Math.min(5000, priorityDeadline - Date.now())));
+            continue;
+          }
+          lastReason = `${tag} HTTP ${resp.status()}: ${clip(text, 200)}`;
+          break;
+        }
+        const json = JSON.parse(text);
+        const content = json?.choices?.[0]?.message?.content;
+        if (typeof content !== 'string') {
+          lastReason = `${tag} no message.content in response`;
+          break;
+        }
+        const parsed = JSON.parse(content);
+        const rawScore = Number(parsed.score);
+        const score = (Number.isFinite(rawScore) ? Math.max(1, Math.min(5, Math.round(rawScore))) : 1) as 1 | 2 | 3 | 4 | 5;
+        const isReal = typeof parsed.isReal === 'boolean' ? parsed.isReal : score >= PASSING;
+        return {
+          score,
+          isReal,
+          reasoning: typeof parsed.reasoning === 'string' ? parsed.reasoning.slice(0, 500) : 'No reasoning provided.',
+          judgeUsed: tag,
+        };
+      } catch (e) {
+        if (Date.now() < priorityDeadline) {
+          console.log(`[article-quality-judge] model was preempted; retrying ${tag} in 5s`);
+          await new Promise((resolve) => setTimeout(resolve, Math.min(5000, priorityDeadline - Date.now())));
+          continue;
+        }
+        lastReason = `${tag} threw ${String(e).slice(0, 200)}`;
+        break;
+      } finally {
+        await reqContext.dispose();
       }
-      const json = JSON.parse(text);
-      const content = json?.choices?.[0]?.message?.content;
-      if (typeof content !== 'string') {
-        lastReason = `${tag} no message.content in response`;
-        continue;
-      }
-      const parsed = JSON.parse(content);
-      const rawScore = Number(parsed.score);
-      const score = (Number.isFinite(rawScore) ? Math.max(1, Math.min(5, Math.round(rawScore))) : 1) as 1 | 2 | 3 | 4 | 5;
-      const isReal = typeof parsed.isReal === 'boolean' ? parsed.isReal : score >= PASSING;
-      return {
-        score,
-        isReal,
-        reasoning: typeof parsed.reasoning === 'string' ? parsed.reasoning.slice(0, 500) : 'No reasoning provided.',
-        judgeUsed: tag,
-      };
-    } catch (e) {
-      lastReason = `${tag} threw ${String(e).slice(0, 200)}`;
-    } finally {
-      await reqContext.dispose();
     }
   }
 

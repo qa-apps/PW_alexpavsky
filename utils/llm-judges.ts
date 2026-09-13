@@ -367,54 +367,67 @@ async function postJudgeRequest(
   providerName: string,
   model: string,
 ): Promise<JudgeApiResult> {
-  const reqContext = await request.newContext();
   const timeout = Number(process.env.LOCAL_LLM_TIMEOUT_MS || 180_000);
+  const priorityDeadline = Date.now() + Number(process.env.LOCAL_LLM_PRIORITY_MAX_WAIT_SEC || 0) * 1000;
 
-  try {
-    const response = await reqContext.post(baseUrl, { headers, data, timeout });
-    const bodyText = await response.text();
-
-    if (!response.ok()) {
-      return {
-        ok: false,
-        reasoning: await buildJudgeFailureReason(
-          `${providerName}:${model} returned HTTP ${response.status()} ${response.statusText()}. ${normalizeFailureDetails(bodyText)}`,
-        ),
-      };
-    }
-
-    let json: unknown;
+  while (true) {
+    const reqContext = await request.newContext();
     try {
-      json = JSON.parse(bodyText);
+      const response = await reqContext.post(baseUrl, { headers, data, timeout });
+      const bodyText = await response.text();
+
+      if (!response.ok()) {
+        if (response.status() === 503 && Date.now() < priorityDeadline) {
+          console.log(`[llm-judge] interactive work owns GPU; retrying ${providerName}:${model} in 5s`);
+          await new Promise((resolve) => setTimeout(resolve, Math.min(5000, priorityDeadline - Date.now())));
+          continue;
+        }
+        return {
+          ok: false,
+          reasoning: await buildJudgeFailureReason(
+            `${providerName}:${model} returned HTTP ${response.status()} ${response.statusText()}. ${normalizeFailureDetails(bodyText)}`,
+          ),
+        };
+      }
+
+      let json: unknown;
+      try {
+        json = JSON.parse(bodyText);
+      } catch (error) {
+        return {
+          ok: false,
+          reasoning: await buildJudgeFailureReason(
+            `${providerName}:${model} returned a non-JSON response. ${normalizeFailureDetails(String(error))}. ${normalizeFailureDetails(bodyText)}`,
+          ),
+        };
+      }
+
+      const content = readJudgeContent(json);
+      if (!content) {
+        return {
+          ok: false,
+          reasoning: await buildJudgeFailureReason(
+            `${providerName}:${model} returned no judge content in choices[0].message.content. ${normalizeFailureDetails(bodyText)}`,
+          ),
+        };
+      }
+
+      return { ok: true, content };
     } catch (error) {
+      if (Date.now() < priorityDeadline) {
+        console.log(`[llm-judge] model was preempted; retrying ${providerName}:${model} in 5s`);
+        await new Promise((resolve) => setTimeout(resolve, Math.min(5000, priorityDeadline - Date.now())));
+        continue;
+      }
       return {
         ok: false,
         reasoning: await buildJudgeFailureReason(
-          `${providerName}:${model} returned a non-JSON response. ${normalizeFailureDetails(String(error))}. ${normalizeFailureDetails(bodyText)}`,
+          `${providerName}:${model} request failed. ${normalizeFailureDetails(String(error))}`,
         ),
       };
+    } finally {
+      await reqContext.dispose();
     }
-
-    const content = readJudgeContent(json);
-    if (!content) {
-      return {
-        ok: false,
-        reasoning: await buildJudgeFailureReason(
-          `${providerName}:${model} returned no judge content in choices[0].message.content. ${normalizeFailureDetails(bodyText)}`,
-        ),
-      };
-    }
-
-    return { ok: true, content };
-  } catch (error) {
-    return {
-      ok: false,
-      reasoning: await buildJudgeFailureReason(
-        `${providerName}:${model} request failed. ${normalizeFailureDetails(String(error))}`,
-      ),
-    };
-  } finally {
-    await reqContext.dispose();
   }
 }
 
