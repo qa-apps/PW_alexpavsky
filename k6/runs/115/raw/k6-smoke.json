@@ -1,0 +1,235 @@
+{
+    "metrics": {
+        "http_req_sending": {
+            "med": 0.0847305,
+            "p(90)": 0.1114554,
+            "p(95)": 0.21067859999999983,
+            "p(99)": 0.30670772000000013,
+            "max": 0.330715,
+            "avg": 0.10889591666666666,
+            "min": 0.072698
+        },
+        "http_req_tls_handshaking": {
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 58.05136169999991,
+            "p(99)": 114.81269314000008,
+            "max": 129.003026,
+            "avg": 10.750252166666668,
+            "min": 0
+        },
+        "http_req_failed": {
+            "fails": 12,
+            "passes": 0,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "vus_max": {
+            "min": 1,
+            "max": 1,
+            "value": 1
+        },
+        "group_duration": {
+            "p(99)": 830.0896247100004,
+            "max": 886.717002,
+            "avg": 322.37104133333327,
+            "min": 125.462268,
+            "med": 371.2756795,
+            "p(90)": 371.882133,
+            "p(95)": 603.5801155499996
+        },
+        "iteration_duration": {
+            "avg": 1322.9410081666667,
+            "min": 1126.124661,
+            "med": 1371.6457225,
+            "p(90)": 1372.2034095,
+            "p(95)": 1604.1964162999996,
+            "p(99)": 1831.01899206,
+            "max": 1887.724636
+        },
+        "iterations": {
+            "count": 12,
+            "rate": 0.7558699295019202
+        },
+        "checks": {
+            "fails": 0,
+            "passes": 36,
+            "thresholds": {
+                "rate>0.99": false
+            },
+            "value": 1
+        },
+        "http_req_connecting": {
+            "p(90)": 0,
+            "p(95)": 58.372857899999914,
+            "p(99)": 115.44854118000008,
+            "max": 129.717462,
+            "avg": 10.809788500000002,
+            "min": 0,
+            "med": 0
+        },
+        "http_req_waiting": {
+            "max": 248.677507,
+            "avg": 196.46335550000003,
+            "min": 123.858626,
+            "med": 247.0534965,
+            "p(90)": 247.2892349,
+            "p(95)": 247.9206586,
+            "p(99)": 248.52613732
+        },
+        "data_received": {
+            "count": 557039,
+            "rate": 35087.41913831835
+        },
+        "http_reqs": {
+            "count": 12,
+            "rate": 0.7558699295019202
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(90)": 371.1786476,
+            "p(95)": 371.37407235,
+            "p(99)": 371.56226167,
+            "max": 371.609309,
+            "avg": 279.1283655833333,
+            "min": 125.26072,
+            "med": 370.9039305
+        },
+        "http_req_receiving": {
+            "min": 0.053159,
+            "med": 123.7224,
+            "p(90)": 124.3365352,
+            "p(95)": 179.5453381499999,
+            "p(99)": 233.47921243000008,
+            "max": 246.962681,
+            "avg": 82.55611416666667
+        },
+        "http_req_duration": {
+            "p(90)": 371.1786476,
+            "p(95)": 371.37407235,
+            "p(99)": 371.56226167,
+            "max": 371.609309,
+            "avg": 279.1283655833333,
+            "min": 125.26072,
+            "med": 370.9039305,
+            "thresholds": {
+                "avg<1000": false,
+                "p(95)<1500": false
+            }
+        },
+        "data_sent": {
+            "count": 4268,
+            "rate": 268.8377382595163
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 1
+        },
+        "http_req_blocked": {
+            "min": 0.000241,
+            "med": 0.0002605,
+            "p(90)": 0.000271,
+            "p(95)": 231.90011874999962,
+            "p(99)": 458.64663655000027,
+            "max": 515.333266,
+            "avg": 42.94467591666668
+        }
+    },
+    "root_group": {
+        "checks": {},
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+                "home": {
+                    "name": "home",
+                    "path": "::home",
+                    "id": "f55eb66156c7d05104505c362878691e",
+                    "groups": {},
+                    "checks": {
+                            "home: status is 200": {
+                                "path": "::home::home: status is 200",
+                                "id": "e9c43e7923a4cc032a653f5524dbf6a2",
+                                "passes": 7,
+                                "fails": 0,
+                                "name": "home: status is 200"
+                            },
+                            "home: content type matches": {
+                                "path": "::home::home: content type matches",
+                                "id": "9729bb1577a5b226c4833d1969117da8",
+                                "passes": 7,
+                                "fails": 0,
+                                "name": "home: content type matches"
+                            },
+                            "home: body contract matches": {
+                                "name": "home: body contract matches",
+                                "path": "::home::home: body contract matches",
+                                "id": "9dcddd316962a7dfae4e6580dd191f31",
+                                "passes": 7,
+                                "fails": 0
+                            }
+                        }
+                },
+                "health": {
+                    "checks": {
+                        "health: status is 200": {
+                            "name": "health: status is 200",
+                            "path": "::health::health: status is 200",
+                            "id": "73a9551039be8a65dac2e012c24dda73",
+                            "passes": 4,
+                            "fails": 0
+                        },
+                        "health: content type matches": {
+                            "fails": 0,
+                            "name": "health: content type matches",
+                            "path": "::health::health: content type matches",
+                            "id": "418c0837feff2d06e2b43ad17c4cf88e",
+                            "passes": 4
+                        },
+                        "health: body contract matches": {
+                            "path": "::health::health: body contract matches",
+                            "id": "a8630443fed9752c4d216fbf82f1910b",
+                            "passes": 4,
+                            "fails": 0,
+                            "name": "health: body contract matches"
+                        }
+                    },
+                    "name": "health",
+                    "path": "::health",
+                    "id": "612cc1c9a7c3d7996d1eb6414fb9c69d",
+                    "groups": {}
+                },
+                "feed": {
+                    "name": "feed",
+                    "path": "::feed",
+                    "id": "f5131562703965eec9372832ee7658cd",
+                    "groups": {},
+                    "checks": {
+                            "feed: status is 200": {
+                                "fails": 0,
+                                "name": "feed: status is 200",
+                                "path": "::feed::feed: status is 200",
+                                "id": "2ab24e66a0c5c8420b1812054f2791af",
+                                "passes": 1
+                            },
+                            "feed: content type matches": {
+                                "fails": 0,
+                                "name": "feed: content type matches",
+                                "path": "::feed::feed: content type matches",
+                                "id": "79124c327db7d97cd7a06c38c89f0873",
+                                "passes": 1
+                            },
+                            "feed: body contract matches": {
+                                "name": "feed: body contract matches",
+                                "path": "::feed::feed: body contract matches",
+                                "id": "6445c9b3fb3b6ae91d9411f6a6438ed9",
+                                "passes": 1,
+                                "fails": 0
+                            }
+                        }
+                }
+            }
+    }
+}
