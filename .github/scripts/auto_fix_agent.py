@@ -51,6 +51,7 @@ REVIEWER_SMOKE = os.environ.get("REVIEWER_SMOKE", "false").lower() == "true"
 # (PR_REVIEW_CHANNEL_ID); fall back to the bug-reports channel if it isn't set
 # so we never silently lose a notification.
 SLACK_TOKEN   = os.environ.get("SLACK_BOT_TOKEN", "")
+SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK_URL", "")
 SLACK_CHANNEL = (os.environ.get("PR_REVIEW_CHANNEL_ID", "")
                  or os.environ.get("BUG_REPORTS_CHANNEL_ID", ""))
 
@@ -615,6 +616,10 @@ def targeted_commands(failing_files: list[str], logs: str) -> list[list[str]]:
         if path.endswith((".spec.ts", ".spec.js"))
     ]
     python_files = [path for path in failing_files if path.endswith(".py")]
+    python_tests = [
+        path for path in python_files
+        if path.startswith("tests/") and Path(path).name.startswith("test_")
+    ]
 
     if "design" in pipeline:
         return [["npx", "playwright", "test", "design-regression", "--project=chromium"]]
@@ -623,9 +628,13 @@ def targeted_commands(failing_files: list[str], logs: str) -> list[list[str]]:
         command += ["--grep", "LLM Judge|Content quality", "--workers=1"]
         return [command]
     if "playwright" in pipeline:
-        if not specs:
-            return []
-        return [["npx", "playwright", "test", *specs, "--workers=1"]]
+        if specs:
+            return [["npx", "playwright", "test", *specs, "--workers=1"]]
+        if python_tests:
+            return [[
+                sys.executable, "-m", "pytest", *python_tests, "--tb=short",
+            ]]
+        return []
     if "promptfoo" in pipeline:
         return [[
             "npx", "promptfoo", "eval", "-c", "promptfooconfig.yaml",
@@ -779,26 +788,41 @@ def git(*args: str) -> str:
 
 
 def slack_post(channel: str, text: str, label: str = "Slack") -> bool:
-    """Best-effort chat.postMessage with the bot token. Never raises."""
-    if not SLACK_TOKEN or not channel:
-        print(f"  ({label} skipped — SLACK_BOT_TOKEN/channel not set)")
+    """Best-effort Slack post through a bot or repository webhook."""
+    if SLACK_TOKEN and channel:
+        payload = json.dumps({"channel": channel, "text": text}).encode()
+        req = urllib.request.Request(
+            "https://slack.com/api/chat.postMessage",
+            data=payload,
+            headers={
+                "Authorization": f"Bearer {SLACK_TOKEN}",
+                "Content-Type": "application/json; charset=utf-8",
+            },
+        )
+    elif SLACK_WEBHOOK:
+        payload = json.dumps({"text": text}).encode()
+        req = urllib.request.Request(
+            SLACK_WEBHOOK,
+            data=payload,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+        )
+    else:
+        print(f"  ({label} skipped — no Slack bot destination or webhook)")
         return False
-    payload = json.dumps({"channel": channel, "text": text}).encode()
-    req = urllib.request.Request(
-        "https://slack.com/api/chat.postMessage",
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {SLACK_TOKEN}",
-            "Content-Type": "application/json; charset=utf-8",
-        },
-    )
     try:
         with urllib.request.urlopen(req, timeout=15) as r:
-            resp = json.loads(r.read())
-        if resp.get("ok"):
+            raw = r.read().decode(errors="replace")
+        if SLACK_TOKEN and channel:
+            resp = json.loads(raw)
+            ok = resp.get("ok") is True
+            error = resp.get("error")
+        else:
+            ok = raw.strip().lower() == "ok"
+            error = raw[:200]
+        if ok:
             print(f"  💬 {label} sent")
             return True
-        print(f"  ⚠ {label} error: {resp.get('error')}", file=sys.stderr)
+        print(f"  ⚠ {label} error: {error}", file=sys.stderr)
     except Exception as e:
         print(f"  ⚠ {label} failed: {e}", file=sys.stderr)
     return False

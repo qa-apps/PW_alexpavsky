@@ -41,6 +41,15 @@ class AutoFixSafetyTests(unittest.TestCase):
             [["npx", "playwright", "test", "tests/carousel.spec.ts", "--workers=1"]],
         )
 
+    def test_targeted_python_playwright_command_uses_pytest(self):
+        with patch.object(agent, "PIPELINE", "Playwright CI"):
+            commands = agent.targeted_commands(
+                ["tests/test_navigation.py", "scripts/helper.py"], "")
+        self.assertEqual(
+            commands,
+            [[sys.executable, "-m", "pytest", "tests/test_navigation.py", "--tb=short"]],
+        )
+
     def test_ambiguous_performance_failure_has_no_command(self):
         with patch.object(agent, "PIPELINE", "k6 Performance"):
             commands = agent.targeted_commands([], "smoke failed and rps-100 failed")
