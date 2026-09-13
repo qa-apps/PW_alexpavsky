@@ -79,7 +79,7 @@ _PROVIDERS = [
         "name": "openrouter-deepseek",
         "key_env": "OPENROUTER_API_KEY",
         "base_url": "https://openrouter.ai/api/v1",
-        "model": "deepseek/deepseek-r1-0528:free",
+        "model": "deepseek/deepseek-v4.1-flash",
         "extra_headers": {"HTTP-Referer": "https://alexpavsky.com"},
     },
     {
@@ -97,6 +97,14 @@ _ROTATE_PATTERNS = (
     "402", "401", "403", "insufficient", "out of tokens",
     "tpd", "rpd", "tpm", "forbidden", "unauthorized",
 )
+
+_ANTHROPIC_PROVIDER = {
+    "name": "anthropic",
+    "key_env": "ANTHROPIC_API_KEY",
+    "base_url_env": "ANTHROPIC_BASE_URL",
+    "base_url": "https://api.anthropic.com/v1",
+    "model": "claude-sonnet-5",
+}
 
 
 def _should_rotate(err_text: str) -> bool:
@@ -211,6 +219,10 @@ def chat(
 
         model = os.environ.get(prov.get("model_env", ""), "").strip() or prov["model"]
         payload = _build_payload(model, messages, system, tools, max_tokens, temperature)
+        if prov["name"] == "ollama":
+            effort = os.environ.get("LOCAL_LLM_REASONING_EFFORT", "").strip()
+            if effort:
+                payload["reasoning_effort"] = effort
         body = json.dumps(payload).encode()
 
         try:
@@ -249,6 +261,132 @@ def chat(
         }
 
     return {"content": "", "tool_calls": [], "provider": "", "errors": errors}
+
+
+def chat_provider(
+    provider_name: str,
+    messages: list,
+    *,
+    system: str | None = None,
+    model: str | None = None,
+    max_tokens: int = 2000,
+    temperature: float = 0.1,
+    timeout: int = 120,
+    reasoning_effort: str | None = None,
+    json_response: bool = False,
+) -> dict:
+    """Call exactly one configured provider without fallback rotation.
+
+    This is used for independent approval gates: an unavailable reviewer must
+    fail closed instead of being silently replaced by another model.
+    """
+    provider = (
+        _ANTHROPIC_PROVIDER if provider_name == "anthropic"
+        else next((p for p in _PROVIDERS if p["name"] == provider_name), None)
+    )
+    if not provider:
+        return {
+            "content": "", "tool_calls": [], "provider": provider_name,
+            "errors": [f"unknown provider: {provider_name}"], "usage": {},
+        }
+
+    key = os.environ.get(provider["key_env"], "").strip()
+    if provider_name == "ollama":
+        key = key or "ollama"
+    if not key:
+        return {
+            "content": "", "tool_calls": [], "provider": provider_name,
+            "errors": [f"missing {provider['key_env']}"], "usage": {},
+        }
+
+    base_url = provider["base_url"]
+    env_override = provider.get("base_url_env")
+    if env_override and provider_name != "openai":
+        base_url = os.environ.get(env_override, "").strip() or base_url
+    selected_model = model or provider["model"]
+
+    if provider_name == "anthropic":
+        payload: dict = {
+            "model": selected_model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+        }
+        if system:
+            payload["system"] = system
+        if reasoning_effort:
+            payload["output_config"] = {"effort": reasoning_effort}
+        headers = {
+            "x-api-key": key,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+        }
+        try:
+            response = _post(
+                f"{base_url.rstrip('/')}/messages",
+                headers,
+                json.dumps(payload).encode(),
+                timeout,
+            )
+            content = "\n".join(
+                block.get("text", "") for block in response.get("content", [])
+                if block.get("type") == "text"
+            )
+            if not content.strip():
+                raise RuntimeError("Anthropic response contained no text block")
+        except Exception as exc:
+            return {
+                "content": "", "tool_calls": [], "provider": provider_name,
+                "model": selected_model, "errors": [str(exc)], "usage": {},
+            }
+        return {
+            "content": content,
+            "tool_calls": [],
+            "provider": provider_name,
+            "model": selected_model,
+            "errors": [],
+            "usage": response.get("usage") or {},
+        }
+
+    payload = _build_payload(
+        selected_model, messages, system, None, max_tokens, temperature)
+
+    # Current OpenAI reasoning models use max_completion_tokens. Omitting
+    # temperature avoids an unsupported-parameter failure on GPT-5 models.
+    if provider_name == "openai" and selected_model.startswith("gpt-5"):
+        payload["max_completion_tokens"] = payload.pop("max_tokens")
+        payload.pop("temperature", None)
+    if reasoning_effort:
+        payload["reasoning_effort"] = reasoning_effort
+    if json_response:
+        payload["response_format"] = {"type": "json_object"}
+
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
+    headers.update(provider.get("extra_headers", {}))
+    try:
+        response = _post(
+            f"{base_url.rstrip('/')}/chat/completions",
+            headers,
+            json.dumps(payload).encode(),
+            timeout,
+        )
+        message = response["choices"][0]["message"]
+    except Exception as exc:
+        return {
+            "content": "", "tool_calls": [], "provider": provider_name,
+            "model": selected_model, "errors": [str(exc)], "usage": {},
+        }
+
+    return {
+        "content": message.get("content") or "",
+        "tool_calls": [],
+        "provider": provider_name,
+        "model": selected_model,
+        "errors": [],
+        "usage": response.get("usage") or {},
+    }
 
 
 def configured_providers() -> list[str]:

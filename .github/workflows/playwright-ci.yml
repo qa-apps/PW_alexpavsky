@@ -19,6 +19,9 @@ concurrency:
   group: playwright-ci-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   schedule-gate:
     runs-on: ubuntu-latest
@@ -57,6 +60,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Checkout existing gh-pages site (if any)
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: gh-pages-existing
+        continue-on-error: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v5
@@ -161,18 +171,47 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
+      - name: Build Playwright Pages UI
+        if: always()
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ID: ${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          REPO_SLUG: ${{ github.repository }}
+        run: python scripts/build_playwright_site.py
+
+      - name: Publish Playwright Pages UI
+        if: always() && github.event_name != 'pull_request'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./gh-pages-site
+          force_orphan: false
+          keep_files: true
+          enable_jekyll: false
+          commit_message: "playwright site: run #${{ github.run_number }}"
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
+
       - name: Notify Slack
         if: always()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
         run: |
+          OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+          PLAYWRIGHT_DASHBOARD_URL="https://${OWNER_LC}.github.io/${REPO_NAME}/playwright/runs/${{ github.run_number }}/"
           python .github/scripts/notify_slack.py \
             --channel "${{ secrets.SLACK_PLAYWRIGHT_CHANNEL_ID }}" \
             --pipeline "Playwright CI" \
             --results-dir test-results \
-            --results-pattern "results-pure.json"
+            --results-pattern "results-pure.json" \
+            --dashboard-url "$PLAYWRIGHT_DASHBOARD_URL" \
+            --dashboard-label "Open Playwright GitHub UI"
 
       - name: Send failure email (severity-tagged)
         if: failure()

@@ -136,6 +136,10 @@ export async function runArticleQualityJudge(
             ],
             temperature: 0,
             response_format: { type: 'json_object' },
+            ...(providerName === 'ollama' ? {
+              max_tokens: Number(process.env.LOCAL_LLM_MAX_TOKENS || 1024),
+              reasoning_effort: process.env.LOCAL_LLM_REASONING_EFFORT || 'low',
+            } : {}),
           },
         });
         const text = await resp.text();

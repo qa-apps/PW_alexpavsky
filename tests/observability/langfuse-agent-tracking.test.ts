@@ -24,6 +24,7 @@ const LF_PUBLIC = process.env.LANGFUSE_PUBLIC_KEY || "";
 const LF_SECRET = process.env.LANGFUSE_SECRET_KEY || "";
 const LF_HOST = (process.env.LANGFUSE_HOST || "https://cloud.langfuse.com").replace(/\/+$/, "");
 const hasLangfuseKeys = Boolean(LF_PUBLIC && LF_SECRET);
+const requireLangfuseTrace = process.env.REQUIRE_LANGFUSE_TRACE === "1";
 
 type ChatResult = { reply: string; sessionId: string; raw: any };
 
@@ -106,9 +107,13 @@ describe("chat agent — Langfuse token tracking + agentic workflow", () => {
     expect(reply.toLowerCase()).not.toContain("(brain error");
   }, 60_000);
 
-  (hasLangfuseKeys ? it : it.skip)(
+  (hasLangfuseKeys || requireLangfuseTrace ? it : it.skip)(
     "Layer B: Langfuse recorded the trace with agentic steps and token usage",
     async () => {
+      expect(
+        hasLangfuseKeys,
+        "LANGFUSE_PUBLIC_KEY + LANGFUSE_SECRET_KEY are required for the CI ingestion check.",
+      ).toBe(true);
       const sessionId = `pw-lf-b-${Date.now()}`;
       const { reply } = await askChat(
         "Why should I add CI quality gates to a test suite?",

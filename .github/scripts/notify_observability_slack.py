@@ -58,6 +58,7 @@ def build_payload(
     health_status: str,
     health: dict,
     run_url: str,
+    verification_status: str = "",
 ) -> dict:
     is_langfuse = mode == "langfuse"
     title = "Langfuse Agent Workflow Monitor" if is_langfuse else "LangWatch Voice Agent Monitor"
@@ -88,7 +89,8 @@ def build_payload(
         f"*Trace shape:* `{trace_shape}`\n"
         f"*Backend:* `{backend}`\n"
         f"*Health:* `{health_icon} {health_status}`\n"
-        f"*Trace deep links:* `{bool(deep)}`"
+        f"*Trace deep links:* `{bool(deep)}`\n"
+        f"*Ingestion test:* `{verification_status or 'not_run'}`"
     )
     if not configured and not dashboard_url:
         text += "\n*Action:* configure the dashboard URL secret/variable for a direct UI button."
@@ -137,6 +139,7 @@ def main() -> int:
     parser.add_argument("--channel", required=True)
     parser.add_argument("--dashboard-url", default="")
     parser.add_argument("--health-url", default="")
+    parser.add_argument("--verification-status", default="")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
@@ -153,6 +156,7 @@ def main() -> int:
         health_status=health_status,
         health=health,
         run_url=os.environ.get("GITHUB_RUN_URL", ""),
+        verification_status=args.verification_status,
     )
 
     try:

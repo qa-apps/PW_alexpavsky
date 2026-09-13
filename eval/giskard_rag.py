@@ -88,7 +88,8 @@ class PermissiveCorrectnessMetric:
             json={
                 "model": self.provider["model"],
                 "temperature": 0,
-                "max_tokens": 512,
+                "max_tokens": int(os.environ.get("LOCAL_LLM_MAX_TOKENS", "2048")),
+                "reasoning_effort": os.environ.get("LOCAL_LLM_REASONING_EFFORT", "low"),
                 "response_format": {"type": "json_object"},
                 "messages": [
                     {
@@ -117,7 +118,14 @@ class PermissiveCorrectnessMetric:
             timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
         )
         response.raise_for_status()
-        content = response.json()["choices"][0]["message"]["content"].strip()
+        payload = response.json()
+        content = (payload["choices"][0]["message"].get("content") or "").strip()
+        if not content:
+            usage = payload.get("usage", {})
+            raise ValueError(
+                "Judge returned empty content "
+                f"(completion_tokens={usage.get('completion_tokens', 'unknown')})"
+            )
         content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content, flags=re.IGNORECASE)
         result = json.loads(content)
 
@@ -189,9 +197,17 @@ def main() -> None:
 
     log("")
     log("Step 3/3: Running RAG against generated questions + evaluating...")
+    captured_cases: list[dict] = []
 
     def rag_callable(question: str, history=None):
-        return query_rag(question)
+        answer = query_rag(question)
+        captured_cases.append({
+            "id": f"giskard-{len(captured_cases) + 1}",
+            "category": "generated-rag",
+            "prompt": question,
+            "answer": answer,
+        })
+        return answer
 
     t0 = time.time()
     try:
@@ -233,6 +249,24 @@ def main() -> None:
 
     json_path.write_text(json.dumps(summary, indent=2))
     log(f"  JSON summary: {json_path}")
+
+    cases_path = RESULTS_DIR / "giskard_rag_cases.json"
+    cases_path.write_text(
+        json.dumps({
+            "rag_api": RAG_API,
+            "judge": primary_label,
+            "minimum_correctness": MIN_CORRECTNESS,
+            "correctness": summary.get("correctness"),
+            "cases": captured_cases,
+            "note": (
+                "Giskard exposes aggregate correctness in this run; prompts and "
+                "RAG answers are captured from the callable so the UI can show "
+                "what was asked and what the chatbot returned."
+            ),
+        }, indent=2),
+        encoding="utf-8",
+    )
+    log(f"  Case details: {cases_path}")
 
     log("")
     log("=" * 72)

@@ -22,6 +22,9 @@ PROFILE_LIMITS = {
     "spike-slow": {"fail_rate": 0.05, "checks_rate": 0.95, "p95": 5000},
     "spike-instant": {"fail_rate": 0.05, "checks_rate": 0.95, "p95": 6000},
     "rps-100": {"fail_rate": 0.01, "checks_rate": 0.99, "p95": 2500, "dropped": 1},
+    "rps-50": {"fail_rate": 0.01, "checks_rate": 0.99, "p95": 2500, "dropped": 1},
+    "vus-50": {"fail_rate": 0.01, "checks_rate": 0.99, "p95": 2500},
+    "vus-100": {"fail_rate": 0.02, "checks_rate": 0.98, "p95": 3500},
     "chatbot-minimal": {"fail_rate": 0.20, "checks_rate": 0.80, "p95": 30000, "chatbot_ok": 0.80},
 }
 
@@ -73,6 +76,9 @@ def load_result(path: str) -> dict:
     reqs = metric_value(metrics, "http_reqs", "count", 0) or 0
     rps = metric_value(metrics, "http_reqs", "rate", 0) or 0
     iterations = metric_value(metrics, "iterations", "count", 0) or 0
+    iteration_rate = metric_value(metrics, "iterations", "rate", 0) or 0
+    vus = metric_value(metrics, "vus", "value", 0) or 0
+    vus_max = metric_value(metrics, "vus_max", "value", 0) or 0
     dropped = metric_value(metrics, "dropped_iterations", "count", 0) or 0
 
     passed = profile_passed(profile, metrics, checks_rate, fail_rate, p95, dropped)
@@ -88,6 +94,9 @@ def load_result(path: str) -> dict:
         "reqs": reqs,
         "rps": rps,
         "iterations": iterations,
+        "iteration_rate": iteration_rate,
+        "vus": vus,
+        "vus_max": vus_max,
         "dropped": dropped,
     }
 
@@ -149,7 +158,8 @@ def build_payload(channel: str, pipeline: str, run_url: str, results: list[dict]
         mark = "✅" if r["passed"] else "🔴"
         detail_lines.append(
             f"{mark} *{r['profile']}* | p95 {fmt_ms(r['p95'])} | "
-            f"fail {fmt_pct(r['fail_rate'])} | {r['rps']:.1f} rps | "
+            f"p99 {fmt_ms(r['p99'])} | fail {fmt_pct(r['fail_rate'])} | "
+            f"{r['rps']:.1f} calls/s | VUs {int(r['vus'])}/{int(r['vus_max'])} | "
             f"{int(r['reqs'])} req | dropped {int(r['dropped'])}"
         )
     if len(results) > 8:

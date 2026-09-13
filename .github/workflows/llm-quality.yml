@@ -25,11 +25,14 @@ permissions:
 jobs:
   llm-quality:
     runs-on: [self-hosted, Linux, X64, bosgame]
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble
+      options: --add-host host.docker.internal:host-gateway --user 1001:1001
     timeout-minutes: 480
     env:
-      LLM_CATALOG_URL: http://127.0.0.1:11434
-      OLLAMA_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445' || 'http://127.0.0.1:11434' }}
-      LOCAL_LLM_BASE_URL: http://127.0.0.1:11434/v1
+      LLM_CATALOG_URL: http://host.docker.internal:11434
+      OLLAMA_BASE_URL: ${{ github.event_name == 'schedule' && 'http://host.docker.internal:11445' || 'http://host.docker.internal:11434' }}
+      LOCAL_LLM_BASE_URL: ${{ github.event_name == 'schedule' && 'http://host.docker.internal:11445/v1' || 'http://host.docker.internal:11434/v1' }}
       LOCAL_LLM_MODEL: ${{ github.event_name == 'schedule' && 'scheduled/gpt-oss:120b' || 'gpt-oss:120b' }}
       LOCAL_LLM_UPSTREAM_MODEL: gpt-oss:120b
       LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '0' }}
@@ -37,8 +40,12 @@ jobs:
       LOCAL_LLM_API_KEY: ollama
       LOCAL_LLM_TIMEOUT_SEC: '180'
       LOCAL_LLM_TIMEOUT_MS: '180000'
+      LOCAL_LLM_MAX_TOKENS: '1024'
+      LOCAL_LLM_REASONING_EFFORT: low
       LLM_TEST_TIMEOUT_MS: '300000'
       LLM_JUDGE_PASSING_SCORE: '3'
+      NPM_CONFIG_CACHE: /tmp/npm-cache
+      npm_config_devdir: /tmp/node-gyp
 
     steps:
       - name: Checkout
@@ -71,7 +78,7 @@ jobs:
         shell: bash
         run: |
           if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error "$LLM_CATALOG_URL/v1/models") && \
-             python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("id") == wanted for m in data.get("data", [])) else 1)' "$LOCAL_LLM_MODEL" <<<"$models"; then
+             python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("id") == wanted for m in data.get("data", [])) else 1)' "$LOCAL_LLM_UPSTREAM_MODEL" <<<"$models"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Local model $LOCAL_LLM_MODEL is ready."
           else
@@ -125,22 +132,18 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
 
       - name: Install dependencies
         if: steps.local_llm.outputs.run == 'true'
-        run: npm ci
+        env:
+          HOME: /tmp/node-home
+        run: |
+          mkdir -p "$HOME" "$NPM_CONFIG_CACHE" "$npm_config_devdir"
+          npm ci --ignore-scripts
 
       - name: Install Playwright browsers
         if: steps.local_llm.outputs.run == 'true'
-        shell: bash
-        run: |
-          if command -v google-chrome >/dev/null 2>&1; then
-            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
-            echo "Using system Google Chrome on the Ubuntu 26.04 Bosgame runner."
-          else
-            npx playwright install --with-deps
-          fi
+        run: npx playwright install chromium
 
       - name: Run LLM Judge tests
         if: steps.local_llm.outputs.run == 'true'
@@ -190,6 +193,7 @@ jobs:
           echo "- \`judge-verdicts-${{ github.run_number }}\` — per-prompt judge scores + reasoning" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build LLM Judge Pages UI
+        id: build_ui
         if: always() && steps.local_llm.outputs.run == 'true'
         env:
           RUN_NUMBER: ${{ github.run_number }}
@@ -199,7 +203,7 @@ jobs:
         run: python3 scripts/build_llm_judge_site.py
 
       - name: Publish LLM Judge Pages UI
-        if: always() && steps.local_llm.outputs.run == 'true'
+        if: always() && steps.local_llm.outputs.run == 'true' && steps.build_ui.outcome == 'success'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -223,7 +227,7 @@ jobs:
         run: |
           OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
           LLM_JUDGE_DASHBOARD_URL="https://${OWNER_LC}.github.io/${REPO_NAME}/llm-judge/runs/${{ github.run_number }}/"
-          python .github/scripts/notify_slack.py \
+          python3 .github/scripts/notify_slack.py \
             --channel "${{ secrets.SLACK_LLM_QUALITY_CHANNEL_ID }}" \
             --pipeline "LLM Quality" \
             --results-dir test-results \
@@ -242,7 +246,7 @@ jobs:
           PR_NUMBER:          ${{ github.event.pull_request.number }}
           PR_TITLE:           ${{ github.event.pull_request.title }}
         run: |
-          python .github/scripts/bug_report_slack.py \
+          python3 .github/scripts/bug_report_slack.py \
             --channel "${{ secrets.BUG_REPORTS_CHANNEL_ID }}" \
             --pipeline "LLM Quality" \
             --results-dir test-results
