@@ -29,6 +29,9 @@ export default defineConfig({
   ],
   use: {
     baseURL: process.env.BASE_URL || 'https://www.alexpavsky.com',
+    launchOptions: {
+      executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined,
+    },
     actionTimeout: 10_000,
     navigationTimeout: 45_000,
     trace: 'retain-on-failure',
