@@ -133,7 +133,14 @@ jobs:
 
       - name: Install Playwright browsers
         if: steps.local_llm.outputs.run == 'true'
-        run: npx playwright install --with-deps
+        shell: bash
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+            echo "Using system Google Chrome on the Ubuntu 26.04 Bosgame runner."
+          else
+            npx playwright install --with-deps
+          fi
 
       - name: Run LLM Judge tests
         if: steps.local_llm.outputs.run == 'true'
@@ -189,7 +196,7 @@ jobs:
           RUN_ID: ${{ github.run_id }}
           COMMIT_SHA: ${{ github.sha }}
           REPO_SLUG: ${{ github.repository }}
-        run: python scripts/build_llm_judge_site.py
+        run: python3 scripts/build_llm_judge_site.py
 
       - name: Publish LLM Judge Pages UI
         if: always() && steps.local_llm.outputs.run == 'true'
