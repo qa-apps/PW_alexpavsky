@@ -8,7 +8,7 @@ Workflow:
   2. A local specialist proposes and applies only allow-listed QA changes.
   3. A second local reviewer inspects the diff and targeted rerun.
   4. The agent opens a PR only after the targeted failing tests pass.
-  5. OpenAI and DeepSeek independently review the same PR evidence.
+  5. OpenAI and Anthropic independently review the same PR evidence.
   6. Two approvals allow merge; any rejection/error goes to Human Review.
   7. The originally failing tests run once more after merge.
 
@@ -751,10 +751,10 @@ Targeted rerun:\n{json.dumps(test_result)[:10000]}
         [{"role": "user", "content": prompt}],
         system=CLOUD_REVIEW_SYSTEM,
         model=model,
-        max_tokens=3000 if provider == "openai" else 2000,
+        max_tokens=3000 if provider == "openai" else 5000,
         temperature=0.0,
         timeout=180,
-        reasoning_effort="medium" if provider == "openai" else "low",
+        reasoning_effort="medium" if provider == "openai" else "high",
         json_response=True,
     )
     review = parse_json_object(result.get("content") or "")
@@ -833,7 +833,7 @@ def slack_notify(pr_url: str, fixes: list[dict]) -> None:
     changed = ", ".join(sorted({f["file_path"] for f in fixes})) or "test files"
     text = (f":robot_face: *Auto-fix candidate PR* — {PIPELINE}\n"
             f"Files: {changed}\n"
-            f"Waiting for independent OpenAI + DeepSeek approval before merge.\n"
+            f"Waiting for independent OpenAI + Anthropic approval before merge.\n"
             f"{pr_url}")
     slack_post(SLACK_CHANNEL, text, label="Slack PR notify")
 
@@ -1092,27 +1092,26 @@ def run_reviewer_smoke() -> bool:
         "evidence": "An off-by-one was isolated to a QA helper.",
     }
     local = local_review(diff, targeted, triage)
-    smart_model = os.environ.get("FINAL_SMART_MODEL", "gpt-5.1")
-    cheap_model = os.environ.get(
-        "FINAL_CHEAP_MODEL", "deepseek/deepseek-v4.1-flash")
+    smart_model = os.environ.get("FINAL_SMART_MODEL", "gpt-5.5")
+    second_model = os.environ.get("FINAL_SECOND_MODEL", "claude-sonnet-5")
     smart = cloud_review(
         "openai", smart_model, diff, targeted, local, logs)
-    cheap = cloud_review(
-        "openrouter-deepseek", cheap_model, diff, targeted, local, logs)
+    second = cloud_review(
+        "anthropic", second_model, diff, targeted, local, logs)
     approved = all(
-        review.get("approved") for review in (local, smart, cheap))
+        review.get("approved") for review in (local, smart, second))
     state = {
         "status": "passed" if approved else "human_review",
         "mode": "reviewer_smoke",
         "local_review": local,
-        "cloud_reviews": [smart, cheap],
+        "cloud_reviews": [smart, second],
     }
     write_agent_artifact(state)
     if approved:
         post_agent_stage(
             "reviewer smoke", "passed",
-            f"Local model, OpenAI `{smart_model}`, and DeepSeek "
-            f"`{cheap_model}` all returned APPROVE. No PR was created.",
+            f"Local model, OpenAI `{smart_model}`, and Anthropic "
+            f"`{second_model}` all returned APPROVE. No PR was created.",
         )
         return True
     post_human_review(
@@ -1265,24 +1264,23 @@ def main() -> None:
         return
 
     print("\n[8] Two-model cloud merge gate...")
-    smart_model = os.environ.get("FINAL_SMART_MODEL", "gpt-5.1")
-    cheap_model = os.environ.get(
-        "FINAL_CHEAP_MODEL", "deepseek/deepseek-v4.1-flash")
+    smart_model = os.environ.get("FINAL_SMART_MODEL", "gpt-5.5")
+    second_model = os.environ.get("FINAL_SECOND_MODEL", "claude-sonnet-5")
     smart = cloud_review("openai", smart_model, diff, targeted, local, logs)
-    cheap = cloud_review(
-        "openrouter-deepseek", cheap_model, diff, targeted, local, logs)
-    state["cloud_reviews"] = [smart, cheap]
-    if not smart.get("approved") or not cheap.get("approved"):
+    second = cloud_review(
+        "anthropic", second_model, diff, targeted, local, logs)
+    state["cloud_reviews"] = [smart, second]
+    if not smart.get("approved") or not second.get("approved"):
         reason = "Two independent cloud approvals were not obtained."
         state.update({"status": "human_review", "stage": "cloud merge gate"})
         write_agent_artifact(state)
         post_human_review("cloud merge gate", reason, {
-            "pr_url": pr_url, "openai": smart, "deepseek": cheap,
+            "pr_url": pr_url, "openai": smart, "anthropic": second,
         })
         return
     post_agent_stage(
         "cloud review", "passed",
-        f"OpenAI `{smart_model}`: APPROVE\nDeepSeek `{cheap_model}`: APPROVE",
+        f"OpenAI `{smart_model}`: APPROVE\nAnthropic `{second_model}`: APPROVE",
     )
 
     if not AUTO_MERGE:
@@ -1331,7 +1329,7 @@ def main() -> None:
     }
     resolution = (
         f"Merged {pr_url}. The originally failing tests passed before and "
-        "after merge. OpenAI and DeepSeek both approved the patch."
+        "after merge. OpenAI and Anthropic both approved the patch."
     )
     post_agent_stage("post-merge test", "passed", post_merge.get("reason", "Passed"))
     post_agent_report(report, resolution)

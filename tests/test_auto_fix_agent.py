@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -79,6 +80,40 @@ class AutoFixSafetyTests(unittest.TestCase):
                 "openai", "gpt-5.1", "diff", {"passed": True},
                 {"approved": True}, "failure log")
         self.assertFalse(review["approved"])
+
+    def test_anthropic_provider_uses_messages_api_and_effort(self):
+        captured = {}
+
+        def fake_post(url, headers, body, timeout):
+            captured.update({
+                "url": url,
+                "headers": headers,
+                "payload": json.loads(body),
+                "timeout": timeout,
+            })
+            return {
+                "content": [{"type": "text", "text": '{"verdict":"APPROVE"}'}],
+                "usage": {"input_tokens": 12, "output_tokens": 4},
+            }
+
+        with (
+            patch.dict(os.environ, {"ANTHROPIC_API_KEY": "test-key"}),
+            patch.object(agent.llm_client, "_post", side_effect=fake_post),
+        ):
+            result = agent.llm_client.chat_provider(
+                "anthropic",
+                [{"role": "user", "content": "Review"}],
+                system="Return JSON",
+                model="claude-sonnet-5",
+                max_tokens=4000,
+                reasoning_effort="high",
+                json_response=True,
+            )
+
+        self.assertEqual(result["content"], '{"verdict":"APPROVE"}')
+        self.assertEqual(captured["url"], "https://api.anthropic.com/v1/messages")
+        self.assertEqual(captured["payload"]["output_config"], {"effort": "high"})
+        self.assertNotIn("temperature", captured["payload"])
 
 
 if __name__ == "__main__":

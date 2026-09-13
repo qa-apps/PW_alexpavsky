@@ -97,6 +97,14 @@ _ROTATE_PATTERNS = (
     "tpd", "rpd", "tpm", "forbidden", "unauthorized",
 )
 
+_ANTHROPIC_PROVIDER = {
+    "name": "anthropic",
+    "key_env": "ANTHROPIC_API_KEY",
+    "base_url_env": "ANTHROPIC_BASE_URL",
+    "base_url": "https://api.anthropic.com/v1",
+    "model": "claude-sonnet-5",
+}
+
 
 def _should_rotate(err_text: str) -> bool:
     low = err_text.lower()
@@ -261,7 +269,10 @@ def chat_provider(
     This is used for independent approval gates: an unavailable reviewer must
     fail closed instead of being silently replaced by another model.
     """
-    provider = next((p for p in _PROVIDERS if p["name"] == provider_name), None)
+    provider = (
+        _ANTHROPIC_PROVIDER if provider_name == "anthropic"
+        else next((p for p in _PROVIDERS if p["name"] == provider_name), None)
+    )
     if not provider:
         return {
             "content": "", "tool_calls": [], "provider": provider_name,
@@ -282,6 +293,49 @@ def chat_provider(
     if env_override and provider_name != "openai":
         base_url = os.environ.get(env_override, "").strip() or base_url
     selected_model = model or provider["model"]
+
+    if provider_name == "anthropic":
+        payload: dict = {
+            "model": selected_model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+        }
+        if system:
+            payload["system"] = system
+        if reasoning_effort:
+            payload["output_config"] = {"effort": reasoning_effort}
+        headers = {
+            "x-api-key": key,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+        }
+        try:
+            response = _post(
+                f"{base_url.rstrip('/')}/messages",
+                headers,
+                json.dumps(payload).encode(),
+                timeout,
+            )
+            content = "\n".join(
+                block.get("text", "") for block in response.get("content", [])
+                if block.get("type") == "text"
+            )
+            if not content.strip():
+                raise RuntimeError("Anthropic response contained no text block")
+        except Exception as exc:
+            return {
+                "content": "", "tool_calls": [], "provider": provider_name,
+                "model": selected_model, "errors": [str(exc)], "usage": {},
+            }
+        return {
+            "content": content,
+            "tool_calls": [],
+            "provider": provider_name,
+            "model": selected_model,
+            "errors": [],
+            "usage": response.get("usage") or {},
+        }
+
     payload = _build_payload(
         selected_model, messages, system, None, max_tokens, temperature)
 

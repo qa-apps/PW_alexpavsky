@@ -24,7 +24,7 @@ on:
         type: boolean
         default: true
       reviewer_smoke:
-        description: "Call local, OpenAI, and DeepSeek reviewers without creating a PR"
+        description: "Call local, OpenAI, and Anthropic reviewers without creating a PR"
         required: false
         type: boolean
         default: false
@@ -339,10 +339,10 @@ jobs:
           LOCAL_LLM_MODEL:        orcarouter/Qwen3.8-27B-Uncensored:q5_K_M
           LOCAL_LLM_REASONING_EFFORT: low
           LOCAL_LLM_TIMEOUT_SEC:  '180'
-          FINAL_SMART_MODEL:      gpt-5.1
-          FINAL_CHEAP_MODEL:      deepseek/deepseek-v4.1-flash
+          FINAL_SMART_MODEL:      gpt-5.5
+          FINAL_SECOND_MODEL:     claude-sonnet-5
           OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
-          OPENROUTER_API_KEY:     ${{ secrets.OPENROUTER_API_KEY }}
+          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
           SLACK_BOT_TOKEN:        ${{ secrets.SLACK_BOT_TOKEN }}
           PR_REVIEW_CHANNEL_ID:   ${{ secrets.PR_REVIEW_CHANNEL_ID }}
           BUG_REPORTS_CHANNEL_ID: ${{ secrets.BUG_REPORTS_CHANNEL_ID }}
