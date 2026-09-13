@@ -22,10 +22,12 @@ permissions:
 jobs:
   promptfoo:
     runs-on: [self-hosted, Linux, X64, bosgame]
-    timeout-minutes: 180
+    timeout-minutes: 480
     env:
-      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      LLM_CATALOG_URL: http://127.0.0.1:11434
+      OLLAMA_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445' || 'http://127.0.0.1:11434' }}
       OLLAMA_API_KEY: ollama
+      LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '0' }}
       REQUEST_TIMEOUT_MS: '180000'
       LOCAL_LLM_MODEL: gpt-oss:120b
       LOCAL_EMBEDDING_MODEL: qwen3-embedding:4b
@@ -60,7 +62,7 @@ jobs:
         if: steps.daily_marker.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error "$OLLAMA_BASE_URL/v1/models") && \
+          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error "$LLM_CATALOG_URL/v1/models") && \
              python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("id") == wanted for m in data.get("data", [])) else 1)' "$LOCAL_LLM_MODEL" <<<"$models"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
@@ -92,10 +94,12 @@ jobs:
         run: |
           echo "Warming $LOCAL_LLM_MODEL (cold load ~30s; budget 150s)…"
           curl -s --max-time 150 "$OLLAMA_BASE_URL/api/generate" \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" -H "X-LLM-Model: $LOCAL_LLM_MODEL" \
             -d "{\"model\":\"$LOCAL_LLM_MODEL\",\"prompt\":\"ok\",\"stream\":false,\"keep_alive\":-1,\"options\":{\"num_predict\":1}}" \
             >/dev/null || echo "warm-up request timed out (continuing anyway)"
           if [ -n "${LOCAL_EMBEDDING_MODEL:-}" ]; then
             curl -s --max-time 60 "$OLLAMA_BASE_URL/api/embed" \
+              -H "X-LLM-Job-ID: $GITHUB_RUN_ID" -H "X-LLM-Model: $LOCAL_EMBEDDING_MODEL" \
               -d "{\"model\":\"$LOCAL_EMBEDDING_MODEL\",\"input\":\"ok\",\"keep_alive\":-1}" >/dev/null || true
           fi
 
@@ -130,7 +134,7 @@ jobs:
         continue-on-error: true
         # Step-level cap so a hung eval can't eat the whole job — the
         # always() Notify Slack step below still runs after a step timeout.
-        timeout-minutes: 25
+        timeout-minutes: 420
         env:
           # Non-interactive: promptfoo hangs with zero output in a non-TTY
           # runner if it tries telemetry / update-check / a progress TUI.
@@ -142,10 +146,25 @@ jobs:
         run: |
           CONFIG=promptfooconfig.yaml
           echo "Running promptfoo with $CONFIG"
-          npx promptfoo eval -c "$CONFIG" \
-            --max-concurrency 1 \
-            --no-progress-bar \
-            -o promptfoo-results.json </dev/null
+          deadline=$((SECONDS + LOCAL_LLM_PRIORITY_MAX_WAIT_SEC))
+          while true; do
+            set +e
+            npx promptfoo eval -c "$CONFIG" \
+              --max-concurrency 1 \
+              --no-progress-bar \
+              -o promptfoo-results.json </dev/null 2>&1 | tee promptfoo-run.log
+            status=${PIPESTATUS[0]}
+            set -e
+            if [ "$status" -eq 0 ]; then
+              break
+            fi
+            if [ "$SECONDS" -lt "$deadline" ] && grep -Eqi '503|service unavailable|ECONNRESET|socket hang up|connection refused' promptfoo-run.log; then
+              echo "Interactive work preempted the scheduled model; retrying promptfoo in 5s."
+              sleep 5
+              continue
+            fi
+            exit "$status"
+          done
 
       - name: Upload promptfoo results
         if: always() && steps.local_llm.outputs.run == 'true'
