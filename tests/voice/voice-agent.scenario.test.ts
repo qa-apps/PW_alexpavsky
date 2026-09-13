@@ -20,7 +20,8 @@ import { judgeModel, hasJudgeModel } from "../support/scenarioModel";
  * without it the simulation + judge still run fully locally.
  */
 
-const describeVoice = hasJudgeModel() ? describe : describe.skip;
+const requireLangWatchScenario = process.env.REQUIRE_LANGWATCH_SCENARIO === "1";
+const describeVoiceRequired = hasJudgeModel() || requireLangWatchScenario ? describe : describe.skip;
 
 if (!hasJudgeModel()) {
   // eslint-disable-next-line no-console
@@ -30,8 +31,12 @@ if (!hasJudgeModel()) {
   );
 }
 
-describeVoice("voice assistant — LangWatch Scenario", () => {
+describeVoiceRequired("voice assistant — LangWatch Scenario", () => {
   it("understands a QA question and gives a relevant spoken answer", async () => {
+    expect(
+      hasJudgeModel(),
+      "An evaluator LLM key is required for the CI LangWatch scenario check.",
+    ).toBe(true);
     const model = judgeModel();
 
     const result = await scenario.run({

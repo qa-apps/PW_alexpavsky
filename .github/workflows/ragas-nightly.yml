@@ -268,7 +268,7 @@ jobs:
             --flaky 0 \
             --skipped 0 \
             --dashboard-url "https://${OWNER_LC}.github.io/${REPO_NAME}/runs/${{ github.run_number }}/#ragas" \
-            --dashboard-label "Open Ragas UI"
+            --dashboard-label "Open RAGAS GitHub UI"
 
       - name: Notify Giskard Slack
         if: always() && steps.local_llm.outputs.run == 'true'

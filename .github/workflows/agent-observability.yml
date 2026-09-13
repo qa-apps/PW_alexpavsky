@@ -3,7 +3,8 @@ name: Agent Observability Dashboards
 on:
   workflow_dispatch:
   schedule:
-    # Daily lightweight Slack visibility check. Does not call the chat/voice LLM paths.
+    # Daily observability check: calls tiny live chat/voice probes, then reports
+    # whether traces actually ingested instead of only linking empty dashboards.
     - cron: "10 20 * * *"
 
 concurrency:
@@ -19,6 +20,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Langfuse trace ingestion
+        id: langfuse_verify
+        continue-on-error: true
+        env:
+          CHAT_AGENT_URL: ${{ vars.CHAT_AGENT_URL || secrets.CHAT_AGENT_URL || 'https://alexpavsky.com/api/chat' }}
+          LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+          LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+          LANGFUSE_HOST: ${{ vars.LANGFUSE_HOST || secrets.LANGFUSE_HOST || vars.LANGFUSE_BASE_URL || secrets.LANGFUSE_BASE_URL || 'https://us.cloud.langfuse.com' }}
+          REQUIRE_LANGFUSE_TRACE: "1"
+        run: npm run test:observability
+
+      - name: Verify LangWatch scenario ingestion
+        id: langwatch_verify
+        continue-on-error: true
+        env:
+          LANGWATCH_API_KEY: ${{ secrets.LANGWATCH_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REQUIRE_LANGWATCH_SCENARIO: "1"
+        run: npm run test:voice
+
       - name: Notify Langfuse Slack channel
         if: always()
         env:
@@ -32,7 +64,8 @@ jobs:
             --mode langfuse \
             --channel "$LANGFUSE_CHANNEL_ID" \
             --dashboard-url "$LANGFUSE_DASHBOARD_URL" \
-            --health-url "$ALEXPAVSKY_HEALTH_URL"
+            --health-url "$ALEXPAVSKY_HEALTH_URL" \
+            --verification-status "${{ steps.langfuse_verify.outcome }}"
 
       - name: Notify LangWatch Slack channel
         if: always()
@@ -47,4 +80,5 @@ jobs:
             --mode langwatch \
             --channel "$LANGWATCH_CHANNEL_ID" \
             --dashboard-url "$LANGWATCH_DASHBOARD_URL" \
-            --health-url "$VOICE_AGENT_HEALTH_URL"
+            --health-url "$VOICE_AGENT_HEALTH_URL" \
+            --verification-status "${{ steps.langwatch_verify.outcome }}"

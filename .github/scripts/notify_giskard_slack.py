@@ -82,15 +82,29 @@ def build_text(rag: dict, scan: dict) -> tuple[str, str]:
     return "Giskard eval results", "\n".join(lines)
 
 
-def post(channel: str, token: str, fallback: str, text: str, run_url: str, dashboard_url: str) -> None:
+def post(
+    channel: str,
+    token: str,
+    fallback: str,
+    text: str,
+    run_url: str,
+    dashboard_url: str,
+    local_ui_url: str = "",
+) -> None:
     blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": text}}]
     action_elements = []
     if dashboard_url:
         action_elements.append({
             "type": "button",
-            "text": {"type": "plain_text", "text": "Open Giskard UI"},
+            "text": {"type": "plain_text", "text": "Open Giskard GitHub UI"},
             "url": dashboard_url,
             "style": "primary",
+        })
+    if local_ui_url:
+        action_elements.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "Open Giskard Local UI"},
+            "url": local_ui_url,
         })
     if run_url:
         action_elements.append({
@@ -129,6 +143,7 @@ def main() -> int:
     parser.add_argument("--results-dir", default="eval/results")
     parser.add_argument("--run-url", default=os.environ.get("GITHUB_RUN_URL", ""))
     parser.add_argument("--dashboard-url", default="")
+    parser.add_argument("--local-ui-url", default=os.environ.get("GISKARD_LOCAL_UI_URL", ""))
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "").strip()
@@ -141,7 +156,7 @@ def main() -> int:
     rag = _load(results / "giskard_rag.json")
     scan = _load(results / "giskard_scan.json")
     fallback, text = build_text(rag, scan)
-    post(channel, token, fallback, text, args.run_url, args.dashboard_url)
+    post(channel, token, fallback, text, args.run_url, args.dashboard_url, args.local_ui_url)
     print("Posted Giskard summary to Slack.")
     return 0
 

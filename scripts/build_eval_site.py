@@ -75,6 +75,49 @@ def load_json(path: Path) -> dict:
         return {}
 
 
+def _score(value) -> str:
+    if value is None:
+        return "n/a"
+    try:
+        return f"{float(value):.2f}"
+    except Exception:
+        return escape(str(value))
+
+
+def _case_table(title: str, data: dict, empty: str) -> str:
+    cases = data.get("cases") or []
+    rows = []
+    for case in cases:
+        passed = case.get("passed")
+        if passed is True:
+            status = '<span class="status-pass">PASS</span>'
+        elif passed is False:
+            status = '<span class="status-fail">FAIL</span>'
+        else:
+            status = "n/a"
+        prompt = escape(str(case.get("prompt") or case.get("question") or ""))
+        answer = escape(str(case.get("answer") or case.get("response") or ""))
+        rows.append(
+            "<tr>"
+            f"<td>{escape(str(case.get('id', '')))}</td>"
+            f"<td>{escape(str(case.get('category', '')))}</td>"
+            f"<td>{status}</td>"
+            f"<td>{_score(case.get('faithfulness'))}</td>"
+            f"<td>{_score(case.get('relevancy'))}</td>"
+            f"<td><details open><summary>prompt</summary><pre>{prompt}</pre></details></td>"
+            f"<td><details open><summary>answer</summary><pre>{answer}</pre></details></td>"
+            "</tr>"
+        )
+    body = "".join(rows) or f'<tr><td colspan="7">{escape(empty)}</td></tr>'
+    return f"""
+<h2>{escape(title)}</h2>
+<table class="cases">
+  <thead><tr><th>ID</th><th>Category</th><th>Status</th><th>Faithfulness</th><th>Relevancy</th><th>Prompt</th><th>Answer</th></tr></thead>
+  <tbody>{body}</tbody>
+</table>
+"""
+
+
 def per_run_html(run_dir: Path, metrics: dict) -> str:
     ragas = metrics.get("ragas", {})
     gr = metrics.get("giskard_rag", {})
@@ -88,6 +131,18 @@ def per_run_html(run_dir: Path, metrics: dict) -> str:
         f'<a href="https://github.com/{REPO_SLUG}/actions/runs/{RUN_ID}">run #{RUN_NUMBER}</a>'
         if RUN_ID
         else f"run #{RUN_NUMBER}"
+    )
+    ragas_cases = load_json(run_dir / "ragas_cases.json")
+    giskard_cases = load_json(run_dir / "giskard_rag_cases.json")
+    ragas_case_table = _case_table(
+        "Ragas prompts and answers",
+        ragas_cases,
+        "No structured Ragas case file was produced for this run.",
+    )
+    giskard_case_table = _case_table(
+        "Giskard generated prompts and answers",
+        giskard_cases,
+        "No structured Giskard case file was produced for this run.",
     )
     return f"""<!doctype html>
 <html lang="en"><head>
@@ -105,6 +160,10 @@ def per_run_html(run_dir: Path, metrics: dict) -> str:
   .status-pass {{ color: #0a7c0a; }} .status-fail {{ color: #b00020; }}
   iframe {{ width: 100%; height: 600px; border: 1px solid #d0d7de; border-radius: 6px; }}
   #ragas-md {{ background: #fff; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; }}
+  table.cases {{ width: 100%; border-collapse: collapse; margin: 12px 0 22px; }}
+  .cases th, .cases td {{ border-bottom: 1px solid #eaeef2; padding: 8px; text-align: left; vertical-align: top; }}
+  .cases th {{ background: #f6f8fa; }}
+  .cases pre {{ white-space: pre-wrap; max-height: 260px; overflow: auto; margin: 6px 0 0; }}
 </style></head>
 <body>
 <nav><a href="../../index.html">← all runs</a></nav>
@@ -127,8 +186,12 @@ fetch('report.md').then(r => r.ok ? r.text() : 'Ragas report not produced for th
 }}).catch(e => {{ document.getElementById('ragas-md').textContent = 'Failed to load Ragas report: ' + e; }});
 </script>
 
+{ragas_case_table}
+
 <h2 id="giskard-rag">Giskard RAG evaluation</h2>
 <iframe src="giskard_rag.html" title="Giskard RAG eval"></iframe>
+
+{giskard_case_table}
 
 <h2 id="giskard-scan">Giskard vulnerability scan</h2>
 <iframe src="giskard_scan.html" title="Giskard scan"></iframe>
@@ -200,6 +263,7 @@ def index_html(history: list[dict]) -> str:
   · Runs: {len(rows)}
   · Latest: {escape((rows[0]['timestamp'][:19] if rows else '—').replace('T',' '))}
 </p>
+<p class="meta">Note: GitHub run numbers can have gaps because skipped hourly checks, failed partial runs, and manual runs still consume run numbers. This dashboard lists only runs that produced and published report artifacts.</p>
 
 <h2>Faithfulness trend</h2>
 <div id="chart-wrap"><canvas id="chart" height="80"></canvas></div>
@@ -269,8 +333,10 @@ def main() -> None:
     # Copy whatever the eval steps produced (any may be missing on partial runs).
     file_map = {
         RESULTS / "report.md": run_dir / "report.md",
+        RESULTS / "ragas_cases.json": run_dir / "ragas_cases.json",
         RESULTS / "giskard_rag.html": run_dir / "giskard_rag.html",
         RESULTS / "giskard_rag.json": run_dir / "giskard_rag.json",
+        RESULTS / "giskard_rag_cases.json": run_dir / "giskard_rag_cases.json",
         RESULTS / "giskard_scan.html": run_dir / "giskard_scan.html",
         RESULTS / "giskard_scan.json": run_dir / "giskard_scan.json",
     }

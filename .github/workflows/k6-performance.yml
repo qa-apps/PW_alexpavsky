@@ -81,6 +81,39 @@ jobs:
             --summary-export performance-results/k6-rps-100.json \
             performance/site.js
 
+      - name: Run k6 50 RPS arrival-rate
+        id: rps_50
+        continue-on-error: true
+        env:
+          K6_BASE_URL: ${{ inputs.base_url || 'https://www.alexpavsky.com' }}
+        run: |
+          k6 run \
+            -e PERFORMANCE_SCENARIO=rps-50 \
+            --summary-export performance-results/k6-rps-50.json \
+            performance/site.js
+
+      - name: Run k6 50 virtual users
+        id: vus_50
+        continue-on-error: true
+        env:
+          K6_BASE_URL: ${{ inputs.base_url || 'https://www.alexpavsky.com' }}
+        run: |
+          k6 run \
+            -e PERFORMANCE_SCENARIO=vus-50 \
+            --summary-export performance-results/k6-vus-50.json \
+            performance/site.js
+
+      - name: Run k6 100 virtual users
+        id: vus_100
+        continue-on-error: true
+        env:
+          K6_BASE_URL: ${{ inputs.base_url || 'https://www.alexpavsky.com' }}
+        run: |
+          k6 run \
+            -e PERFORMANCE_SCENARIO=vus-100 \
+            --summary-export performance-results/k6-vus-100.json \
+            performance/site.js
+
       - name: Run k6 load
         id: load
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_heavy }}
@@ -192,6 +225,21 @@ jobs:
 
           if [[ "${{ steps.rps_100.outcome }}" == "failure" ]]; then
             echo "k6 rps-100 failed"
+            failed=1
+          fi
+
+          if [[ "${{ steps.rps_50.outcome }}" == "failure" ]]; then
+            echo "k6 rps-50 failed"
+            failed=1
+          fi
+
+          if [[ "${{ steps.vus_50.outcome }}" == "failure" ]]; then
+            echo "k6 vus-50 failed"
+            failed=1
+          fi
+
+          if [[ "${{ steps.vus_100.outcome }}" == "failure" ]]; then
+            echo "k6 vus-100 failed"
             failed=1
           fi
 

@@ -244,6 +244,7 @@ def main() -> int:
             "category": q.get("category", "—"),
             "question": question_text,
             "answer": answer,
+            "sources": sources,
             "contexts_count": len(contexts),
             "faithfulness": 0.0,    # filled in step 2
             "relevancy": 0.0,       # filled in step 2
@@ -458,6 +459,26 @@ def main() -> int:
         return one_strong and other_credible
 
     passed_count = sum(1 for r in records if _is_passed(r))
+    case_rows = []
+    for r in records:
+        f = r.get("faithfulness", float("nan"))
+        rel = r.get("relevancy", float("nan"))
+        case_rows.append({
+            "id": r.get("id"),
+            "category": r.get("category"),
+            "prompt": r.get("question", ""),
+            "answer": r.get("answer", ""),
+            "sources": r.get("sources", []),
+            "contexts_count": r.get("contexts_count", 0),
+            "faithfulness": None if math.isnan(f) else f,
+            "relevancy": None if math.isnan(rel) else rel,
+            "keyword_passed": r.get("keyword_passed"),
+            "keyword_matched": r.get("keyword_matched", []),
+            "passed": _is_passed(r),
+        })
+    (RESULTS_DIR / "ragas_cases.json").write_text(
+        json.dumps({"cases": case_rows}, indent=2), encoding="utf-8"
+    )
     summary_json = {
         "passed": passed_count,
         "failed": len(records) - passed_count,

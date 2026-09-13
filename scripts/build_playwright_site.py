@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a static GitHub Pages UI for LLM Judge Playwright results."""
+"""Build a static GitHub Pages UI for Playwright CI results."""
 from __future__ import annotations
 
 import datetime as dt
@@ -34,7 +34,7 @@ def carry_forward() -> list[dict]:
                 shutil.copytree(item, dest, dirs_exist_ok=True)
             else:
                 shutil.copy2(item, dest)
-        hist = SITE / "llm-judge" / "history.json"
+        hist = SITE / "playwright" / "history.json"
         if hist.exists():
             try:
                 history = json.loads(hist.read_text(encoding="utf-8"))
@@ -43,24 +43,7 @@ def carry_forward() -> list[dict]:
     return history
 
 
-def playwright_stats() -> dict:
-    for path in Path("test-results").rglob("*.json"):
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
-            continue
-        stats = data.get("stats") or {}
-        if stats:
-            return {
-                "passed": stats.get("expected", 0),
-                "failed": stats.get("unexpected", 0),
-                "flaky": stats.get("flaky", 0),
-                "skipped": stats.get("skipped", 0),
-            }
-    return {"passed": 0, "failed": 0, "flaky": 0, "skipped": 0}
-
-
-def collect_playwright_tests() -> list[dict]:
+def collect_tests() -> list[dict]:
     tests: list[dict] = []
     seen: set[tuple[str, str]] = set()
 
@@ -72,7 +55,6 @@ def collect_playwright_tests() -> list[dict]:
             for test in spec.get("tests", []) or []:
                 project = test.get("projectName") or ""
                 full_title = " › ".join([*next_parents, spec_title]).strip(" ›")
-                status = test.get("status") or "unknown"
                 errors = []
                 attachments = []
                 for result in test.get("results", []) or []:
@@ -81,9 +63,8 @@ def collect_playwright_tests() -> list[dict]:
                         if msg:
                             errors.append(str(msg))
                     for att in result.get("attachments", []) or []:
-                        path = att.get("path")
-                        if path:
-                            attachments.append(str(path))
+                        if att.get("path"):
+                            attachments.append(str(att["path"]))
                 key = (project, full_title)
                 if key in seen:
                     continue
@@ -91,7 +72,7 @@ def collect_playwright_tests() -> list[dict]:
                 tests.append({
                     "project": project,
                     "title": full_title or spec_title or "test",
-                    "status": status,
+                    "status": test.get("status") or "unknown",
                     "errors": errors,
                     "attachments": attachments,
                 })
@@ -108,82 +89,67 @@ def collect_playwright_tests() -> list[dict]:
     return tests
 
 
-def test_rows(tests: list[dict], wanted: set[str]) -> str:
-    rows = []
+def stats(tests: list[dict]) -> dict:
+    return {
+        "passed": sum(1 for t in tests if t["status"] == "expected"),
+        "failed": sum(1 for t in tests if t["status"] == "unexpected"),
+        "flaky": sum(1 for t in tests if t["status"] == "flaky"),
+        "skipped": sum(1 for t in tests if t["status"] == "skipped"),
+    }
+
+
+def rows(tests: list[dict], wanted: set[str]) -> str:
+    out = []
     for test in tests:
         if test["status"] not in wanted:
             continue
-        err = "\n\n".join(test.get("errors") or [])[:4000]
-        attachments = "\n".join(test.get("attachments") or [])
-        details = ""
-        if err or attachments:
-            detail_text = "\n".join(part for part in [err, attachments] if part)
-            details = f"<details><summary>details</summary><pre>{escape(detail_text)}</pre></details>"
+        detail_text = "\n\n".join(test.get("errors") or [])
+        if test.get("attachments"):
+            detail_text += ("\n\n" if detail_text else "") + "\n".join(test["attachments"])
+        details = (
+            f"<details><summary>error / artifacts</summary><pre>{escape(detail_text[:5000])}</pre></details>"
+            if detail_text
+            else ""
+        )
         cls = "pass" if test["status"] == "expected" else "fail"
-        rows.append(
+        out.append(
             f"<tr><td class='{cls}'>{escape(test['status'])}</td>"
             f"<td>{escape(test.get('project') or '')}</td>"
             f"<td>{escape(test['title'])}{details}</td></tr>"
         )
-    return "".join(rows)
+    return "".join(out)
 
 
-def verdict_rows(run_dir: Path) -> str:
-    rows = []
-    verdict_root = Path("judge-verdicts")
-    if not verdict_root.exists():
-        verdict_root = Path("test-results")
-    target = run_dir / "judge-verdicts"
-    if verdict_root.exists():
-        shutil.copytree(verdict_root, target, dirs_exist_ok=True)
-    for path in sorted(target.rglob("*")) if target.exists() else []:
-        if not path.is_file():
-            continue
-        rel = path.relative_to(run_dir)
-        text = path.read_text(encoding="utf-8", errors="ignore")[:3000]
-        rows.append(
-            f"<tr><td><a href='{escape(str(rel))}'>{escape(path.name)}</a></td>"
-            f"<td><details><summary>preview</summary><pre>{escape(text)}</pre></details></td></tr>"
-        )
-    return "".join(rows)
-
-
-def run_html(run_dir: Path, stats: dict) -> str:
-    total = sum(stats.values())
+def run_html(run_dir: Path, tests: list[dict]) -> str:
+    s = stats(tests)
+    total = sum(s.values())
     run_link = f"https://github.com/{REPO_SLUG}/actions/runs/{RUN_ID}" if RUN_ID else ""
-    rows = verdict_rows(run_dir)
-    tests = collect_playwright_tests()
-    passed_rows = test_rows(tests, {"expected"})
-    failed_rows = test_rows(tests, {"unexpected", "flaky"})
     report_link = "playwright-report/index.html" if (run_dir / "playwright-report" / "index.html").exists() else ""
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
-<title>LLM Judge run #{escape(str(RUN_NUMBER))}</title>
+<title>Playwright run #{escape(str(RUN_NUMBER))}</title>
 <style>
-body {{ font:14px/1.45 -apple-system,BlinkMacSystemFont,sans-serif; margin:0 auto; max-width:1100px; padding:24px; color:#1f2328; }}
+body {{ font:14px/1.45 -apple-system,BlinkMacSystemFont,sans-serif; margin:0 auto; max-width:1180px; padding:24px; color:#1f2328; }}
 a {{ color:#0969da; text-decoration:none; }} .meta {{ color:#656d76; }}
 .cards {{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin:18px 0; }}
 .card {{ border:1px solid #d0d7de; border-radius:6px; padding:12px; background:#f6f8fa; }} .value {{ font-size:24px; font-weight:700; }}
 table {{ width:100%; border-collapse:collapse; margin-top:16px; }} th,td {{ padding:8px 10px; border-bottom:1px solid #d8dee4; text-align:left; vertical-align:top; }} th {{ background:#f6f8fa; }}
-pre {{ white-space:pre-wrap; max-width:760px; }}
-.pass {{ color:#1a7f37; font-weight:700; }} .fail {{ color:#cf222e; font-weight:700; }}
+pre {{ white-space:pre-wrap; max-width:860px; }} .pass {{ color:#1a7f37; font-weight:700; }} .fail {{ color:#cf222e; font-weight:700; }}
 </style></head><body>
-<p><a href="../../index.html">← all LLM Judge runs</a></p>
-<h1>LLM Judge #{escape(str(RUN_NUMBER))}</h1>
+<p><a href="../../index.html">← all Playwright runs</a></p>
+<h1>Playwright CI #{escape(str(RUN_NUMBER))}</h1>
 <p class="meta">{escape(TIMESTAMP)} · commit {escape(COMMIT_SHA or 'unknown')} · {f'<a href="{run_link}">GitHub run</a>' if run_link else 'local run'}</p>
 <div class="cards">
-<div class="card"><div>Passed</div><div class="value">{stats['passed']}</div></div>
-<div class="card"><div>Failed</div><div class="value">{stats['failed']}</div></div>
-<div class="card"><div>Flaky</div><div class="value">{stats['flaky']}</div></div>
-<div class="card"><div>Skipped</div><div class="value">{stats['skipped']}</div></div>
+<div class="card"><div>Passed</div><div class="value pass">{s['passed']}</div></div>
+<div class="card"><div>Failed</div><div class="value fail">{s['failed']}</div></div>
+<div class="card"><div>Flaky</div><div class="value">{s['flaky']}</div></div>
+<div class="card"><div>Skipped</div><div class="value">{s['skipped']}</div></div>
 <div class="card"><div>Total</div><div class="value">{total}</div></div>
 </div>
 {f'<p><a href="{report_link}">Open full Playwright HTML report</a></p>' if report_link else '<p>Playwright HTML report not produced.</p>'}
 <h2>Failed and flaky tests</h2>
-<table><thead><tr><th>Status</th><th>Project</th><th>Test</th></tr></thead><tbody>{failed_rows or '<tr><td colspan="3">No failed or flaky tests.</td></tr>'}</tbody></table>
+<table><thead><tr><th>Status</th><th>Project</th><th>Test</th></tr></thead><tbody>{rows(tests, {'unexpected', 'flaky'}) or '<tr><td colspan="3">No failed or flaky tests.</td></tr>'}</tbody></table>
 <h2>Passed tests</h2>
-<table><thead><tr><th>Status</th><th>Project</th><th>Test</th></tr></thead><tbody>{passed_rows or '<tr><td colspan="3">No passed tests listed in JSON output.</td></tr>'}</tbody></table>
-<h2>Judge verdict files</h2>
-<table><thead><tr><th>File</th><th>Preview</th></tr></thead><tbody>{rows or '<tr><td colspan="2">No verdict files produced.</td></tr>'}</tbody></table>
+<table><thead><tr><th>Status</th><th>Project</th><th>Test</th></tr></thead><tbody>{rows(tests, {'expected'}) or '<tr><td colspan="3">No passed tests listed in JSON output.</td></tr>'}</tbody></table>
 </body></html>"""
 
 
@@ -193,48 +159,47 @@ def index_html(history: list[dict]) -> str:
             return int(record.get("run_number", 0))
         except Exception:
             return 0
-    rows = []
+    body = []
     for h in sorted(history, key=key, reverse=True)[:50]:
-        rows.append(
+        body.append(
             f"<tr><td><a href='runs/{escape(str(h.get('run_number')))}/index.html'>#{escape(str(h.get('run_number')))}</a></td>"
             f"<td>{escape(str(h.get('timestamp', ''))[:19].replace('T', ' '))}</td>"
             f"<td>{escape(str(h.get('passed', 0)))}/{escape(str(h.get('total', 0)))}</td>"
-            f"<td>{escape(str(h.get('commit', '')))}</td></tr>"
+            f"<td>{escape(str(h.get('failed', 0)))}</td><td>{escape(str(h.get('commit', '')))}</td></tr>"
         )
-    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>LLM Judge Dashboard</title>
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Playwright Dashboard</title>
 <style>body{{font:14px/1.45 -apple-system,BlinkMacSystemFont,sans-serif;margin:0 auto;max-width:1000px;padding:24px;color:#1f2328}}a{{color:#0969da;text-decoration:none}}table{{width:100%;border-collapse:collapse;margin-top:16px}}th,td{{padding:8px 10px;border-bottom:1px solid #d8dee4;text-align:left}}th{{background:#f6f8fa}}</style>
-</head><body><h1>LLM Judge Dashboard</h1><p>Daily chatbot judge verdicts and Playwright reports.</p>
-<table><thead><tr><th>Run</th><th>Timestamp UTC</th><th>Passed</th><th>Commit</th></tr></thead>
-<tbody>{''.join(rows) or '<tr><td colspan="4">No runs yet.</td></tr>'}</tbody></table></body></html>"""
+</head><body><h1>Playwright Dashboard</h1><p>Deterministic Playwright CI runs with passed and failed test lists.</p>
+<table><thead><tr><th>Run</th><th>Timestamp UTC</th><th>Passed</th><th>Failed</th><th>Commit</th></tr></thead>
+<tbody>{''.join(body) or '<tr><td colspan="5">No runs yet.</td></tr>'}</tbody></table></body></html>"""
 
 
 def main() -> None:
     history = carry_forward()
-    llm_root = SITE / "llm-judge"
-    run_dir = llm_root / "runs" / str(RUN_NUMBER)
+    root = SITE / "playwright"
+    run_dir = root / "runs" / str(RUN_NUMBER)
     run_dir.mkdir(parents=True, exist_ok=True)
     if Path("playwright-report").exists():
         shutil.copytree("playwright-report", run_dir / "playwright-report", dirs_exist_ok=True)
     if Path("test-results").exists():
         shutil.copytree("test-results", run_dir / "test-results", dirs_exist_ok=True)
-    stats = playwright_stats()
-    (run_dir / "index.html").write_text(run_html(run_dir, stats), encoding="utf-8")
-
-    total = sum(stats.values())
+    tests = collect_tests()
+    s = stats(tests)
+    (run_dir / "index.html").write_text(run_html(run_dir, tests), encoding="utf-8")
     record = {
         "run_number": RUN_NUMBER,
         "timestamp": TIMESTAMP,
-        "passed": stats["passed"],
-        "failed": stats["failed"],
-        "total": total,
+        "passed": s["passed"],
+        "failed": s["failed"],
+        "total": sum(s.values()),
         "commit": COMMIT_SHA,
         "run_id": RUN_ID,
     }
     history = [h for h in history if str(h.get("run_number")) != str(RUN_NUMBER)]
     history.append(record)
-    llm_root.mkdir(parents=True, exist_ok=True)
-    (llm_root / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
-    (llm_root / "index.html").write_text(index_html(history), encoding="utf-8")
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
+    (root / "index.html").write_text(index_html(history), encoding="utf-8")
 
 
 if __name__ == "__main__":
