@@ -27,7 +27,7 @@ jobs:
     runs-on: [self-hosted, Linux, X64, bosgame]
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-noble
-      options: --add-host host.docker.internal:host-gateway
+      options: --add-host host.docker.internal:host-gateway --user 1001:1001
     timeout-minutes: 180
     env:
       OLLAMA_BASE_URL: http://host.docker.internal:11434
