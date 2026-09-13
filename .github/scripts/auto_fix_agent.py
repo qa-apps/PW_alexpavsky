@@ -1071,13 +1071,16 @@ def run_reviewer_smoke() -> bool:
     """Make one small real call to each merge-gate model without a PR."""
     failed_fixture = run_process([
         sys.executable, "-c",
-        "values=[1,2]; actual=sum(values)+1; "
+        "ns={}; exec('def sum_numbers(values):\\n return sum(values) + 1', ns); "
+        "actual=ns['sum_numbers']([1,2]); "
         "assert actual == 3, f'expected 3, received {actual}'",
     ])
     targeted_fixture = run_process([
         sys.executable, "-c",
-        "values=[1,2]; actual=sum(values); "
-        "assert actual == 3, f'expected 3, received {actual}'",
+        "ns={}; exec('def sum_numbers(values):\\n return sum(values)', ns); "
+        "cases=[([],0),([1,2],3),([-2,5],3),([7],7)]; "
+        "assert all(ns['sum_numbers'](values) == expected "
+        "for values, expected in cases)",
     ])
     logs = (
         "Reviewer smoke regression fixture reproduced the off-by-one failure.\n"
@@ -1095,7 +1098,8 @@ def run_reviewer_smoke() -> bool:
     targeted = {
         "passed": targeted_fixture["passed"],
         "reason": (
-            "The complete one-test regression fixture passed after the patch."
+            "The complete regression fixture called the patched sum_numbers "
+            "function directly and passed all four cases."
         ),
         "results": [targeted_fixture],
     }
@@ -1104,7 +1108,8 @@ def run_reviewer_smoke() -> bool:
         "category": "qa_script", "confidence": 1.0,
         "evidence": (
             "The executable pre-patch fixture failed with expected 3, received "
-            "4; the same complete fixture passed after removing + 1."
+            "4; the post-patch fixture directly called sum_numbers and passed "
+            "empty, positive, negative, and single-value cases."
         ),
     }
     local = local_review(diff, targeted, triage)
