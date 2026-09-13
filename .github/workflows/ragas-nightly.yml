@@ -354,3 +354,10 @@ jobs:
         with:
           path: .ci-markers/ragas-giskard.done
           key: bosgame-ragas-giskard-${{ steps.eval_day.outputs.date }}
+
+      - name: Release background model lease
+        if: always() && github.event_name == 'schedule'
+        run: |
+          curl -fsS -X POST \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
+            http://127.0.0.1:11443/release/background || true
