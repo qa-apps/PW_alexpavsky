@@ -131,7 +131,11 @@ jobs:
 
       - name: Install dependencies
         if: steps.local_llm.outputs.run == 'true'
-        run: npm ci
+        env:
+          HOME: /tmp/node-home
+        run: |
+          mkdir -p "$HOME" "$NPM_CONFIG_CACHE" "$npm_config_devdir"
+          npm ci
 
       - name: Install Playwright browsers
         if: steps.local_llm.outputs.run == 'true'
