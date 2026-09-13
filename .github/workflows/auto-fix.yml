@@ -28,9 +28,14 @@ on:
         required: false
         type: boolean
         default: false
+      vision_smoke:
+        description: "Run the agentic Vision audit without creating a PR"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
-  group: auto-fix-${{ github.event.workflow_run.id || inputs.failed_run_id }}
+  group: auto-fix-${{ github.event.workflow_run.id || inputs.failed_run_id }}-${{ inputs.reviewer_smoke || false }}-${{ inputs.vision_smoke || false }}
   cancel-in-progress: false
 
 permissions:
@@ -66,6 +71,7 @@ jobs:
           EVENT_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
           EVENT_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           REVIEWER_SMOKE: ${{ inputs.reviewer_smoke }}
+          VISION_SMOKE: ${{ inputs.vision_smoke }}
         shell: bash
         run: |
           run_id="$EVENT_RUN_ID"
@@ -87,7 +93,7 @@ jobs:
 
           should_run=false
           needs_human=false
-          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$REVIEWER_SMOKE" == "true" ]]; then
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && ( "$REVIEWER_SMOKE" == "true" || "$VISION_SMOKE" == "true" ) ]]; then
             should_run=true
           elif [[ "$conclusion" == "failure" ]]; then
             if [[ "$EVENT_NAME" == "workflow_dispatch" || "$head_branch" == "master" || "$head_branch" == "main" ]]; then
@@ -218,10 +224,10 @@ jobs:
             unzip -o "$f" -d "${f%.zip}/"
           done
 
-      - name: Wait for and warm local GPT-OSS
+      - name: Wait for and warm local model
         env:
           OLLAMA_BASE_URL: http://127.0.0.1:11434
-          LOCAL_LLM_MODEL: gpt-oss:120b
+          LOCAL_LLM_MODEL: ${{ inputs.vision_smoke && 'qwen3-vl-30b-a3b-screen:latest' || 'gpt-oss:120b' }}
         shell: bash
         run: |
           for attempt in {1..20}; do
@@ -236,10 +242,51 @@ jobs:
             sleep 15
           done
           curl --silent --max-time 180 "$OLLAMA_BASE_URL/api/generate" \
-            -d '{"model":"gpt-oss:120b","prompt":"ok","stream":false,"keep_alive":-1,"options":{"num_predict":1}}' \
+            -d "{\"model\":\"$LOCAL_LLM_MODEL\",\"prompt\":\"ok\",\"stream\":false,\"keep_alive\":-1,\"options\":{\"num_predict\":1}}" \
             >/dev/null
 
+      - name: Install Vision audit dependencies
+        if: inputs.vision_smoke == true
+        working-directory: agent-control
+        run: |
+          npm ci --no-audit --no-fund --ignore-scripts
+          npx playwright install chromium
+
+      - name: Run Vision audit smoke
+        if: inputs.vision_smoke == true
+        id: vision_smoke
+        continue-on-error: true
+        working-directory: agent-control
+        env:
+          BASE_URL: https://www.alexpavsky.com
+          OLLAMA_BASE_URL: http://127.0.0.1:11434
+          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+          VISION_AUDIT_MAX_STEPS: '4'
+          VISION_AUDIT_OUTPUT_DIR: vision-audit
+        run: node .github/scripts/vision_audit_agent.mjs
+
+      - name: Publish Vision smoke to Slack
+        if: always() && inputs.vision_smoke == true
+        working-directory: agent-control
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 .github/scripts/notify_vision_slack.py \
+            --report vision-audit/vision-audit-report.json \
+            --channel "${{ secrets.SLACK_UI_CODEX_CHANNEL_ID }}"
+
+      - name: Upload Vision smoke evidence
+        if: always() && inputs.vision_smoke == true
+        uses: actions/upload-artifact@v5
+        with:
+          name: vision-audit-smoke
+          path: agent-control/vision-audit/
+          retention-days: 30
+          if-no-files-found: warn
+
       - name: Run auto-fix agent
+        if: inputs.vision_smoke != true
         working-directory: target
         env:
           GITHUB_TOKEN:           ${{ secrets.GITHUB_TOKEN }}
@@ -268,6 +315,10 @@ jobs:
           AGENT_REPORTS_CHANNEL_ID: ${{ secrets.AGENT_REPORTS_CHANNEL_ID }}
           HUMAN_REVIEW_CHANNEL_ID: ${{ secrets.HUMAN_REVIEW_CHANNEL_ID }}
         run: python3 ../agent-control/.github/scripts/auto_fix_agent.py
+
+      - name: Fail when Vision smoke confirmed a defect
+        if: inputs.vision_smoke == true && steps.vision_smoke.outcome == 'failure'
+        run: exit 1
 
       - name: Upload agent decision trail
         if: always()
