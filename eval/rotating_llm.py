@@ -59,6 +59,7 @@ class RotatingJudgeLLM(BaseChatModel):
     temperature: float = 0.0
     timeout: int = int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180"))
     max_tokens: int = int(os.environ.get("LOCAL_LLM_MAX_TOKENS", "2048"))
+    reasoning_effort: str = os.environ.get("LOCAL_LLM_REASONING_EFFORT", "low")
     max_retries: int = 1
     _last_used_idx: int = 0
 
@@ -82,6 +83,7 @@ class RotatingJudgeLLM(BaseChatModel):
             temperature=self.temperature,
             timeout=self.timeout,
             max_tokens=self.max_tokens,
+            reasoning_effort=self.reasoning_effort,
             max_retries=self.max_retries,
         )
 
