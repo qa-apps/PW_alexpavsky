@@ -1069,6 +1069,9 @@ def checkout_merged_default() -> dict:
 
 def run_reviewer_smoke() -> bool:
     """Make one small real call to each merge-gate model without a PR."""
+    fixture_path = (
+        Path(__file__).resolve().parents[2] / "tests" / "reviewer_smoke_fixture.py"
+    )
     failed_fixture = run_process([
         sys.executable, "-c",
         "ns={}; exec('def sum_numbers(values):\\n return sum(values) + 1', ns); "
@@ -1076,20 +1079,16 @@ def run_reviewer_smoke() -> bool:
         "assert actual == 3, f'expected 3, received {actual}'",
     ])
     targeted_fixture = run_process([
-        sys.executable, "-c",
-        "ns={}; exec('def sum_numbers(values):\\n return sum(values)', ns); "
-        "cases=[([],0),([1,2],3),([-2,5],3),([7],7)]; "
-        "assert all(ns['sum_numbers'](values) == expected "
-        "for values, expected in cases)",
+        sys.executable, str(fixture_path),
     ])
     logs = (
         "Reviewer smoke regression fixture reproduced the off-by-one failure.\n"
         f"Pre-patch return code: {failed_fixture['returncode']}\n"
         f"Pre-patch output:\n{failed_fixture['output']}"
     )
-    diff = """diff --git a/tests/helpers/math.py b/tests/helpers/math.py
---- a/tests/helpers/math.py
-+++ b/tests/helpers/math.py
+    diff = """diff --git a/tests/reviewer_smoke_fixture.py b/tests/reviewer_smoke_fixture.py
+--- a/tests/reviewer_smoke_fixture.py
++++ b/tests/reviewer_smoke_fixture.py
 @@
  def sum_numbers(values):
 -    return sum(values) + 1
@@ -1098,8 +1097,8 @@ def run_reviewer_smoke() -> bool:
     targeted = {
         "passed": targeted_fixture["passed"],
         "reason": (
-            "The complete regression fixture called the patched sum_numbers "
-            "function directly and passed all four cases."
+            "The complete on-disk regression fixture imported the patched "
+            "sum_numbers function and passed all four cases."
         ),
         "results": [targeted_fixture],
     }
@@ -1108,8 +1107,8 @@ def run_reviewer_smoke() -> bool:
         "category": "qa_script", "confidence": 1.0,
         "evidence": (
             "The executable pre-patch fixture failed with expected 3, received "
-            "4; the post-patch fixture directly called sum_numbers and passed "
-            "empty, positive, negative, and single-value cases."
+            "4; the post-patch test executed the checked-out fixture file and "
+            "passed empty, positive, negative, and single-value cases."
         ),
     }
     local = local_review(diff, targeted, triage)
