@@ -41,6 +41,8 @@ jobs:
       LOCAL_LLM_REASONING_EFFORT: low
       LLM_TEST_TIMEOUT_MS: '300000'
       LLM_JUDGE_PASSING_SCORE: '3'
+      NPM_CONFIG_CACHE: /tmp/npm-cache
+      npm_config_devdir: /tmp/node-gyp
 
     steps:
       - name: Checkout
