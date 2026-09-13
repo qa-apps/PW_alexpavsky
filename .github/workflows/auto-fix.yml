@@ -227,7 +227,7 @@ jobs:
       - name: Wait for and warm local model
         env:
           OLLAMA_BASE_URL: http://127.0.0.1:11434
-          LOCAL_LLM_MODEL: ${{ inputs.vision_smoke && 'qwen3-vl-30b-a3b-screen:latest' || 'gpt-oss:120b' }}
+          LOCAL_LLM_MODEL: ${{ inputs.vision_smoke && 'qwen3-vl-30b-a3b-screen:latest' || 'orcarouter/Qwen3.8-27B-Uncensored:q5_K_M' }}
         shell: bash
         run: |
           for attempt in {1..20}; do
@@ -236,7 +236,7 @@ jobs:
               break
             fi
             if [[ "$attempt" == "20" ]]; then
-              echo "Local GPT-OSS was not available after 5 minutes."
+              echo "Required local model was not available after 5 minutes."
               exit 1
             fi
             sleep 15
@@ -336,7 +336,7 @@ jobs:
           REVIEWER_SMOKE:         ${{ inputs.reviewer_smoke || false }}
           LOCAL_LLM_API_KEY:      ollama
           LOCAL_LLM_BASE_URL:     http://127.0.0.1:11434/v1
-          LOCAL_LLM_MODEL:        gpt-oss:120b
+          LOCAL_LLM_MODEL:        orcarouter/Qwen3.8-27B-Uncensored:q5_K_M
           LOCAL_LLM_REASONING_EFFORT: low
           LOCAL_LLM_TIMEOUT_SEC:  '180'
           FINAL_SMART_MODEL:      gpt-5.1

@@ -4,9 +4,9 @@ auto_fix_agent.py — AI-powered auto-fix agent running in GitHub Actions.
 
 Triggered by auto-fix.yml when any CI pipeline fails.
 Workflow:
-  1. A local GPT-OSS triage agent classifies risk and chooses a specialist.
+  1. A local reasoning agent classifies risk and chooses a specialist.
   2. A local specialist proposes and applies only allow-listed QA changes.
-  3. A second local GPT-OSS reviewer inspects the diff and targeted rerun.
+  3. A second local reviewer inspects the diff and targeted rerun.
   4. The agent opens a PR only after the targeted failing tests pass.
   5. OpenAI and DeepSeek independently review the same PR evidence.
   6. Two approvals allow merge; any rejection/error goes to Human Review.
@@ -292,7 +292,7 @@ human review. Unclear evidence always requires human review."""
 
 
 def triage_failure(logs: str, files: str) -> dict:
-    """Use local GPT-OSS to classify the failure; enforce hard safety gates."""
+    """Use the local reasoning model to classify failure and enforce safety."""
     if HEAD_BRANCH and HEAD_BRANCH not in ("master", "main"):
         return {
             "decision": "human_review", "specialist": "automation_engineer",
@@ -1087,7 +1087,7 @@ def run_reviewer_smoke() -> bool:
     if approved:
         post_agent_stage(
             "reviewer smoke", "passed",
-            f"Local GPT-OSS, OpenAI `{smart_model}`, and DeepSeek "
+            f"Local model, OpenAI `{smart_model}`, and DeepSeek "
             f"`{cheap_model}` all returned APPROVE. No PR was created.",
         )
         return True
@@ -1112,7 +1112,7 @@ def main() -> None:
         sys.exit(1)
 
     if "ollama" not in llm_client.configured_providers():
-        print("Local GPT-OSS is not configured — failing closed", file=sys.stderr)
+        print("Local reasoning model is not configured — failing closed", file=sys.stderr)
         sys.exit(1)
 
     if REVIEWER_SMOKE:
@@ -1154,7 +1154,7 @@ def main() -> None:
     print(f"  Found: {failing or '(none — will scan all tests)'}")
     file_content = read_files(failing)
 
-    print("\n[3] Local GPT-OSS triage...")
+    print("\n[3] Local reasoning-model triage...")
     triage = triage_failure(logs, file_content)
     state["triage"] = triage
     post_agent_stage(
@@ -1219,7 +1219,7 @@ def main() -> None:
     post_agent_stage("targeted test", "passed", targeted.get("reason", "Passed"))
 
     diff = git("diff", "--no-ext-diff", "HEAD")[:MAX_DIFF_CHARS]
-    print("\n[6] Independent local GPT-OSS review...")
+    print("\n[6] Independent local model review...")
     local = local_review(diff, targeted, triage)
     state["local_review"] = local
     if not local.get("approved"):
