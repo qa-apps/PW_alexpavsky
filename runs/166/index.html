@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Eval run #166</title>
+<style>
+  body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; margin: 0 auto; max-width: 1100px; padding: 24px; color: #1a1a1a; }
+  h1 { margin: 0 0 4px; } h2 { margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  nav { font-size: 13px; color: #666; } nav a { color: #0366d6; text-decoration: none; }
+  .meta { color: #666; font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 16px 0; }
+  .card { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 14px; }
+  .card .label { color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .status-pass { color: #0a7c0a; } .status-fail { color: #b00020; }
+  iframe { width: 100%; height: 600px; border: 1px solid #d0d7de; border-radius: 6px; }
+  #ragas-md { background: #fff; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; }
+  table.cases { width: 100%; border-collapse: collapse; margin: 12px 0 22px; }
+  .cases th, .cases td { border-bottom: 1px solid #eaeef2; padding: 8px; text-align: left; vertical-align: top; }
+  .cases th { background: #f6f8fa; }
+  .cases pre { white-space: pre-wrap; max-height: 260px; overflow: auto; margin: 6px 0 0; }
+</style></head>
+<body>
+<nav><a href="../../index.html">← all runs</a></nav>
+<h1>Eval run #166</h1>
+<p class="meta">2026-09-13T06:16:31+00:00 · commit <a href="https://github.com/qa-apps/PW_alexpavsky/commit/b64d4ed">b64d4ed</a> · <a href="https://github.com/qa-apps/PW_alexpavsky/actions/runs/34741980805">run #166</a></p>
+
+<div class="grid">
+  <div class="card"><div class="label">Ragas faithfulness</div><div class="value status-pass">1.0</div></div>
+  <div class="card"><div class="label">Ragas relevancy</div><div class="value">0.849</div></div>
+  <div class="card"><div class="label">Giskard RAG correctness</div><div class="value">—</div></div>
+  <div class="card"><div class="label">Giskard scan issues</div><div class="value">—</div></div>
+</div>
+
+<h2 id="ragas">Ragas report</h2>
+<div id="ragas-md">Loading…</div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+fetch('report.md').then(r => r.ok ? r.text() : 'Ragas report not produced for this run.').then(t => {
+  document.getElementById('ragas-md').innerHTML = marked.parse(t);
+}).catch(e => { document.getElementById('ragas-md').textContent = 'Failed to load Ragas report: ' + e; });
+</script>
+
+
+<h2>Ragas prompts and answers</h2>
+<table class="cases">
+  <thead><tr><th>ID</th><th>Category</th><th>Status</th><th>Faithfulness</th><th>Relevancy</th><th>Prompt</th><th>Answer</th></tr></thead>
+  <tbody><tr><td>finnova-01-agent-count</td><td>facts</td><td><span class="status-pass">PASS</span></td><td>1.00</td><td>0.95</td><td><details open><summary>prompt</summary><pre>How many specialized AI agents were deployed at FinNova Bank?</pre></details></td><td><details open><summary>answer</summary><pre>FinNova Bank’s transformation deployed **seven** specialized AI agents.</pre></details></td></tr><tr><td>finnova-02-bug-reduction</td><td>metrics</td><td><span class="status-pass">PASS</span></td><td>1.00</td><td>0.93</td><td><details open><summary>prompt</summary><pre>By what percentage did production bugs drop at FinNova Bank?</pre></details></td><td><details open><summary>answer</summary><pre>The production bugs at FinNova Bank dropped by 67% according to the 12-month outcomes.</pre></details></td></tr><tr><td>finnova-03-cost-savings</td><td>metrics</td><td><span class="status-pass">PASS</span></td><td>1.00</td><td>1.00</td><td><details open><summary>prompt</summary><pre>How much did FinNova save annually in operating costs?</pre></details></td><td><details open><summary>answer</summary><pre>FinNova saved $2.4M annually in operating costs.</pre></details></td></tr><tr><td>finnova-04-mttd</td><td>metrics</td><td><span class="status-pass">PASS</span></td><td>1.00</td><td>0.62</td><td><details open><summary>prompt</summary><pre>What was the mean time to detection (MTTD) before and after the engagement?</pre></details></td><td><details open><summary>answer</summary><pre>Before: 4 hours 30 minutes  
+After: 12 minutes</pre></details></td></tr><tr><td>finnova-05-test-cases</td><td>facts</td><td><span class="status-pass">PASS</span></td><td>1.00</td><td>1.00</td><td><details open><summary>prompt</summary><pre>How many automated test cases did the Test Generator agent produce?</pre></details></td><td><details open><summary>answer</summary><pre>The Test Generator agent produced 3,247 automated test cases.</pre></details></td></tr><tr><td>finnova-06-flake-rate</td><td>metrics</td><td><span class="status-fail">FAIL</span></td><td>1.00</td><td>0.00</td><td><details open><summary>prompt</summary><pre>What was the flake rate before and after the engagement?</pre></details></td><td><details open><summary>answer</summary><pre>The context provided does not give specific flake rate numbers before and after the engagement. It discusses ways to reduce flaky test rates (e.g., using deterministic assertions, isolating fixtures, retaining traces), but the actual pre‑ and post‑flake rates are not stated.</pre></details></td></tr><tr><td>finnova-07-customers</td><td>facts</td><td><span class="status-pass">PASS</span></td><td>1.00</td><td>1.00</td><td><details open><summary>prompt</summary><pre>How many retail customers does FinNova Bank serve?</pre></details></td><td><details open><summary>answer</summary><pre>FinNova Bank serves 2.4 million retail customers.</pre></details></td></tr><tr><td>finnova-08-transaction-volume</td><td>facts</td><td><span class="status-pass">PASS</span></td><td>1.00</td><td>0.99</td><td><details open><summary>prompt</summary><pre>What is the annual transaction volume of FinNova Bank?</pre></details></td><td><details open><summary>answer</summary><pre>FinNova Bank handles approximately $48 billion in annual transaction volume.</pre></details></td></tr><tr><td>concept-01-test-isolation</td><td>best-practices</td><td><span class="status-fail">FAIL</span></td><td>1.00</td><td>1.00</td><td><details open><summary>prompt</summary><pre>What are the best practices for test data isolation in Playwright?</pre></details></td><td><details open><summary>answer</summary><pre>Best practices for test data isolation in Playwright include:
+
+1. Use API setup where UI setup adds no value.
+2. Retain traces for failures and first retries in CI.
+3. Prefer user-facing locators and stable test data contracts.
+4. Use API setup where UI setup adds no value.
+5. Retain traces for failures and first retries in CI.
+
+These practices help ensure that each test has its own isolated data environment, reducing flakiness and making failures more reliable for diagnosis and release decisions.</pre></details></td></tr><tr><td>concept-02-prompt-injection-types</td><td>best-practices</td><td><span class="status-pass">PASS</span></td><td>1.00</td><td>1.00</td><td><details open><summary>prompt</summary><pre>What are the main categories of prompt injection attacks that QA should test for?</pre></details></td><td><details open><summary>answer</summary><pre>The main categories of prompt injection attacks that QA should test for are:
+
+1. Direct Prompt Injection – where user instructions override system prompts, potentially leaking proprietary prompt data or system rules.  
+2. Indirect Prompt Injection – where malicious inputs are embedded in third‑party data sources (PDFs, web pages, etc.) processed by an agent, leading to unauthorized system actions.  
+3. Data Leakage / Extraction – tricking the model into revealing training details, private keys, or confidential customer data via role‑play or reverse psychology.</pre></details></td></tr></tbody>
+</table>
+
+
+<h2 id="giskard-rag">Giskard RAG evaluation</h2>
+<iframe src="giskard_rag.html" title="Giskard RAG eval"></iframe>
+
+
+<h2>Giskard generated prompts and answers</h2>
+<table class="cases">
+  <thead><tr><th>ID</th><th>Category</th><th>Status</th><th>Faithfulness</th><th>Relevancy</th><th>Prompt</th><th>Answer</th></tr></thead>
+  <tbody><tr><td colspan="7">No structured Giskard case file was produced for this run.</td></tr></tbody>
+</table>
+
+
+<h2 id="giskard-scan">Giskard vulnerability scan</h2>
+<iframe src="giskard_scan.html" title="Giskard scan"></iframe>
+</body></html>
