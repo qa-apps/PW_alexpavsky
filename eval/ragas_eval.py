@@ -277,7 +277,7 @@ def main() -> int:
     log("  Loading Ragas + LangChain (first run can be slow)...")
 
     try:
-        from langchain_openai import OpenAIEmbeddings
+        from langchain_core.embeddings import Embeddings
         from ragas import evaluate, EvaluationDataset, SingleTurnSample
         from ragas.metrics import Faithfulness, ResponseRelevancy
         from ragas.llms import LangchainLLMWrapper
@@ -301,15 +301,26 @@ def main() -> int:
     fallbacks = providers[1:]
 
     embedding_model = os.environ.get("LOCAL_EMBEDDING_MODEL", "qwen3-embedding:4b")
-    judge_embeds = OpenAIEmbeddings(
-        model=embedding_model,
-        base_url=providers[0]["base_url"],
-        api_key=providers[0]["api_key"],
-        timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
-        max_retries=1,
-        check_embedding_ctx_length=False,
-    )
-    log(f"  Embeddings: {embedding_model} via bosgame")
+    ollama_root = providers[0]["base_url"].removesuffix("/v1")
+
+    class OllamaNativeEmbeddings(Embeddings):
+        def _embed(self, texts: list[str]) -> list[list[float]]:
+            response = requests.post(
+                f"{ollama_root}/api/embed",
+                json={"model": embedding_model, "input": texts, "keep_alive": -1},
+                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+            )
+            response.raise_for_status()
+            return response.json()["embeddings"]
+
+        def embed_documents(self, texts: list[str]) -> list[list[float]]:
+            return self._embed(texts)
+
+        def embed_query(self, text: str) -> list[float]:
+            return self._embed([text])[0]
+
+    judge_embeds = OllamaNativeEmbeddings()
+    log(f"  Embeddings: {embedding_model} via {ollama_root}/api/embed")
 
     ragas_llm = LangchainLLMWrapper(judge_llm)
     ragas_embeds = LangchainEmbeddingsWrapper(judge_embeds)
