@@ -71,6 +71,17 @@ jobs:
           path: .ci-markers/ragas-giskard.done
           key: bosgame-ragas-giskard-${{ steps.eval_day.outputs.date }}
 
+      - name: Ensure embedding model for manual full run
+        if: github.event_name == 'workflow_dispatch' && steps.daily_marker.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error "$OLLAMA_BASE_URL/v1/models")
+          if ! python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("id") == wanted for m in data.get("data", [])) else 1)' "$LOCAL_EMBEDDING_MODEL" <<<"$models"; then
+            echo "Preparing $LOCAL_EMBEDDING_MODEL for the requested full evaluation..."
+            curl --fail --show-error --max-time 1800 "$OLLAMA_BASE_URL/api/pull" \
+              -d "{\"name\":\"$LOCAL_EMBEDDING_MODEL\",\"stream\":false}"
+          fi
+
       - name: Check local models
         id: local_llm
         if: steps.daily_marker.outputs.cache-hit != 'true'
