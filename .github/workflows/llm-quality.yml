@@ -135,7 +135,7 @@ jobs:
           HOME: /tmp/node-home
         run: |
           mkdir -p "$HOME" "$NPM_CONFIG_CACHE" "$npm_config_devdir"
-          npm ci
+          npm ci --ignore-scripts
 
       - name: Install Playwright browsers
         if: steps.local_llm.outputs.run == 'true'
