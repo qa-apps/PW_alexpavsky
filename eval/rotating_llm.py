@@ -44,6 +44,11 @@ ROTATE_ON_PATTERNS = (
     "402", "401", "insufficient", "out of tokens", "tpd", "rpd", "tpm",
 )
 
+PRIORITY_INTERRUPTION_PATTERNS = (
+    "503", "service unavailable", "connection reset", "peer closed",
+    "remote protocol", "connection refused",
+)
+
 
 class RotatingJudgeLLM(BaseChatModel):
     """LangChain ChatModel that rotates through providers on failure.
@@ -107,21 +112,28 @@ class RotatingJudgeLLM(BaseChatModel):
         for offset in range(n):
             idx = (self._last_used_idx + offset) % n
             provider = self.providers[idx]
-            try:
-                client = self._make_client(provider)
-                result = client._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
-                self._last_used_idx = idx
-                return result
-            except Exception as e:
-                err_msg = f"{provider['name']}/{provider['model']}: {type(e).__name__}: {str(e)[:140]}"
-                errors.append(err_msg)
-                if self._should_rotate(e):
-                    log.warning("Rotating away from %s — %s", provider["name"], type(e).__name__)
-                    # Skip ahead but keep current as last_used for next call's start.
-                    continue
-                # Non-rotate-able error: still try next, but log differently.
-                log.warning("Hard error from %s: %s", provider["name"], type(e).__name__)
-                continue
+            priority_wait = max(0, int(os.environ.get("LOCAL_LLM_PRIORITY_MAX_WAIT_SEC", "0")))
+            deadline = time.monotonic() + priority_wait
+            while True:
+                try:
+                    client = self._make_client(provider)
+                    result = client._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
+                    self._last_used_idx = idx
+                    return result
+                except Exception as e:
+                    text = str(e).lower()
+                    interrupted = any(pattern in text for pattern in PRIORITY_INTERRUPTION_PATTERNS)
+                    if interrupted and time.monotonic() < deadline:
+                        log.info("Interactive work owns the GPU; pausing scheduled judge for 5 seconds")
+                        time.sleep(min(5.0, max(0.0, deadline - time.monotonic())))
+                        continue
+                    err_msg = f"{provider['name']}/{provider['model']}: {type(e).__name__}: {str(e)[:140]}"
+                    errors.append(err_msg)
+                    if self._should_rotate(e):
+                        log.warning("Rotating away from %s — %s", provider["name"], type(e).__name__)
+                        break
+                    log.warning("Hard error from %s: %s", provider["name"], type(e).__name__)
+                    break
 
         raise RuntimeError(
             f"All {n} judge providers failed:\n  " + "\n  ".join(errors)
