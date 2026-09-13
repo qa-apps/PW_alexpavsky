@@ -89,7 +89,23 @@ def main() -> None:
         print("SLACK_BOT_TOKEN is not configured; skipping Slack notification.")
         return
 
-    report = json.loads(Path(args.report).read_text())
+    report_path = Path(args.report)
+    if not report_path.is_file():
+        run_url = os.environ.get("GITHUB_RUN_URL", "")
+        run_link = f"\n<{run_url}|Open GitHub run>" if run_url else ""
+        result = slack_post(token, "chat.postMessage", {
+            "channel": args.channel,
+            "text": (
+                ":x: *Daily Agentic Vision Audit - INFRASTRUCTURE FAILURE*\n"
+                "The job stopped before the Vision report was created."
+                f"{run_link}"
+            ),
+        })
+        if not result.get("ok"):
+            print(f"Slack message failed: {result.get('error')}", file=sys.stderr)
+        return
+
+    report = json.loads(report_path.read_text())
     status = report.get("status", "failed")
     marker = ":white_check_mark:" if status == "passed" else ":x:"
     steps = report.get("steps") or []

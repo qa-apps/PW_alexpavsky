@@ -52,6 +52,8 @@ jobs:
           node-version: '22'
 
       - name: Install browser dependencies
+        env:
+          PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
         run: |
           npm ci --no-audit --no-fund --ignore-scripts
           npx playwright install chromium
@@ -72,6 +74,20 @@ jobs:
           echo "Vision model was not available after 10 minutes."
           exit 1
 
+      - name: Release other resident models from RAM
+        env:
+          OLLAMA_BASE_URL: http://127.0.0.1:11434
+          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+        shell: bash
+        run: |
+          while IFS= read -r resident; do
+            [[ -z "$resident" || "$resident" == "$VISION_MODEL" ]] && continue
+            echo "Releasing resident model from RAM: $resident"
+            curl --fail --silent --max-time 60 "$OLLAMA_BASE_URL/api/generate" \
+              -d "$(jq -n --arg model "$resident" '{model:$model,keep_alive:0}')" \
+              >/dev/null
+          done < <(curl --fail --silent --max-time 15 "$OLLAMA_BASE_URL/api/ps" | jq -r '.models[].name // empty')
+
       - name: Run autonomous visual and functional audit
         id: audit
         continue-on-error: true
@@ -81,6 +97,7 @@ jobs:
           VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
           VISION_AUDIT_MAX_STEPS: ${{ inputs.max_steps || 8 }}
           VISION_AUDIT_OUTPUT_DIR: vision-audit
+          PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
         run: node .github/scripts/vision_audit_agent.mjs
 
       - name: Upload screenshots, video, and decision trail

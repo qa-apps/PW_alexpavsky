@@ -241,13 +241,46 @@ jobs:
             fi
             sleep 15
           done
-          curl --silent --max-time 180 "$OLLAMA_BASE_URL/api/generate" \
-            -d "{\"model\":\"$LOCAL_LLM_MODEL\",\"prompt\":\"ok\",\"stream\":false,\"keep_alive\":-1,\"options\":{\"num_predict\":1}}" \
-            >/dev/null
+          # Bosgame has enough unified memory for one heavyweight model at a
+          # time. Release other resident models from RAM without deleting any
+          # weights, then load the model required by this job.
+          while IFS= read -r resident; do
+            [[ -z "$resident" || "$resident" == "$LOCAL_LLM_MODEL" ]] && continue
+            echo "Releasing resident model from RAM: $resident"
+            curl --fail --silent --max-time 60 "$OLLAMA_BASE_URL/api/generate" \
+              -d "$(jq -n --arg model "$resident" '{model:$model,keep_alive:0}')" \
+              >/dev/null
+          done < <(curl --fail --silent --max-time 15 "$OLLAMA_BASE_URL/api/ps" | jq -r '.models[].name // empty')
+
+          payload=$(jq -n --arg model "$LOCAL_LLM_MODEL" \
+            '{model:$model,prompt:"ok",stream:false,keep_alive:"15m",options:{num_predict:1}}')
+          curl --fail --show-error --silent --max-time 600 \
+            "$OLLAMA_BASE_URL/api/generate" -d "$payload" >/dev/null
+
+      - name: Route local model preparation failure to Human Review
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          HUMAN_REVIEW_CHANNEL_ID: ${{ secrets.HUMAN_REVIEW_CHANNEL_ID }}
+          PIPELINE: ${{ needs.gate.outputs.pipeline }}
+          RUN_URL: ${{ needs.gate.outputs.run_url }}
+        shell: bash
+        run: |
+          payload=$(jq -n \
+            --arg channel "$HUMAN_REVIEW_CHANNEL_ID" \
+            --arg text ":octagonal_sign: *Human review required - $PIPELINE*\nLocal Bosgame model could not be prepared safely. No code was changed and no PR was created.\n$RUN_URL" \
+            '{channel:$channel,text:$text}')
+          response=$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            --data "$payload" https://slack.com/api/chat.postMessage)
+          jq -e '.ok == true' <<<"$response" >/dev/null
 
       - name: Install Vision audit dependencies
         if: inputs.vision_smoke == true
         working-directory: agent-control
+        env:
+          PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
         run: |
           npm ci --no-audit --no-fund --ignore-scripts
           npx playwright install chromium
@@ -263,6 +296,7 @@ jobs:
           VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
           VISION_AUDIT_MAX_STEPS: '4'
           VISION_AUDIT_OUTPUT_DIR: vision-audit
+          PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
         run: node .github/scripts/vision_audit_agent.mjs
 
       - name: Publish Vision smoke to Slack
