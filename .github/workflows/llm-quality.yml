@@ -223,7 +223,7 @@ jobs:
         run: |
           OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
           LLM_JUDGE_DASHBOARD_URL="https://${OWNER_LC}.github.io/${REPO_NAME}/llm-judge/runs/${{ github.run_number }}/"
-          python .github/scripts/notify_slack.py \
+          python3 .github/scripts/notify_slack.py \
             --channel "${{ secrets.SLACK_LLM_QUALITY_CHANNEL_ID }}" \
             --pipeline "LLM Quality" \
             --results-dir test-results \
@@ -242,7 +242,7 @@ jobs:
           PR_NUMBER:          ${{ github.event.pull_request.number }}
           PR_TITLE:           ${{ github.event.pull_request.title }}
         run: |
-          python .github/scripts/bug_report_slack.py \
+          python3 .github/scripts/bug_report_slack.py \
             --channel "${{ secrets.BUG_REPORTS_CHANNEL_ID }}" \
             --pipeline "LLM Quality" \
             --results-dir test-results
