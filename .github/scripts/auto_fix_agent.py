@@ -4,26 +4,26 @@ auto_fix_agent.py — AI-powered auto-fix agent running in GitHub Actions.
 
 Triggered by auto-fix.yml when any CI pipeline fails.
 Workflow:
-  1. Download failure logs from GitHub Actions API
-  2. Find which test files are failing
-  3. Call LLM (rotating through all configured providers) with logs + files
-  4. Apply the suggested file patches
-  5. Push a fix branch and open a PR for human review (labelled `bug`)
+  1. A local GPT-OSS triage agent classifies risk and chooses a specialist.
+  2. A local specialist proposes and applies only allow-listed QA changes.
+  3. A second local GPT-OSS reviewer inspects the diff and targeted rerun.
+  4. The agent opens a PR only after the targeted failing tests pass.
+  5. OpenAI and DeepSeek independently review the same PR evidence.
+  6. Two approvals allow merge; any rejection/error goes to Human Review.
+  7. The originally failing tests run once more after merge.
 
-The agent never merges — it only opens a PR for human review.
-
-LLM rotation lives in .github/scripts/llm_client.py — same provider list
-as eval/rotating_llm.py. When one provider returns 401/403/429 the next
-one is tried automatically, so a single rotated key doesn't break the
-whole pipeline.
+The workflow fails closed. Security, auth, production, data, dependency,
+workflow, and infrastructure changes are never auto-merged.
 """
 from __future__ import annotations
 
 import json
+import io
 import os
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 import zipfile
@@ -41,7 +41,10 @@ RUN_ID    = os.environ.get("FAILED_RUN_ID", "")
 RUN_URL   = os.environ.get("FAILED_RUN_URL", "")
 PIPELINE  = os.environ.get("PIPELINE", "CI")
 HEAD_SHA  = os.environ.get("HEAD_SHA", "")
+HEAD_BRANCH = os.environ.get("HEAD_BRANCH", "")
 GH_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
+AUTO_MERGE = os.environ.get("AUTO_MERGE", "true").lower() == "true"
+REVIEWER_SMOKE = os.environ.get("REVIEWER_SMOKE", "false").lower() == "true"
 
 # Slack notification — uses the bot token via chat.postMessage (no webhook).
 # PR-review pings go to the dedicated #ci-pr-review channel
@@ -55,15 +58,30 @@ SLACK_CHANNEL = (os.environ.get("PR_REVIEW_CHANNEL_ID", "")
 # Fall back to the PR-review/bug channel so a report is never silently lost.
 AGENT_REPORTS_CHANNEL = (os.environ.get("AGENT_REPORTS_CHANNEL_ID", "")
                          or SLACK_CHANNEL)
+HUMAN_REVIEW_CHANNEL = (os.environ.get("HUMAN_REVIEW_CHANNEL_ID", "")
+                        or AGENT_REPORTS_CHANNEL)
 
 # Pipelines where we must NOT auto-patch code. RAG / eval-quality failures have
 # their root cause in the RAG app, the knowledge base, or the eval dataset —
 # none of which the agent is allowed to edit. For these we investigate, post a
 # detailed report, and open a tracking issue instead of a PR.
-REPORT_ONLY_KEYWORDS = ("ragas", "rag eval", "eval nightly", "giskard")
+REPORT_ONLY_KEYWORDS = (
+    "ragas", "rag eval", "eval nightly", "giskard", "observability",
+    "langfuse", "langwatch",
+)
 
 MAX_LOG_CHARS  = 18000
 MAX_FILE_CHARS = 12000
+MAX_DIFF_CHARS = 24000
+
+SAFE_AUTOFIX_PREFIXES = (
+    "tests/", "e2e/", "pages/", "fixtures/", "helpers/", "scripts/",
+    "performance/", ".github/scripts/",
+)
+SAFE_AUTOFIX_SUFFIXES = (".ts", ".js", ".mjs", ".cjs", ".py")
+DENIED_PATH_PARTS = (
+    "security", "auth", "secret", "credential", "token", "password",
+)
 
 
 def is_report_only(pipeline: str) -> bool:
@@ -71,6 +89,32 @@ def is_report_only(pipeline: str) -> bool:
     never auto-patched."""
     p = pipeline.lower()
     return any(k in p for k in REPORT_ONLY_KEYWORDS)
+
+
+def is_safe_autofix_path(path: str) -> bool:
+    """Return True only for low-risk QA-owned source files."""
+    normalized = path.replace("\\", "/")
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    lowered = normalized.lower()
+    return (
+        normalized.startswith(SAFE_AUTOFIX_PREFIXES)
+        and normalized.endswith(SAFE_AUTOFIX_SUFFIXES)
+        and not any(part in lowered for part in DENIED_PATH_PARTS)
+        and "../" not in normalized
+    )
+
+
+def parse_json_object(content: str) -> dict:
+    cleaned = re.sub(r"^```[a-z]*\n?", "", (content or "").strip()).rstrip("` \n")
+    match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+    if match:
+        cleaned = match.group(0)
+    try:
+        value = json.loads(cleaned)
+        return value if isinstance(value, dict) else {}
+    except json.JSONDecodeError:
+        return {}
 
 
 # ---------------------------------------------------------------------------
@@ -107,22 +151,17 @@ def get_workflow_logs() -> str:
     )
     if not raw:
         return ""
-    zip_path = Path("/tmp/ci_logs.zip")
-    log_dir  = Path("/tmp/ci_logs")
-    zip_path.write_bytes(raw)
-    log_dir.mkdir(exist_ok=True)
     try:
-        with zipfile.ZipFile(zip_path) as zf:
-            zf.extractall(log_dir)
+        with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+            names = sorted(
+                name for name in zf.namelist() if name.endswith(".txt"))[:8]
+            parts = []
+            for name in names:
+                text = zf.read(name).decode(errors="replace")
+                parts.append(f"=== {Path(name).name} ===\n{text[-3000:]}")
     except Exception as e:
-        print(f"  Log zip extract error: {e}", file=sys.stderr)
+        print(f"  Log zip read error: {e}", file=sys.stderr)
         return ""
-
-    parts: list[str] = []
-    for log_file in sorted(log_dir.rglob("*.txt"))[:8]:
-        text = log_file.read_text(errors="replace")
-        # Keep only the last 3000 chars of each log (tail has the errors)
-        parts.append(f"=== {log_file.name} ===\n{text[-3000:]}")
 
     combined = "\n\n".join(parts)
     return combined[:MAX_LOG_CHARS]
@@ -151,13 +190,15 @@ def get_job_logs_via_api() -> str:
 # ---------------------------------------------------------------------------
 
 def find_failing_files(logs: str) -> list[str]:
-    """Extract paths to test files mentioned in failure logs."""
+    """Extract low-risk QA source paths mentioned in failure logs."""
     patterns = [
         r"(tests?/[\w/.-]+\.spec\.ts)",
         r"(tests?/[\w/.-]+\.spec\.js)",
         r"(tests?/[\w/.-]+_test\.py)",
         r"(tests?/[\w/.-]+\.py)",
         r"(e2e/[\w/.-]+\.spec\.ts)",
+        r"((?:pages|fixtures|helpers|scripts|performance)/[\w/.-]+\.(?:ts|js|mjs|cjs|py))",
+        r"(\.github/scripts/[\w/.-]+\.py)",
         r"FAILED\s+(tests?/[\w/.-]+)",
         r"● ([\w /.-]+?) ›",
     ]
@@ -165,13 +206,16 @@ def find_failing_files(logs: str) -> list[str]:
     for pat in patterns:
         for m in re.finditer(pat, logs):
             candidate = m.group(1).strip()
-            if Path(candidate).exists():
+            if Path(candidate).is_file() and is_safe_autofix_path(candidate):
                 found.add(candidate)
     result = sorted(found)[:8]
-    # If nothing found, fall back to all test files
+    # If nothing is named explicitly, provide a small test-only context set.
     if not result:
         for glob in ["tests/**/*.spec.ts", "tests/**/*.py", "e2e/**/*.spec.ts"]:
-            result += [str(p) for p in Path(".").glob(glob)][:3]
+            result += [
+                str(p) for p in Path(".").glob(glob)
+                if is_safe_autofix_path(str(p))
+            ][:3]
     return result[:8]
 
 
@@ -227,6 +271,82 @@ def gather_eval_context() -> str:
     return "\n\n".join(parts)
 
 
+TRIAGE_SYSTEM_PROMPT = """You are the triage agent for an automated CI repair system.
+Decide whether a failure can be repaired automatically with a small, low-risk
+change in QA-owned code. Fail closed.
+
+Return ONLY JSON with:
+- decision: "auto_fix" or "human_review"
+- specialist: "test_healer", "performance_engineer", or "automation_engineer"
+- category: one of "test_maintenance", "test_flake", "qa_script",
+  "performance_test", "product", "security", "auth", "data_eval",
+  "dependency", "workflow", "infrastructure", "unknown"
+- confidence: number from 0 to 1
+- evidence: concise evidence from the logs
+- reason: concise decision rationale
+
+Auto-fix is allowed only for test_maintenance, test_flake, qa_script, and
+performance_test. Security/auth, product behavior, eval data or thresholds,
+dependencies, GitHub workflows, credentials, and infrastructure always require
+human review. Unclear evidence always requires human review."""
+
+
+def triage_failure(logs: str, files: str) -> dict:
+    """Use local GPT-OSS to classify the failure; enforce hard safety gates."""
+    if HEAD_BRANCH and HEAD_BRANCH not in ("master", "main"):
+        return {
+            "decision": "human_review", "specialist": "automation_engineer",
+            "category": "unknown", "confidence": 1.0,
+            "evidence": f"Failure came from non-default branch {HEAD_BRANCH}.",
+            "reason": "Automatic changes are limited to default-branch failures.",
+        }
+    if is_report_only(PIPELINE):
+        return {
+            "decision": "human_review", "specialist": "automation_engineer",
+            "category": "data_eval", "confidence": 1.0,
+            "evidence": f"{PIPELINE} is an evaluation/observability pipeline.",
+            "reason": "Quality, telemetry, and dataset changes need owner review.",
+        }
+
+    prompt = f"""Pipeline: {PIPELINE}
+Failed run: {RUN_URL}
+
+Failure logs:
+{logs[:MAX_LOG_CHARS]}
+
+Candidate QA files:
+{files[:MAX_FILE_CHARS]}
+"""
+    result = llm_client.chat(
+        messages=[{"role": "user", "content": prompt}],
+        system=TRIAGE_SYSTEM_PROMPT,
+        max_tokens=1536,
+        temperature=0.0,
+        timeout=180,
+    )
+    triage = parse_json_object(result.get("content") or "")
+    safe_categories = {
+        "test_maintenance", "test_flake", "qa_script", "performance_test",
+    }
+    try:
+        confidence = float(triage.get("confidence", 0))
+    except (TypeError, ValueError):
+        confidence = 0.0
+    if (
+        triage.get("decision") != "auto_fix"
+        or triage.get("category") not in safe_categories
+        or confidence < 0.8
+    ):
+        triage["decision"] = "human_review"
+    triage.setdefault("specialist", "automation_engineer")
+    triage.setdefault("category", "unknown")
+    triage.setdefault("confidence", confidence)
+    triage.setdefault("evidence", "Local triage returned no concrete evidence.")
+    triage.setdefault("reason", "Safety gate requires human review.")
+    triage["provider"] = result.get("provider") or "none"
+    return triage
+
+
 # ---------------------------------------------------------------------------
 # LLM calls
 # ---------------------------------------------------------------------------
@@ -235,7 +355,7 @@ TOOLS = [
     {
         "name": "edit_file",
         "description": (
-            "Apply a targeted fix to a test file. "
+            "Apply a targeted fix to an allow-listed QA source file. "
             "Only call this when you are confident the fix is correct."
         ),
         "input_schema": {
@@ -274,10 +394,13 @@ TOOLS = [
     },
 ]
 
-SYSTEM_PROMPT = """You are an expert QA engineer fixing failing automated tests in CI.
+SYSTEM_PROMPT = """You are the specialist repair agent for failed CI checks.
 
 Rules:
-- ONLY fix test code (*.spec.ts, *.spec.js, *_test.py, conftest.py). Never touch application code.
+- Only edit QA-owned files under tests/, e2e/, pages/, fixtures/, helpers/,
+  scripts/, performance/, or .github/scripts/.
+- Never edit application code, security/auth tests, workflows, dependencies,
+  lockfiles, secrets, credentials, eval datasets, or quality thresholds.
 - Make the minimal change needed to fix the failure.
 - Fix root causes: broken selectors, timing issues, changed API responses, wrong assertions.
 - Do NOT add arbitrary waitForTimeout() calls or sleep() — fix the underlying cause.
@@ -286,9 +409,12 @@ Rules:
 - Call edit_file once per logical change. You may call it multiple times for multiple files."""
 
 
-def build_prompt(logs: str, files: str) -> str:
+def build_prompt(logs: str, files: str, triage: dict) -> str:
     return f"""Pipeline: {PIPELINE}
 Failed run: {RUN_URL}
+Specialist role: {triage.get('specialist', 'automation_engineer')}
+Triage category: {triage.get('category', 'unknown')}
+Triage evidence: {triage.get('evidence', '')}
 
 ## CI failure logs (truncated to last ~3000 chars per job):
 {logs}
@@ -300,7 +426,7 @@ Analyze the failure. If you can determine a confident, minimal fix, call edit_fi
 If the failure requires application changes or you cannot determine the root cause safely, call give_up."""
 
 
-def call_llm(logs: str, files: str) -> tuple[list[dict], str]:
+def call_llm(logs: str, files: str, triage: dict) -> tuple[list[dict], str]:
     """Call the rotating LLM client with native tool-use support.
 
     Returns (tool_calls, provider_used). tool_calls items follow the existing
@@ -319,7 +445,7 @@ def call_llm(logs: str, files: str) -> tuple[list[dict], str]:
     print(f"  Available providers: {', '.join(providers)}")
 
     result = llm_client.chat(
-        messages=[{"role": "user", "content": build_prompt(logs, files)}],
+        messages=[{"role": "user", "content": build_prompt(logs, files, triage)}],
         system=SYSTEM_PROMPT,
         tools=TOOLS,
         max_tokens=4096,
@@ -434,6 +560,9 @@ def apply_fixes(tool_uses: list[dict]) -> list[dict]:
         new_text = inp.get("new_text", "")
         reason   = inp.get("reason", "")
 
+        if not is_safe_autofix_path(str(path)):
+            print(f"  ⚠ Unsafe path rejected: {path}", file=sys.stderr)
+            continue
         if not path.exists():
             print(f"  ⚠ File not found: {path}", file=sys.stderr)
             continue
@@ -448,6 +577,194 @@ def apply_fixes(tool_uses: list[dict]) -> list[dict]:
         applied.append(inp)
 
     return applied
+
+
+# ---------------------------------------------------------------------------
+# Deterministic targeted verification + independent reviews
+# ---------------------------------------------------------------------------
+
+def run_process(command: list[str], timeout: int = 900) -> dict:
+    print(f"  $ {' '.join(command)}")
+    started = time.monotonic()
+    try:
+        result = subprocess.run(
+            command, capture_output=True, text=True, timeout=timeout,
+            env=os.environ.copy(),
+        )
+        output = (result.stdout + "\n" + result.stderr).strip()
+        return {
+            "command": command, "passed": result.returncode == 0,
+            "returncode": result.returncode, "duration_seconds": round(
+                time.monotonic() - started, 1),
+            "output": output[-12000:],
+        }
+    except subprocess.TimeoutExpired as exc:
+        output = ((exc.stdout or "") + "\n" + (exc.stderr or ""))[-12000:]
+        return {
+            "command": command, "passed": False, "returncode": 124,
+            "duration_seconds": round(time.monotonic() - started, 1),
+            "output": f"Timed out after {timeout}s\n{output}",
+        }
+
+
+def targeted_commands(failing_files: list[str], logs: str) -> list[list[str]]:
+    """Map known pipelines to fixed commands; never execute LLM-authored shell."""
+    pipeline = PIPELINE.lower()
+    specs = [
+        path for path in failing_files
+        if path.endswith((".spec.ts", ".spec.js"))
+    ]
+    python_files = [path for path in failing_files if path.endswith(".py")]
+
+    if "design" in pipeline:
+        return [["npx", "playwright", "test", "design-regression", "--project=chromium"]]
+    if "llm quality" in pipeline:
+        command = ["npx", "playwright", "test"] + specs
+        command += ["--grep", "LLM Judge|Content quality", "--workers=1"]
+        return [command]
+    if "playwright" in pipeline:
+        if not specs:
+            return []
+        return [["npx", "playwright", "test", *specs, "--workers=1"]]
+    if "promptfoo" in pipeline:
+        return [[
+            "npx", "promptfoo", "eval", "-c", "promptfooconfig.yaml",
+            "--max-concurrency", "1", "--no-progress-bar", "--no-cache",
+        ]]
+    if "k6" in pipeline or "performance" in pipeline:
+        scenarios = [
+            name for name in (
+                "smoke", "rps-50", "rps-100", "vus-50", "vus-100",
+                "load", "stress", "spike", "chatbot-minimal",
+            )
+            if name in logs.lower()
+        ]
+        if len(scenarios) != 1:
+            return []
+        return [[
+            "k6", "run", "-e", f"PERFORMANCE_SCENARIO={scenarios[0]}",
+            "performance/site.js",
+        ]]
+    if python_files:
+        return [[sys.executable, "-m", "py_compile", *python_files]]
+    return []
+
+
+def run_targeted_tests(failing_files: list[str], logs: str) -> dict:
+    commands = targeted_commands(failing_files, logs)
+    if not commands:
+        return {
+            "passed": False, "results": [],
+            "reason": "No deterministic targeted rerun could be derived.",
+        }
+
+    if any(command[0] == "npx" for command in commands):
+        install_command = ["npm", "ci", "--no-audit", "--no-fund"]
+        if not any("promptfoo" in command for command in commands):
+            install_command.append("--ignore-scripts")
+        install = run_process(install_command, 900)
+        if not install["passed"]:
+            return {
+                "passed": False, "results": [install],
+                "reason": "Dependency installation failed.",
+            }
+    if any("playwright" in command for command in commands):
+        browser = run_process(["npx", "playwright", "install", "chromium"], 600)
+        if not browser["passed"]:
+            return {
+                "passed": False, "results": [browser],
+                "reason": "Playwright browser installation failed.",
+            }
+
+    results = [run_process(command) for command in commands]
+    return {
+        "passed": all(result["passed"] for result in results),
+        "results": results,
+        "reason": "All targeted checks passed." if all(
+            result["passed"] for result in results) else "A targeted check failed.",
+    }
+
+
+LOCAL_REVIEW_SYSTEM = """You are an independent senior code-review agent.
+Review only the supplied diff and targeted test evidence. Return ONLY JSON:
+{"verdict":"APPROVE|REJECT","confidence":0.0,"reason":"...","risks":["..."]}.
+Reject unsafe scope, weakened assertions, hidden sleeps, reduced coverage,
+changes unrelated to the failure, or insufficient verification."""
+
+
+def local_review(diff: str, test_result: dict, triage: dict) -> dict:
+    result = llm_client.chat(
+        messages=[{"role": "user", "content": f"""Pipeline: {PIPELINE}
+Triage: {json.dumps(triage)}
+Diff:\n{diff[:MAX_DIFF_CHARS]}
+Targeted test evidence:\n{json.dumps(test_result)[:12000]}
+"""}],
+        system=LOCAL_REVIEW_SYSTEM,
+        max_tokens=1536,
+        temperature=0.0,
+        timeout=180,
+    )
+    review = parse_json_object(result.get("content") or "")
+    review["provider"] = result.get("provider") or "none"
+    try:
+        confidence = float(review.get("confidence", 0))
+    except (TypeError, ValueError):
+        confidence = 0.0
+    review["approved"] = (
+        review.get("verdict") == "APPROVE"
+        and confidence >= 0.8
+        and test_result.get("passed") is True
+    )
+    return review
+
+
+CLOUD_REVIEW_SYSTEM = """You are a final merge safety reviewer. Independently
+review the CI failure, proposed diff, local review, and targeted rerun. Return
+ONLY JSON: {"verdict":"APPROVE|REJECT","confidence":0.0,"reason":"...",
+"risks":["..."]}. Approve only when the patch is minimal, addresses the
+evidenced root cause, preserves coverage and security, and is safe to merge.
+If evidence is missing or ambiguous, reject."""
+
+
+def cloud_review(
+    provider: str, model: str, diff: str, test_result: dict, local: dict,
+    logs: str,
+) -> dict:
+    prompt = f"""Pipeline: {PIPELINE}
+Failed run: {RUN_URL}
+Failure evidence:\n{logs[-6000:]}
+Diff:\n{diff[:MAX_DIFF_CHARS]}
+Local review:\n{json.dumps(local)[:4000]}
+Targeted rerun:\n{json.dumps(test_result)[:10000]}
+"""
+    result = llm_client.chat_provider(
+        provider,
+        [{"role": "user", "content": prompt}],
+        system=CLOUD_REVIEW_SYSTEM,
+        model=model,
+        max_tokens=3000 if provider == "openai" else 2000,
+        temperature=0.0,
+        timeout=180,
+        reasoning_effort="medium" if provider == "openai" else "low",
+        json_response=True,
+    )
+    review = parse_json_object(result.get("content") or "")
+    review.update({
+        "provider": provider,
+        "model": result.get("model") or model,
+        "usage": result.get("usage") or {},
+        "errors": result.get("errors") or [],
+    })
+    try:
+        confidence = float(review.get("confidence", 0))
+    except (TypeError, ValueError):
+        confidence = 0.0
+    review["approved"] = (
+        not review["errors"]
+        and review.get("verdict") == "APPROVE"
+        and confidence >= 0.8
+    )
+    return review
 
 
 # ---------------------------------------------------------------------------
@@ -488,12 +805,12 @@ def slack_post(channel: str, text: str, label: str = "Slack") -> bool:
 
 
 def slack_notify(pr_url: str, fixes: list[dict]) -> None:
-    """Short Slack ping to the PR-review channel that a PR needs review.
-    GitHub never emails about PRs the bot's own account authored, so this is
-    how the human actually finds out."""
+    """Short Slack ping when a locally reviewed candidate PR is opened."""
     changed = ", ".join(sorted({f["file_path"] for f in fixes})) or "test files"
-    text = (f":robot_face: *Auto-fix PR ready for review* — {PIPELINE}\n"
-            f"Files: {changed}\n{pr_url}")
+    text = (f":robot_face: *Auto-fix candidate PR* — {PIPELINE}\n"
+            f"Files: {changed}\n"
+            f"Waiting for independent OpenAI + DeepSeek approval before merge.\n"
+            f"{pr_url}")
     slack_post(SLACK_CHANNEL, text, label="Slack PR notify")
 
 
@@ -518,6 +835,32 @@ def post_agent_report(report: dict, resolution: str) -> None:
         f"*:white_check_mark: Resolution*\n{resolution}"
     )
     slack_post(AGENT_REPORTS_CHANNEL, text, label="Agent report")
+
+
+def post_human_review(stage: str, reason: str, evidence: dict | None = None) -> None:
+    details = json.dumps(evidence or {}, indent=2)[:2400]
+    text = (
+        f":octagonal_sign: *Human review required — {PIPELINE}*\n"
+        f"*Stage:* {stage}\n"
+        f"*Failed run:* {RUN_URL}\n"
+        f"*Reason:* {reason}\n"
+        f"*Evidence:*\n```{details}```"
+    )
+    slack_post(HUMAN_REVIEW_CHANNEL, text, label="Human Review")
+
+
+def post_agent_stage(stage: str, status: str, detail: str) -> None:
+    emoji = ":white_check_mark:" if status == "passed" else ":information_source:"
+    slack_post(
+        AGENT_REPORTS_CHANNEL,
+        f"{emoji} *Agent Fix — {stage}*\n*Pipeline:* {PIPELINE}\n{detail}",
+        label=f"Agent stage {stage}",
+    )
+
+
+def write_agent_artifact(payload: dict) -> None:
+    Path("agent-fix-report.json").write_text(
+        json.dumps(payload, indent=2, ensure_ascii=True) + "\n")
 
 
 def open_tracking_issue(report: dict) -> str:
@@ -567,25 +910,47 @@ review and decide on the fix.*
     return issue_url
 
 
-def create_pr(fixes: list[dict]) -> str:
-    """Push the fix branch and open a PR. Returns the PR URL, or "" on failure."""
+def create_pr(fixes: list[dict]) -> tuple[str, str]:
+    """Push only allow-listed edits and open a PR."""
     slug      = re.sub(r"[^a-z0-9]+", "-", PIPELINE.lower())[:25].strip("-")
     short_sha = (HEAD_SHA or "unknown")[:8]
-    branch    = f"fix/{slug}-{short_sha}"
+    attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1")
+    branch = f"codex/agent-fix-{slug}-{RUN_ID or short_sha}-{attempt}"
+    base_branch = os.environ.get("DEFAULT_BRANCH", "master")
 
-    git("checkout", "-b", branch)
-    git("add", "-A")
+    checkout = subprocess.run(
+        ["git", "checkout", "-b", branch], capture_output=True, text=True)
+    if checkout.returncode != 0:
+        print(f"  branch creation failed: {checkout.stderr.strip()}", file=sys.stderr)
+        return "", branch
 
-    # Commit message
-    files_changed = sorted({f["file_path"] for f in fixes})
+    files_changed = sorted({
+        f["file_path"] for f in fixes if is_safe_autofix_path(f["file_path"])
+    })
+    if not files_changed:
+        return "", branch
+    add = subprocess.run(
+        ["git", "add", "--", *files_changed], capture_output=True, text=True)
+    if add.returncode != 0:
+        print(f"  git add failed: {add.stderr.strip()}", file=sys.stderr)
+        return "", branch
+
     fix_lines = "\n".join(f"- {f['file_path']}: {f['reason']}" for f in fixes)
     commit_msg = (
         f"fix(tests): auto-fix {PIPELINE} failures\n\n"
         f"Failing CI run: {RUN_URL}\n"
         f"Files changed: {', '.join(files_changed)}"
     )
-    git("commit", "-m", commit_msg)
-    git("push", "origin", branch)
+    commit = subprocess.run(
+        ["git", "commit", "-m", commit_msg], capture_output=True, text=True)
+    if commit.returncode != 0:
+        print(f"  git commit failed: {commit.stderr.strip()}", file=sys.stderr)
+        return "", branch
+    push = subprocess.run(
+        ["git", "push", "origin", branch], capture_output=True, text=True)
+    if push.returncode != 0:
+        print(f"  git push failed: {push.stderr.strip()}", file=sys.stderr)
+        return "", branch
 
     # PR body
     pr_body = f"""## 🤖 Auto-fix: {PIPELINE}
@@ -614,14 +979,14 @@ def create_pr(fixes: list[dict]) -> str:
             "--title", f"fix: auto-fix {PIPELINE} ({short_sha})",
             "--body", pr_body,
             "--head", branch,
-            "--base", "master",
+            "--base", base_branch,
         ],
         capture_output=True,
         text=True,
     )
     if create.returncode != 0:
         print(f"  ⚠ PR creation failed: {create.stderr.strip()}", file=sys.stderr)
-        return ""
+        return "", branch
     pr_url = create.stdout.strip()
     print(f"  ✅ PR created: {pr_url}")
 
@@ -645,7 +1010,92 @@ def create_pr(fixes: list[dict]) -> str:
         if rev.returncode != 0:
             print(f"  (reviewer not added: {rev.stderr.strip()})", file=sys.stderr)
 
-    return pr_url
+    return pr_url, branch
+
+
+def merge_pr(pr_url: str) -> dict:
+    """Merge an approved PR without deleting its branch."""
+    result = subprocess.run(
+        ["gh", "pr", "merge", pr_url, "--squash"],
+        capture_output=True,
+        text=True,
+    )
+    return {
+        "merged": result.returncode == 0,
+        "output": (result.stdout + "\n" + result.stderr).strip()[-4000:],
+    }
+
+
+def checkout_merged_default() -> dict:
+    base_branch = os.environ.get("DEFAULT_BRANCH", "master")
+    fetch = subprocess.run(
+        ["git", "fetch", "origin", base_branch], capture_output=True, text=True)
+    if fetch.returncode != 0:
+        return {"passed": False, "output": fetch.stderr[-4000:]}
+    checkout = subprocess.run(
+        ["git", "checkout", "--detach", f"origin/{base_branch}"],
+        capture_output=True,
+        text=True,
+    )
+    return {
+        "passed": checkout.returncode == 0,
+        "output": (checkout.stdout + "\n" + checkout.stderr).strip()[-4000:],
+    }
+
+
+def run_reviewer_smoke() -> bool:
+    """Make one small real call to each merge-gate model without a PR."""
+    logs = (
+        "Unit test failure: expected sum([1, 2]) to equal 3, received 4. "
+        "The helper returned total + 1. Targeted rerun passed after the patch."
+    )
+    diff = """diff --git a/tests/helpers/math.py b/tests/helpers/math.py
+--- a/tests/helpers/math.py
++++ b/tests/helpers/math.py
+@@
+-    return total + 1
++    return total
+"""
+    targeted = {
+        "passed": True,
+        "reason": "Synthetic reviewer smoke evidence: focused unit test passed.",
+        "results": [{"command": ["pytest", "tests/test_math.py"],
+                     "passed": True, "returncode": 0}],
+    }
+    triage = {
+        "decision": "auto_fix", "specialist": "test_healer",
+        "category": "qa_script", "confidence": 1.0,
+        "evidence": "An off-by-one was isolated to a QA helper.",
+    }
+    local = local_review(diff, targeted, triage)
+    smart_model = os.environ.get("FINAL_SMART_MODEL", "gpt-5.1")
+    cheap_model = os.environ.get(
+        "FINAL_CHEAP_MODEL", "deepseek/deepseek-v4.1-flash")
+    smart = cloud_review(
+        "openai", smart_model, diff, targeted, local, logs)
+    cheap = cloud_review(
+        "openrouter-deepseek", cheap_model, diff, targeted, local, logs)
+    approved = all(
+        review.get("approved") for review in (local, smart, cheap))
+    state = {
+        "status": "passed" if approved else "human_review",
+        "mode": "reviewer_smoke",
+        "local_review": local,
+        "cloud_reviews": [smart, cheap],
+    }
+    write_agent_artifact(state)
+    if approved:
+        post_agent_stage(
+            "reviewer smoke", "passed",
+            f"Local GPT-OSS, OpenAI `{smart_model}`, and DeepSeek "
+            f"`{cheap_model}` all returned APPROVE. No PR was created.",
+        )
+        return True
+    post_human_review(
+        "reviewer smoke", "At least one real reviewer call did not approve.",
+        state,
+    )
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -661,14 +1111,16 @@ def main() -> None:
         print("No GITHUB_TOKEN — aborting", file=sys.stderr)
         sys.exit(1)
 
-    if not llm_client.configured_providers():
-        print("No LLM API keys in env (need one of: "
-              "GROQ_API_KEY, CEREBRAS_API_KEY, SAMBANOVA_API_KEY, "
-              "MISTRAL_API_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY, HF_TOKEN)",
-              file=sys.stderr)
+    if "ollama" not in llm_client.configured_providers():
+        print("Local GPT-OSS is not configured — failing closed", file=sys.stderr)
         sys.exit(1)
 
-    # 1. Get logs
+    if REVIEWER_SMOKE:
+        print("\n[smoke] Calling all three independent reviewers...")
+        if not run_reviewer_smoke():
+            sys.exit(1)
+        return
+
     print("\n[1] Fetching failure logs...")
     logs = get_workflow_logs()
     if not logs:
@@ -685,95 +1137,179 @@ def main() -> None:
                 pass
 
     if not logs:
-        print("  No logs available — cannot triage. Exiting.")
-        sys.exit(0)
+        reason = "No failed-run logs were available for evidence-based triage."
+        post_human_review("log collection", reason)
+        write_agent_artifact({"status": "human_review", "reason": reason})
+        return
 
     print(f"  Got {len(logs)} chars of logs")
 
-    # -----------------------------------------------------------------
-    # REPORT-ONLY path: RAG / eval-quality pipelines. We never auto-patch
-    # (the root cause lives in the app / KB / dataset, which the agent must
-    # not edit). Instead: investigate, open a tracking issue, post a detailed
-    # Investigation / Fix / Resolution report to #qa-agent-reports.
-    # -----------------------------------------------------------------
-    if is_report_only(PIPELINE):
-        print(f"\n[2] Report-only pipeline ({PIPELINE}) — investigating...")
-        context = gather_eval_context()
-        report = investigate(logs, context)
-        if not report:
-            report = {"investigation": "Automated analysis was inconclusive — "
-                                       "see the failed run logs.",
-                      "fix": "", "severity": "medium"}
-        print("\n[3] Opening tracking issue...")
-        issue_url = open_tracking_issue(report)
-        if issue_url:
-            resolution = (f"No safe auto-fix — RAG/eval-quality regressions need "
-                          f"a human decision. Opened tracking issue for review: "
-                          f"{issue_url}")
-        else:
-            resolution = ("No safe auto-fix — RAG/eval-quality regressions need a "
-                          "human decision. (Tracking-issue creation failed; see "
-                          "the failed run logs.)")
-        print("\n[4] Posting detailed report to #qa-agent-reports...")
-        post_agent_report(report, resolution)
-        print("\nDone.")
-        return
+    state: dict = {
+        "pipeline": PIPELINE, "failed_run": RUN_URL, "failed_run_id": RUN_ID,
+        "head_sha": HEAD_SHA, "head_branch": HEAD_BRANCH,
+    }
 
-    # -----------------------------------------------------------------
-    # PATCH path: test-code pipelines (Playwright, LLM-judge). Try to fix,
-    # open a PR, and always post a detailed report (even when no fix is found).
-    # -----------------------------------------------------------------
-    # 2. Find failing files
-    print("\n[2] Identifying failing test files...")
+    print("\n[2] Identifying relevant QA files...")
     failing = find_failing_files(logs)
     print(f"  Found: {failing or '(none — will scan all tests)'}")
     file_content = read_files(failing)
 
-    # 3. Call LLM (rotates through all configured providers)
-    print("\n[3] Calling LLM for fix analysis...")
-    tool_uses, provider = call_llm(logs, file_content)
+    print("\n[3] Local GPT-OSS triage...")
+    triage = triage_failure(logs, file_content)
+    state["triage"] = triage
+    post_agent_stage(
+        "triage",
+        "passed" if triage.get("decision") == "auto_fix" else "review",
+        f"Decision: `{triage.get('decision')}` | Specialist: "
+        f"`{triage.get('specialist')}`\n{triage.get('reason')}",
+    )
+    if triage.get("decision") != "auto_fix":
+        context = gather_eval_context() if is_report_only(PIPELINE) else file_content
+        report = investigate(logs, context) or {
+            "investigation": triage.get("evidence"),
+            "fix": triage.get("reason"), "severity": "medium",
+        }
+        issue_url = open_tracking_issue(report)
+        reason = triage.get("reason") or "Local triage requires human review."
+        state.update({"status": "human_review", "stage": "triage", "issue": issue_url})
+        write_agent_artifact(state)
+        post_human_review("triage", reason, triage)
+        post_agent_report(report, f"Human review required. Tracking issue: {issue_url or 'not created'}")
+        return
+
+    print(f"\n[4] Local {triage.get('specialist')} fix agent...")
+    tool_uses, provider = call_llm(logs, file_content, triage)
     print(f"  Fix author: {provider or '(none)'}")
 
-    # 4. Apply fixes
     applied: list[dict] = []
     if tool_uses:
-        print("\n[4] Applying fixes...")
+        print("  Applying proposed fixes...")
         applied = apply_fixes(tool_uses)
 
-    has_changes = bool(applied) and bool(git("diff", "--name-only", "HEAD"))
-
-    # 5. Open a PR if we have real changes
-    pr_url = ""
-    if has_changes:
-        print("\n[5] Creating PR...")
-        pr_url = create_pr(applied)
-
-    # 6. Always post a detailed Investigation / Fix / Resolution report.
-    print("\n[6] Building detailed report...")
-    report = investigate(logs, file_content)
-    if not report:
-        report = {"investigation": "Automated analysis was inconclusive — "
-                                   "see the failed run logs.",
-                  "fix": "", "severity": "medium"}
-    # Overlay the concrete fixes we actually applied, so the report's "Fix"
-    # section reflects reality rather than only the LLM's narrative.
-    if applied:
-        applied_lines = "\n".join(
-            f"• `{f['file_path']}` — {f['reason']}" for f in applied)
-        report["fix"] = (report.get("fix", "").strip() + "\n\n*Applied changes:*\n"
-                         + applied_lines).strip()
-
-    if pr_url:
-        resolution = f"Auto-fix PR opened for your review (do not auto-merge): {pr_url}"
-    elif applied and not has_changes:
-        resolution = "Proposed edits produced no net change — needs human review."
-    else:
-        # No confident fix — open a tracking issue so it isn't lost.
+    changed_files = [p for p in git("diff", "--name-only", "HEAD").splitlines() if p]
+    unsafe = [path for path in changed_files if not is_safe_autofix_path(path)]
+    if not applied or not changed_files or unsafe:
+        reason = (
+            f"Fix agent produced unsafe paths: {unsafe}" if unsafe
+            else "Fix agent produced no confident, reviewable change."
+        )
+        report = investigate(logs, file_content) or {
+            "investigation": triage.get("evidence"), "fix": reason,
+            "severity": "medium",
+        }
         issue_url = open_tracking_issue(report)
-        resolution = (f"No confident auto-fix found. Opened tracking issue: {issue_url}"
-                      if issue_url else
-                      "No confident auto-fix found — needs human review (see logs).")
+        state.update({"status": "human_review", "stage": "fix", "reason": reason,
+                      "issue": issue_url})
+        write_agent_artifact(state)
+        post_human_review("fix agent", reason, {"changed_files": changed_files})
+        post_agent_report(report, f"Human review required. Tracking issue: {issue_url or 'not created'}")
+        return
+    state.update({"fix_provider": provider, "changed_files": changed_files})
+    post_agent_stage("fix", "passed", f"Changed: `{', '.join(changed_files)}`")
 
+    print("\n[5] Targeted pre-merge rerun...")
+    targeted = run_targeted_tests(failing, logs)
+    state["pre_merge_tests"] = targeted
+    if not targeted.get("passed"):
+        reason = targeted.get("reason") or "Targeted tests failed."
+        state.update({"status": "human_review", "stage": "targeted tests"})
+        write_agent_artifact(state)
+        post_human_review("targeted pre-merge test", reason, targeted)
+        return
+    post_agent_stage("targeted test", "passed", targeted.get("reason", "Passed"))
+
+    diff = git("diff", "--no-ext-diff", "HEAD")[:MAX_DIFF_CHARS]
+    print("\n[6] Independent local GPT-OSS review...")
+    local = local_review(diff, targeted, triage)
+    state["local_review"] = local
+    if not local.get("approved"):
+        reason = local.get("reason") or "Local reviewer did not approve."
+        state.update({"status": "human_review", "stage": "local review"})
+        write_agent_artifact(state)
+        post_human_review("local review", reason, local)
+        return
+    post_agent_stage("local review", "passed", local.get("reason", "Approved"))
+
+    print("\n[7] Creating candidate PR...")
+    pr_url, branch = create_pr(applied)
+    state.update({"pr_url": pr_url, "branch": branch})
+    if not pr_url:
+        reason = "The reviewed patch could not be committed or opened as a PR."
+        state.update({"status": "human_review", "stage": "PR creation"})
+        write_agent_artifact(state)
+        post_human_review("PR creation", reason, {"branch": branch})
+        return
+
+    print("\n[8] Two-model cloud merge gate...")
+    smart_model = os.environ.get("FINAL_SMART_MODEL", "gpt-5.1")
+    cheap_model = os.environ.get(
+        "FINAL_CHEAP_MODEL", "deepseek/deepseek-v4.1-flash")
+    smart = cloud_review("openai", smart_model, diff, targeted, local, logs)
+    cheap = cloud_review(
+        "openrouter-deepseek", cheap_model, diff, targeted, local, logs)
+    state["cloud_reviews"] = [smart, cheap]
+    if not smart.get("approved") or not cheap.get("approved"):
+        reason = "Two independent cloud approvals were not obtained."
+        state.update({"status": "human_review", "stage": "cloud merge gate"})
+        write_agent_artifact(state)
+        post_human_review("cloud merge gate", reason, {
+            "pr_url": pr_url, "openai": smart, "deepseek": cheap,
+        })
+        return
+    post_agent_stage(
+        "cloud review", "passed",
+        f"OpenAI `{smart_model}`: APPROVE\nDeepSeek `{cheap_model}`: APPROVE",
+    )
+
+    if not AUTO_MERGE:
+        reason = "Automatic merge is disabled for this run."
+        state.update({"status": "human_review", "stage": "merge disabled"})
+        write_agent_artifact(state)
+        post_human_review("merge", reason, {"pr_url": pr_url})
+        return
+
+    print("\n[9] Merging approved PR...")
+    merge = merge_pr(pr_url)
+    state["merge"] = merge
+    if not merge.get("merged"):
+        state.update({"status": "human_review", "stage": "merge"})
+        write_agent_artifact(state)
+        post_human_review("merge", "GitHub did not merge the approved PR.", merge)
+        return
+    post_agent_stage("merge", "passed", f"Merged: {pr_url}")
+
+    print("\n[10] Post-merge targeted rerun...")
+    checkout = checkout_merged_default()
+    state["post_merge_checkout"] = checkout
+    if not checkout.get("passed"):
+        state.update({"status": "human_review", "stage": "post-merge checkout"})
+        write_agent_artifact(state)
+        post_human_review(
+            "post-merge verification", "Could not check out merged master.", checkout)
+        return
+    post_merge = run_targeted_tests(failing, logs)
+    state["post_merge_tests"] = post_merge
+    if not post_merge.get("passed"):
+        state.update({"status": "human_review", "stage": "post-merge test"})
+        write_agent_artifact(state)
+        post_human_review(
+            "post-merge verification",
+            "The originally failing test did not pass after merge.", post_merge)
+        return
+
+    state.update({"status": "fixed", "stage": "complete"})
+    write_agent_artifact(state)
+    report = {
+        "investigation": triage.get("evidence"),
+        "fix": "\n".join(
+            f"`{item['file_path']}`: {item['reason']}" for item in applied),
+        "severity": "low",
+    }
+    resolution = (
+        f"Merged {pr_url}. The originally failing tests passed before and "
+        "after merge. OpenAI and DeepSeek both approved the patch."
+    )
+    post_agent_stage("post-merge test", "passed", post_merge.get("reason", "Passed"))
     post_agent_report(report, resolution)
     print("\nDone.")
 

@@ -1,0 +1,107 @@
+name: Daily Agentic Vision Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_steps:
+        description: "Maximum safe browser actions"
+        required: false
+        type: number
+        default: 8
+  schedule:
+    # 3 PM America/New_York. The gate handles daylight-saving time.
+    - cron: '0 19 * * *'
+    - cron: '0 20 * * *'
+
+concurrency:
+  group: agentic-vision-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$(TZ=America/New_York date +%H)" == "15" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  vision-audit:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
+    runs-on: [self-hosted, Linux, X64, bosgame]
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Install browser dependencies
+        run: |
+          npm ci --no-audit --no-fund --ignore-scripts
+          npx playwright install chromium
+
+      - name: Wait for local Vision model
+        env:
+          OLLAMA_BASE_URL: http://127.0.0.1:11434
+          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+        shell: bash
+        run: |
+          for attempt in {1..40}; do
+            if curl --fail --silent --max-time 10 "$OLLAMA_BASE_URL/api/tags" | \
+              python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("name") == wanted for m in data.get("models", [])) else 1)' "$VISION_MODEL"; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Vision model was not available after 10 minutes."
+          exit 1
+
+      - name: Run autonomous visual and functional audit
+        id: audit
+        continue-on-error: true
+        env:
+          BASE_URL: https://www.alexpavsky.com
+          OLLAMA_BASE_URL: http://127.0.0.1:11434
+          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+          VISION_AUDIT_MAX_STEPS: ${{ inputs.max_steps || 8 }}
+          VISION_AUDIT_OUTPUT_DIR: vision-audit
+        run: node .github/scripts/vision_audit_agent.mjs
+
+      - name: Upload screenshots, video, and decision trail
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: vision-audit-results
+          path: vision-audit/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Publish visual report to Slack
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 .github/scripts/notify_vision_slack.py \
+            --report vision-audit/vision-audit-report.json \
+            --channel "${{ secrets.SLACK_UI_CODEX_CHANNEL_ID }}"
+
+      - name: Fail when the agent confirmed a defect
+        if: steps.audit.outcome == 'failure'
+        run: exit 1

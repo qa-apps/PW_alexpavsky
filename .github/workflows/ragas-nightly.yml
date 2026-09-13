@@ -143,8 +143,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: 'eval/requirements.txt'
 
       - name: Install Ragas + LangChain
         if: steps.local_llm.outputs.run == 'true'

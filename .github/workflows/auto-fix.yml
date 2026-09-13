@@ -6,7 +6,38 @@ on:
       - "Playwright CI (deterministic tests)"
       - "LLM Quality (LLM Judge tests)"
       - "LLM Eval Nightly (Ragas + Giskard)"
+      - "Daily Design Check (visual + structural regression)"
+      - "Daily Agentic Vision Audit"
+      - "k6 Performance"
+      - "promptfoo Daily Eval"
+      - "Agent Observability Dashboards"
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      failed_run_id:
+        description: "Failed GitHub Actions run ID to investigate"
+        required: true
+        type: string
+      auto_merge:
+        description: "Allow merge after all local and cloud gates pass"
+        required: false
+        type: boolean
+        default: true
+      reviewer_smoke:
+        description: "Call local, OpenAI, and DeepSeek reviewers without creating a PR"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: auto-fix-${{ github.event.workflow_run.id || inputs.failed_run_id }}
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: write
+  issues: write
+  pull-requests: write
 
 jobs:
   # Gate job runs unconditionally so the workflow conclusion is "success"
@@ -16,59 +47,153 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.decide.outputs.should_run }}
+      needs_human: ${{ steps.decide.outputs.needs_human }}
+      run_id: ${{ steps.decide.outputs.run_id }}
+      run_url: ${{ steps.decide.outputs.run_url }}
+      pipeline: ${{ steps.decide.outputs.pipeline }}
+      head_sha: ${{ steps.decide.outputs.head_sha }}
+      head_branch: ${{ steps.decide.outputs.head_branch }}
     steps:
       - id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_RUN_ID: ${{ github.event.workflow_run.id }}
+          INPUT_RUN_ID: ${{ inputs.failed_run_id }}
+          EVENT_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          EVENT_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          EVENT_PIPELINE: ${{ github.event.workflow_run.name }}
+          EVENT_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          EVENT_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          REVIEWER_SMOKE: ${{ inputs.reviewer_smoke }}
+        shell: bash
         run: |
-          conclusion="${{ github.event.workflow_run.conclusion }}"
-          echo "Upstream workflow conclusion: $conclusion"
-          if [ "$conclusion" = "failure" ]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          run_id="$EVENT_RUN_ID"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            run_id="$INPUT_RUN_ID"
+            data=$(gh api "repos/${{ github.repository }}/actions/runs/$run_id")
+            conclusion=$(jq -r '.conclusion // ""' <<<"$data")
+            run_url=$(jq -r '.html_url' <<<"$data")
+            pipeline=$(jq -r '.name' <<<"$data")
+            head_sha=$(jq -r '.head_sha' <<<"$data")
+            head_branch=$(jq -r '.head_branch' <<<"$data")
           else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "Nothing to fix — exiting cleanly so the run isn't marked as skipped."
+            conclusion="$EVENT_CONCLUSION"
+            run_url="$EVENT_RUN_URL"
+            pipeline="$EVENT_PIPELINE"
+            head_sha="$EVENT_HEAD_SHA"
+            head_branch="$EVENT_HEAD_BRANCH"
           fi
+
+          should_run=false
+          needs_human=false
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$REVIEWER_SMOKE" == "true" ]]; then
+            should_run=true
+          elif [[ "$conclusion" == "failure" ]]; then
+            if [[ "$EVENT_NAME" == "workflow_dispatch" || "$head_branch" == "master" || "$head_branch" == "main" ]]; then
+              should_run=true
+            else
+              needs_human=true
+            fi
+          fi
+          {
+            echo "should_run=$should_run"
+            echo "needs_human=$needs_human"
+            echo "run_id=$run_id"
+            echo "run_url=$run_url"
+            echo "pipeline=$pipeline"
+            echo "head_sha=$head_sha"
+            echo "head_branch=$head_branch"
+          } >> "$GITHUB_OUTPUT"
+
+  human-review-nondefault:
+    needs: gate
+    if: needs.gate.outputs.needs_human == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Route untrusted branch failure to Human Review
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          HUMAN_REVIEW_CHANNEL_ID: ${{ secrets.HUMAN_REVIEW_CHANNEL_ID }}
+          PIPELINE: ${{ needs.gate.outputs.pipeline }}
+          RUN_URL: ${{ needs.gate.outputs.run_url }}
+          HEAD_BRANCH: ${{ needs.gate.outputs.head_branch }}
+        shell: bash
+        run: |
+          payload=$(jq -n \
+            --arg channel "$HUMAN_REVIEW_CHANNEL_ID" \
+            --arg text ":octagonal_sign: *Human review required — $PIPELINE*\nFailure came from untrusted branch \`$HEAD_BRANCH\`. Agent code and artifacts were not executed.\n$RUN_URL" \
+            '{channel: $channel, text: $text}')
+          response=$(curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            --data "$payload" https://slack.com/api/chat.postMessage)
+          jq -e '.ok == true' <<<"$response" >/dev/null
 
   auto-fix:
     needs: gate
     if: needs.gate.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
+    runs-on: [self-hosted, Linux, X64, bosgame]
+    timeout-minutes: 60
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout trusted agent control code
+        uses: actions/checkout@v5
         with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.ref || github.event.repository.default_branch }}
+          path: agent-control
+
+      - name: Checkout failed commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.gate.outputs.head_sha }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          path: target
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Set up k6
+        uses: grafana/setup-k6-action@v1
+
       # No pip install needed — auto_fix_agent.py + llm_client.py use
       # only Python stdlib (urllib.request). All rotation logic is local.
 
       - name: Configure git
+        working-directory: target
         run: |
           git config user.email "qa-apps@users.noreply.github.com"
-          git config user.name "qa-apps and claude"
+          git config user.name "qa-apps agent-fix"
 
       - name: Download test artifacts from failed run
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
+        env:
+          FAILED_RUN_ID: ${{ needs.gate.outputs.run_id }}
         with:
           script: |
-            const runId = context.payload.workflow_run.id;
+            const runId = Number(process.env.FAILED_RUN_ID);
             const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
               owner: context.repo.owner,
               repo: context.repo.repo,
               run_id: runId,
             });
             const fs = require('fs');
+            const path = require('path');
+            const destination = path.join(process.env.GITHUB_WORKSPACE, 'target');
             for (const artifact of artifacts.data.artifacts) {
-              const names = ['test-results', 'playwright-report', 'eval-results', 'eval-report'];
+              const names = [
+                'test-results', 'playwright-report', 'eval-results',
+                'eval-report', 'k6-performance-results', 'promptfoo-results',
+                'vision-audit-results',
+              ];
               if (names.some(n => artifact.name.includes(n))) {
                 const zip = await github.rest.actions.downloadArtifact({
                   owner: context.repo.owner,
@@ -76,45 +201,79 @@ jobs:
                   artifact_id: artifact.id,
                   archive_format: 'zip',
                 });
-                fs.writeFileSync(`${artifact.name}.zip`, Buffer.from(zip.data));
+                fs.writeFileSync(
+                  path.join(destination, `${artifact.name}.zip`),
+                  Buffer.from(zip.data),
+                );
                 console.log(`Downloaded: ${artifact.name}.zip`);
               }
             }
 
       - name: Extract artifacts
+        working-directory: target
+        shell: bash
         run: |
+          shopt -s nullglob
           for f in *.zip; do
-            [ -f "$f" ] && unzip -o "$f" -d "${f%.zip}/" && echo "Extracted $f" || true
+            unzip -o "$f" -d "${f%.zip}/"
           done
 
-      - name: Run auto-fix agent
-        # All LLM keys are plumbed through so .github/scripts/llm_client.py
-        # can rotate through every configured provider until one answers.
-        # Missing keys are simply skipped — no need to gate per-provider.
+      - name: Wait for and warm local GPT-OSS
         env:
-          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
-          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
-          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
-          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL:    ${{ secrets.OPENAI_BASE_URL }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
-          GEMINI_API_KEY:     ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
-          # Slack ping when a PR is opened — no webhook needed, bot token only.
-          # PR-review pings go to the dedicated #ci-pr-review channel; the
-          # bug-reports channel stays the fallback if PR_REVIEW_CHANNEL_ID is unset.
+          OLLAMA_BASE_URL: http://127.0.0.1:11434
+          LOCAL_LLM_MODEL: gpt-oss:120b
+        shell: bash
+        run: |
+          for attempt in {1..20}; do
+            if curl --fail --silent --max-time 10 "$OLLAMA_BASE_URL/v1/models" | \
+              python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("id") == wanted for m in data.get("data", [])) else 1)' "$LOCAL_LLM_MODEL"; then
+              break
+            fi
+            if [[ "$attempt" == "20" ]]; then
+              echo "Local GPT-OSS was not available after 5 minutes."
+              exit 1
+            fi
+            sleep 15
+          done
+          curl --silent --max-time 180 "$OLLAMA_BASE_URL/api/generate" \
+            -d '{"model":"gpt-oss:120b","prompt":"ok","stream":false,"keep_alive":-1,"options":{"num_predict":1}}' \
+            >/dev/null
+
+      - name: Run auto-fix agent
+        working-directory: target
+        env:
+          GITHUB_TOKEN:           ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN:               ${{ secrets.GITHUB_TOKEN }}
+          REPO:                   ${{ github.repository }}
+          FAILED_RUN_ID:          ${{ needs.gate.outputs.run_id }}
+          FAILED_RUN_URL:         ${{ needs.gate.outputs.run_url }}
+          PIPELINE:               ${{ needs.gate.outputs.pipeline }}
+          HEAD_SHA:               ${{ needs.gate.outputs.head_sha }}
+          HEAD_BRANCH:            ${{ needs.gate.outputs.head_branch }}
+          DEFAULT_BRANCH:         ${{ github.event.repository.default_branch }}
+          AUTO_MERGE:             ${{ github.event_name != 'workflow_dispatch' || inputs.auto_merge }}
+          REVIEWER_SMOKE:         ${{ inputs.reviewer_smoke || false }}
+          LOCAL_LLM_API_KEY:      ollama
+          LOCAL_LLM_BASE_URL:     http://127.0.0.1:11434/v1
+          LOCAL_LLM_MODEL:        gpt-oss:120b
+          LOCAL_LLM_REASONING_EFFORT: low
+          LOCAL_LLM_TIMEOUT_SEC:  '180'
+          FINAL_SMART_MODEL:      gpt-5.1
+          FINAL_CHEAP_MODEL:      deepseek/deepseek-v4.1-flash
+          OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
+          OPENROUTER_API_KEY:     ${{ secrets.OPENROUTER_API_KEY }}
           SLACK_BOT_TOKEN:        ${{ secrets.SLACK_BOT_TOKEN }}
           PR_REVIEW_CHANNEL_ID:   ${{ secrets.PR_REVIEW_CHANNEL_ID }}
           BUG_REPORTS_CHANNEL_ID: ${{ secrets.BUG_REPORTS_CHANNEL_ID }}
-          # Detailed Investigation / Fix / Resolution reports land here
-          # (#qa-agent-reports). Falls back to the PR-review channel if unset.
           AGENT_REPORTS_CHANNEL_ID: ${{ secrets.AGENT_REPORTS_CHANNEL_ID }}
-          FAILED_RUN_ID:      ${{ github.event.workflow_run.id }}
-          FAILED_RUN_URL:     ${{ github.event.workflow_run.html_url }}
-          PIPELINE:           ${{ github.event.workflow_run.name }}
-          REPO:               ${{ github.repository }}
-          HEAD_SHA:           ${{ github.event.workflow_run.head_sha }}
-          HEAD_BRANCH:        ${{ github.event.workflow_run.head_branch }}
-        run: python .github/scripts/auto_fix_agent.py
+          HUMAN_REVIEW_CHANNEL_ID: ${{ secrets.HUMAN_REVIEW_CHANNEL_ID }}
+        run: python3 ../agent-control/.github/scripts/auto_fix_agent.py
+
+      - name: Upload agent decision trail
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: agent-fix-report-${{ needs.gate.outputs.run_id }}
+          path: target/agent-fix-report.json
+          retention-days: 30
+          if-no-files-found: warn
