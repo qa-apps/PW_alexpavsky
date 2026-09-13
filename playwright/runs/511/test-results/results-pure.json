@@ -1,0 +1,2470 @@
+{
+  "config": {
+    "configFile": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/playwright.config.ts",
+    "rootDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/utils/global-setup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/318a191547cff7c057a5fa414242e85bfe3fd284",
+        "commitHash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+        "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/34738252500"
+      },
+      "gitCommit": {
+        "shortHash": "318a191",
+        "hash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+        "subject": "Improve Slack test reports and dashboards",
+        "body": "Improve Slack test reports and dashboards\n",
+        "author": {
+          "name": "Alexander Pavlovsky",
+          "email": "pasok.a@yahoo.com",
+          "time": 1789274088000
+        },
+        "committer": {
+          "name": "Alexander Pavlovsky",
+          "email": "pasok.a@yahoo.com",
+          "time": 1789274088000
+        },
+        "branch": "codex/slack-report-refresh-20260913"
+      },
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/318a191547cff7c057a5fa414242e85bfe3fd284",
+            "commitHash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/34738252500"
+          },
+          "gitCommit": {
+            "shortHash": "318a191",
+            "hash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "subject": "Improve Slack test reports and dashboards",
+            "body": "Improve Slack test reports and dashboards\n",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "committer": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "branch": "codex/slack-report-refresh-20260913"
+          },
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [
+          "**/voice/**/*.test.ts",
+          "**/observability/**/*.test.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/318a191547cff7c057a5fa414242e85bfe3fd284",
+            "commitHash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/34738252500"
+          },
+          "gitCommit": {
+            "shortHash": "318a191",
+            "hash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "subject": "Improve Slack test reports and dashboards",
+            "body": "Improve Slack test reports and dashboards\n",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "committer": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "branch": "codex/slack-report-refresh-20260913"
+          },
+          "actualWorkers": 1
+        },
+        "id": "iphone-13",
+        "name": "iphone-13",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [
+          "**/voice/**/*.test.ts",
+          "**/observability/**/*.test.ts"
+        ],
+        "testMatch": [
+          "/tests\\/crossDevice\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/318a191547cff7c057a5fa414242e85bfe3fd284",
+            "commitHash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/34738252500"
+          },
+          "gitCommit": {
+            "shortHash": "318a191",
+            "hash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "subject": "Improve Slack test reports and dashboards",
+            "body": "Improve Slack test reports and dashboards\n",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "committer": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "branch": "codex/slack-report-refresh-20260913"
+          },
+          "actualWorkers": 1
+        },
+        "id": "pixel-7",
+        "name": "pixel-7",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [
+          "**/voice/**/*.test.ts",
+          "**/observability/**/*.test.ts"
+        ],
+        "testMatch": [
+          "/tests\\/crossDevice\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/318a191547cff7c057a5fa414242e85bfe3fd284",
+            "commitHash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/34738252500"
+          },
+          "gitCommit": {
+            "shortHash": "318a191",
+            "hash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "subject": "Improve Slack test reports and dashboards",
+            "body": "Improve Slack test reports and dashboards\n",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "committer": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "branch": "codex/slack-report-refresh-20260913"
+          },
+          "actualWorkers": 1
+        },
+        "id": "ipad-pro-11",
+        "name": "ipad-pro-11",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [
+          "**/voice/**/*.test.ts",
+          "**/observability/**/*.test.ts"
+        ],
+        "testMatch": [
+          "/tests\\/crossDevice\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/test-results/recordings",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/qa-apps/PW_alexpavsky/commit/318a191547cff7c057a5fa414242e85bfe3fd284",
+            "commitHash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "buildHref": "https://github.com/qa-apps/PW_alexpavsky/actions/runs/34738252500"
+          },
+          "gitCommit": {
+            "shortHash": "318a191",
+            "hash": "318a191547cff7c057a5fa414242e85bfe3fd284",
+            "subject": "Improve Slack test reports and dashboards",
+            "body": "Improve Slack test reports and dashboards\n",
+            "author": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "committer": {
+              "name": "Alexander Pavlovsky",
+              "email": "pasok.a@yahoo.com",
+              "time": 1789274088000
+            },
+            "branch": "codex/slack-report-refresh-20260913"
+          },
+          "actualWorkers": 1
+        },
+        "id": "galaxy-tab-s4",
+        "name": "galaxy-tab-s4",
+        "testDir": "/home/runner/work/PW_alexpavsky/PW_alexpavsky/tests",
+        "testIgnore": [
+          "**/voice/**/*.test.ts",
+          "**/observability/**/*.test.ts"
+        ],
+        "testMatch": [
+          "/tests\\/crossDevice\\.spec\\.ts/"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results-pure.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "api-smoke.spec.ts",
+      "file": "api-smoke.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "API smoke — chat_server contracts",
+          "file": "api-smoke.spec.ts",
+          "line": 201,
+          "column": 6,
+          "specs": [
+            {
+              "title": "GET /api/health → 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 561,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:36.841Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-4b59ac5c6cdfeef48c14",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "GET /api/feed → 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 323,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:37.426Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-90df7ce200f2050beca2",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "POST /api/chat → 400,401,422 (Empty body — handler should reject before hitting LLM.)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 164,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:37.761Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-86dc8c535c3142b783a5",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "POST /api/challenge → 400,401,422",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 163,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:37.939Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-3d25b817045213839c1b",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "POST /api/hallucination → 200,400,422",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 166,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:38.114Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-46afb1f0c19923775868",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "POST /api/maintenance-login → 401,403",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 165,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:38.289Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-7487f0ca101fb5cc5a7c",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "GET /api/maintenance-ui → 200,401,403 (Returns HTML when authed, JSON 401/403 otherwise; tolerate both.)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 167,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:38.462Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-0ebb9f7ffc0c8041d642",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "GET /api/admin-inbox → 401,403",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:38.639Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-598dfffcc710cda9fc47",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "GET /api/admin/conversations → 401,403",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 164,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:38.808Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-ff37f787369f2999bf32",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "GET /api/admin/email-status → 401,403",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 163,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:38.980Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-9c54b459b99edf5e50c8",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "GET /api/admin/messages → 401,403",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 162,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:39.152Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-5275a9378a2d375e574b",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "POST /api/subscribe → 400 (Implemented: empty body rejected with invalid_email JSON.)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:39.322Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-93efc5c18bf5c4787090",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "POST /api/forum/posts → 400 (Implemented: payload missing valid handle → 400 invalid_handle.)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:39.490Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-9ff2de173544af8db70a",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "POST /api/user/messages → 501",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:39.659Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-9eb641e28e966fa0576c",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "POST /api/admin/reply → 501",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:39.827Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-0c7259d9cfce79ec3c1e",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "POST /api/newsletter/run-now → 501",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 162,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:39.995Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-d506db0f201d59c79212",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            },
+            {
+              "title": "GET /api/agent-reports → 403 (POST-only, admin-protected. Unauth GET returns 403.)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:40.163Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-34f45ea6168236ed7007",
+              "file": "api-smoke.spec.ts",
+              "line": 203,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "API smoke — unknown routes",
+          "file": "api-smoke.spec.ts",
+          "line": 211,
+          "column": 6,
+          "specs": [
+            {
+              "title": "unknown /api/* path returns 404",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:40.331Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-9e8f07caa609ac5085ad",
+              "file": "api-smoke.spec.ts",
+              "line": 212,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "API smoke — RAG service contracts",
+          "file": "api-smoke.spec.ts",
+          "line": 220,
+          "column": 6,
+          "specs": [
+            {
+              "title": "GET /api/rag/metrics → 200 JSON with queries[]",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 191,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:40.499Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-bc6f81bf174dfeed417d",
+              "file": "api-smoke.spec.ts",
+              "line": 221,
+              "column": 7
+            },
+            {
+              "title": "GET /api/eval/results → 200 paginated JSON",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 172,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:40.697Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-88579667c3d192bb7b0a",
+              "file": "api-smoke.spec.ts",
+              "line": 230,
+              "column": 7
+            },
+            {
+              "title": "POST /api/rag/query empty body → 4xx",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:40.876Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bcfaf5960eb119ab6175-0e9660f7a62b9e99dcfe",
+              "file": "api-smoke.spec.ts",
+              "line": 239,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "auth-flow.spec.ts",
+      "file": "auth-flow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Auth — /api/auth/me session check",
+          "file": "auth-flow.spec.ts",
+          "line": 40,
+          "column": 6,
+          "specs": [
+            {
+              "title": "unauthenticated request returns 401 JSON",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 162,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:41.050Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "df6b40174562c70df515-1035d89f43d0e7584310",
+              "file": "auth-flow.spec.ts",
+              "line": 41,
+              "column": 7
+            },
+            {
+              "title": "garbage Bearer token returns 401, not 500",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 172,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:41.220Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "df6b40174562c70df515-b223386f6457ce19e397",
+              "file": "auth-flow.spec.ts",
+              "line": 49,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "security-daily.spec.ts",
+      "file": "security-daily.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "SQL injection probes",
+          "file": "security-daily.spec.ts",
+          "line": 28,
+          "column": 6,
+          "specs": [
+            {
+              "title": "chat endpoint rejects SQLi: ' OR 1=1 --…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 538,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:41.404Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-f2dac3981b0669d1ea91",
+              "file": "security-daily.spec.ts",
+              "line": 38,
+              "column": 9
+            },
+            {
+              "title": "subscribe endpoint rejects SQLi: ' OR 1=1 --…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:41.950Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-f6059ac4653e82099b6d",
+              "file": "security-daily.spec.ts",
+              "line": 60,
+              "column": 9
+            },
+            {
+              "title": "chat endpoint rejects SQLi: '; DROP TABLE users;…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 719,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:42.118Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-5a98d3e5eaba3af1e49c",
+              "file": "security-daily.spec.ts",
+              "line": 38,
+              "column": 9
+            },
+            {
+              "title": "subscribe endpoint rejects SQLi: '; DROP TABLE users;…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:42.845Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-6e7e89109007de7bcfb7",
+              "file": "security-daily.spec.ts",
+              "line": 60,
+              "column": 9
+            },
+            {
+              "title": "chat endpoint rejects SQLi: 1' UNION SELECT NULL…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1005,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:43.012Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-2006f62c03bc8905bf91",
+              "file": "security-daily.spec.ts",
+              "line": 38,
+              "column": 9
+            },
+            {
+              "title": "subscribe endpoint rejects SQLi: 1' UNION SELECT NULL…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:44.026Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-fee052b7e55364a3b299",
+              "file": "security-daily.spec.ts",
+              "line": 60,
+              "column": 9
+            },
+            {
+              "title": "chat endpoint rejects SQLi: admin'--…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 535,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:44.192Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-3b47d4d66c104c46f20a",
+              "file": "security-daily.spec.ts",
+              "line": 38,
+              "column": 9
+            },
+            {
+              "title": "subscribe endpoint rejects SQLi: admin'--…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:44.735Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-fb5680d42cc0458723a6",
+              "file": "security-daily.spec.ts",
+              "line": 60,
+              "column": 9
+            },
+            {
+              "title": "chat endpoint rejects SQLi: \\'; SELECT pg_sleep(…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 499,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:44.903Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-96925e5a9b87cccf4ac6",
+              "file": "security-daily.spec.ts",
+              "line": 38,
+              "column": 9
+            },
+            {
+              "title": "subscribe endpoint rejects SQLi: \\'; SELECT pg_sleep(…",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:45.409Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-8b7a071f0cb35bbbebea",
+              "file": "security-daily.spec.ts",
+              "line": 60,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Admin endpoint auth gates",
+          "file": "security-daily.spec.ts",
+          "line": 77,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/api/admin/conversations requires auth — no token",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:45.577Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-8a7cf3684b3dc58d8514",
+              "file": "security-daily.spec.ts",
+              "line": 86,
+              "column": 9
+            },
+            {
+              "title": "/api/admin/conversations requires auth — forged Bearer token",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 174,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:45.745Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-35888bfbd84565c96ccd",
+              "file": "security-daily.spec.ts",
+              "line": 104,
+              "column": 9
+            },
+            {
+              "title": "/api/admin/messages?user_id=anyone requires auth — no token",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 159,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:45.927Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-084f9c63b35a19522b86",
+              "file": "security-daily.spec.ts",
+              "line": 86,
+              "column": 9
+            },
+            {
+              "title": "/api/admin/messages?user_id=anyone requires auth — forged Bearer token",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 174,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:46.094Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-54d5e458215904267709",
+              "file": "security-daily.spec.ts",
+              "line": 104,
+              "column": 9
+            },
+            {
+              "title": "/api/admin/email-status requires auth — no token",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:46.276Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-27ac48c9deee28172934",
+              "file": "security-daily.spec.ts",
+              "line": 86,
+              "column": 9
+            },
+            {
+              "title": "/api/admin/email-status requires auth — forged Bearer token",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 174,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:46.443Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-634ed18b36253462dab6",
+              "file": "security-daily.spec.ts",
+              "line": 104,
+              "column": 9
+            },
+            {
+              "title": "/api/admin-inbox requires auth — no token",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:46.625Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-960f83a64a876fdf2429",
+              "file": "security-daily.spec.ts",
+              "line": 86,
+              "column": 9
+            },
+            {
+              "title": "/api/admin-inbox requires auth — forged Bearer token",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 176,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:46.794Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-2ac65e960196b82849b6",
+              "file": "security-daily.spec.ts",
+              "line": 104,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "External port exposure",
+          "file": "security-daily.spec.ts",
+          "line": 128,
+          "column": 6,
+          "specs": [
+            {
+              "title": "port 5432 must NOT accept external TCP connections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3043,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:46.978Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-39070589d8af3838518c",
+              "file": "security-daily.spec.ts",
+              "line": 132,
+              "column": 9
+            },
+            {
+              "title": "port 5050 must NOT accept external TCP connections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3052,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:50.029Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-6b68a78146c9333d397e",
+              "file": "security-daily.spec.ts",
+              "line": 132,
+              "column": 9
+            },
+            {
+              "title": "port 6333 must NOT accept external TCP connections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3009,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:53.088Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-7e5b8cf622a0c5a804ad",
+              "file": "security-daily.spec.ts",
+              "line": 132,
+              "column": 9
+            },
+            {
+              "title": "port 6334 must NOT accept external TCP connections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3004,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:56.105Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-1e188ee045b354d440b3",
+              "file": "security-daily.spec.ts",
+              "line": 132,
+              "column": 9
+            },
+            {
+              "title": "port 8000 must NOT accept external TCP connections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3027,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:37:59.116Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-3e51c8b6f0ea4ac5640d",
+              "file": "security-daily.spec.ts",
+              "line": 132,
+              "column": 9
+            },
+            {
+              "title": "port 8001 must NOT accept external TCP connections",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3052,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:02.151Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-9f0c97a440ed3323ffac",
+              "file": "security-daily.spec.ts",
+              "line": 132,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Email header injection",
+          "file": "security-daily.spec.ts",
+          "line": 159,
+          "column": 6,
+          "specs": [
+            {
+              "title": "subscribe rejects header injection: \"victim@example.com\\nBcc: attacker@evil.com\"…",
+              "ok": true,
+              "tags": [
+                "example.com\\nBcc:",
+                "evil.com\"…"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:05.211Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-ede9a0fc4b8945c47faf",
+              "file": "security-daily.spec.ts",
+              "line": 168,
+              "column": 9
+            },
+            {
+              "title": "subscribe rejects header injection: \"victim@example.com\\r\\nBcc: attacker@evil.com\"…",
+              "ok": true,
+              "tags": [
+                "example.com\\r\\nBcc:",
+                "evil.com\"…"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:05.381Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-76a34cd0dd65143f67e0",
+              "file": "security-daily.spec.ts",
+              "line": 168,
+              "column": 9
+            },
+            {
+              "title": "subscribe rejects header injection: \"victim@example.com%0aBcc:attacker@evil.com\"…",
+              "ok": true,
+              "tags": [
+                "example.com%0aBcc:attacker@evil.com\"…"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 162,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:05.549Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-fab1b6c280f11655df29",
+              "file": "security-daily.spec.ts",
+              "line": 168,
+              "column": 9
+            },
+            {
+              "title": "subscribe rejects header injection: \"victim@example.com\\nSubject: Hijacked\"…",
+              "ok": true,
+              "tags": [
+                "example.com\\nSubject:"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:05.719Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-d67dbf03dd92b6c87df1",
+              "file": "security-daily.spec.ts",
+              "line": 168,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "Health endpoint info disclosure",
+          "file": "security-daily.spec.ts",
+          "line": 200,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/api/health returns booleans only, never raw secrets",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:05.886Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-68e9e8eabafa11517e53",
+              "file": "security-daily.spec.ts",
+              "line": 201,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "CORS credentials policy",
+          "file": "security-daily.spec.ts",
+          "line": 219,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Access-Control-Allow-Origin: * must NEVER appear with Allow-Credentials: true",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 159,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:06.055Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-780b25e19f94a2e67b6e",
+              "file": "security-daily.spec.ts",
+              "line": 220,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Open redirect protection",
+          "file": "security-daily.spec.ts",
+          "line": 239,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/?next=https://evil.example/phish must not redirect off-site",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 313,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:06.223Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-15249e5773c33c5e030e",
+              "file": "security-daily.spec.ts",
+              "line": 250,
+              "column": 9
+            },
+            {
+              "title": "/?redirect=//evil.example must not redirect off-site",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:06.544Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-b794ab905d9cf4862682",
+              "file": "security-daily.spec.ts",
+              "line": 250,
+              "column": 9
+            },
+            {
+              "title": "/?return_to=https://evil.example must not redirect off-site",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 159,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:06.714Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-8d407a445c871f911f9d",
+              "file": "security-daily.spec.ts",
+              "line": 250,
+              "column": 9
+            },
+            {
+              "title": "/?url=https://evil.example must not redirect off-site",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:06.885Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-b9935e85c35f9f1d0362",
+              "file": "security-daily.spec.ts",
+              "line": 250,
+              "column": 9
+            },
+            {
+              "title": "/?continue=https://evil.example must not redirect off-site",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 159,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:07.052Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-c82446d14a37195d6f7e",
+              "file": "security-daily.spec.ts",
+              "line": 250,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "RAG metadata disclosure",
+          "file": "security-daily.spec.ts",
+          "line": 267,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/api/rag/metrics does not leak absolute filesystem paths",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 191,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:07.219Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-6e4c9b3b99c1fd168dd0",
+              "file": "security-daily.spec.ts",
+              "line": 268,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Chat prompt injection smoke",
+          "file": "security-daily.spec.ts",
+          "line": 282,
+          "column": 6,
+          "specs": [
+            {
+              "title": "chat endpoint does not reveal raw API key when asked",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 513,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-13T04:38:07.417Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4f296f143c91cc2d032b-10f1081c065abae30d86",
+              "file": "security-daily.spec.ts",
+              "line": 283,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-13T04:37:35.625Z",
+    "duration": 32340.65,
+    "expected": 60,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
