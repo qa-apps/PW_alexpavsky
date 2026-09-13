@@ -45,6 +45,8 @@ jobs:
       LOCAL_LLM_API_KEY: ollama
       LOCAL_LLM_TIMEOUT_SEC: '180'
       LOCAL_LLM_TIMEOUT_MS: '180000'
+      LOCAL_LLM_MAX_TOKENS: '2048'
+      LOCAL_LLM_REASONING_EFFORT: low
 
     steps:
       - name: Checkout
