@@ -275,3 +275,10 @@ jobs:
       - name: Fail if LLM quality tests failed
         if: steps.local_llm.outputs.run == 'true' && steps.run_tests.outcome == 'failure'
         run: exit 1
+
+      - name: Release background model lease
+        if: always() && github.event_name == 'schedule'
+        run: |
+          curl -fsS -X POST \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
+            http://127.0.0.1:11443/release/background || true
