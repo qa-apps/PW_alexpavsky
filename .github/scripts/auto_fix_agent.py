@@ -1069,27 +1069,43 @@ def checkout_merged_default() -> dict:
 
 def run_reviewer_smoke() -> bool:
     """Make one small real call to each merge-gate model without a PR."""
+    failed_fixture = run_process([
+        sys.executable, "-c",
+        "values=[1,2]; actual=sum(values)+1; "
+        "assert actual == 3, f'expected 3, received {actual}'",
+    ])
+    targeted_fixture = run_process([
+        sys.executable, "-c",
+        "values=[1,2]; actual=sum(values); "
+        "assert actual == 3, f'expected 3, received {actual}'",
+    ])
     logs = (
-        "Unit test failure: expected sum([1, 2]) to equal 3, received 4. "
-        "The helper returned total + 1. Targeted rerun passed after the patch."
+        "Reviewer smoke regression fixture reproduced the off-by-one failure.\n"
+        f"Pre-patch return code: {failed_fixture['returncode']}\n"
+        f"Pre-patch output:\n{failed_fixture['output']}"
     )
     diff = """diff --git a/tests/helpers/math.py b/tests/helpers/math.py
 --- a/tests/helpers/math.py
 +++ b/tests/helpers/math.py
 @@
--    return total + 1
-+    return total
+ def sum_numbers(values):
+-    return sum(values) + 1
++    return sum(values)
 """
     targeted = {
-        "passed": True,
-        "reason": "Synthetic reviewer smoke evidence: focused unit test passed.",
-        "results": [{"command": ["pytest", "tests/test_math.py"],
-                     "passed": True, "returncode": 0}],
+        "passed": targeted_fixture["passed"],
+        "reason": (
+            "The complete one-test regression fixture passed after the patch."
+        ),
+        "results": [targeted_fixture],
     }
     triage = {
         "decision": "auto_fix", "specialist": "test_healer",
         "category": "qa_script", "confidence": 1.0,
-        "evidence": "An off-by-one was isolated to a QA helper.",
+        "evidence": (
+            "The executable pre-patch fixture failed with expected 3, received "
+            "4; the same complete fixture passed after removing + 1."
+        ),
     }
     local = local_review(diff, targeted, triage)
     smart_model = os.environ.get("FINAL_SMART_MODEL", "gpt-5.5")
