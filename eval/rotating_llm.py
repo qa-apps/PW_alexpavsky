@@ -58,6 +58,7 @@ class RotatingJudgeLLM(BaseChatModel):
     providers: list[dict[str, str]] = Field(default_factory=list)
     temperature: float = 0.0
     timeout: int = int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180"))
+    max_tokens: int = int(os.environ.get("LOCAL_LLM_MAX_TOKENS", "2048"))
     max_retries: int = 1
     _last_used_idx: int = 0
 
@@ -80,6 +81,7 @@ class RotatingJudgeLLM(BaseChatModel):
             api_key=provider["api_key"],
             temperature=self.temperature,
             timeout=self.timeout,
+            max_tokens=self.max_tokens,
             max_retries=self.max_retries,
         )
 
