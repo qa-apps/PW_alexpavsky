@@ -1,0 +1,21 @@
+{
+  "rag_api": "https://alexpavsky.com",
+  "judge": "local/gpt-oss:120b",
+  "minimum_correctness": 0.5,
+  "correctness": 0.5,
+  "cases": [
+    {
+      "id": "giskard-1",
+      "category": "generated-rag",
+      "prompt": "What testing aspects are covered by data integrity testing for distributed systems?",
+      "answer": "**Data\u2011integrity testing in a distributed, event\u2011driven stack is meant to prove that the same\u202f*business fact*\u202fsurvives unchanged as it moves through every component of the pipeline.\u202fThe white\u2011paper lists the concrete \u201caspects\u201d that a thorough data\u2011integrity suite must cover:**\n\n| Layer | What is asserted / validated |\n|-------|------------------------------|\n| **API\u202fGateway (GraphQL)** | \u2022 Mutation parsing and structural validation  <br>\u2022 GraphQL schema correctness (type\u2011checking, required fields)  <br>\u2022 HTTP response codes (e.g.,\u202f200/201) |\n| **Event Broker (Apache\u202fKafka)** | \u2022 Programmatic consumption of the topic (tap the stream)  <br>\u2022 Avro (or other) schema compliance of the payload  <br>\u2022 Key\u2011value data correctness (exact field values, correlation IDs)  <br>\u2022 Latency / delivery metrics (event arrives within expected window) |\n| **Storage Layer (SQL / NoSQL)** | \u2022 Direct JDBC/driver query against the target store  <br>\u2022 Row\u2011count correctness (expected number of records created/updated)  <br>\u2022 Structural schema fidelity (column types, presence of required columns)  <br>\u2022 Foreign\u2011key / relational mapping correctness  <br>\u2022 Data snapshot comparison (value in DB matches what was sent via GraphQL and what was observed in Kafka) |\n\n### Additional \u201cbehaviour\u2011type\u201d dimensions mentioned in the document\n\n* **Data\u2011behaviour** \u2013 the overall guarantee that databases, event streams, and downstream reports stay consistent with each other.  \n* **Cross\u2011layer comparison** \u2013 e.g., \u201ccompare UI/API result with database, event or report source\u201d and capture **SQL results, event samples, data snapshots** as evidence.  \n* **End\u2011to\u2011end lifecycle verification** \u2013 the test fires a GraphQL request, intercepts the resulting Kafka event, then runs SQL queries to confirm the persisted state, ensuring *no loss or corruption* at any hop.\n\nSo, data\u2011integrity testing for distributed systems covers:\n\n1. **Schema and type validation** at the GraphQL and Kafka layers.  \n2. **HTTP status and contract validation** for the API call.  \n3. **Event payload validation** (schema match, key/value accuracy, latency).  \n4. **Database state validation** (row counts, schema fidelity, foreign\u2011key integrity).  \n5. **Cross\u2011component consistency checks** (UI/API \u2194\u202fevent \u2194\u202fDB snapshots).  \n\nThese aspects together ensure that the business data remains accurate, complete, and unchanged from the moment a user action triggers a GraphQL mutation, through the asynchronous Kafka event, all the way to the final persisted record."
+    },
+    {
+      "id": "giskard-2",
+      "category": "generated-rag",
+      "prompt": "Identify all defense layers cited for mitigating prompt injection attacks, and rank them by whether they address input sanitization, output filtering, privilege separation, or adversarial testing.",
+      "answer": "Defense layers cited for mitigating prompt injection attacks and their ranking by mitigation type:\n\n1. Input sanitization (addressing prompt injection)\n2. Output filtering (addressing prompt injection)\n3. Privilege separation (adversarial testing)\n4. Adversarial testing (general adversarial defense)"
+    }
+  ],
+  "note": "Giskard exposes aggregate correctness in this run; prompts and RAG answers are captured from the callable so the UI can show what was asked and what the chatbot returned."
+}

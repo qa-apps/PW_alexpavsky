@@ -4542,5 +4542,31 @@
       "report.md",
       "ragas_cases.json"
     ]
+  },
+  {
+    "run_number": 167,
+    "run_id": "34742561372",
+    "timestamp": "2026-09-13T06:33:36+00:00",
+    "commit": "599a601",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.831,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 2,
+      "judge": "local/gpt-oss:120b",
+      "correctness": 0.5,
+      "minimum_correctness": 0.5
+    },
+    "giskard_scan": {},
+    "files": [
+      "report.md",
+      "ragas_cases.json",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_rag_cases.json"
+    ]
   }
 ]
