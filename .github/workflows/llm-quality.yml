@@ -27,11 +27,11 @@ jobs:
     runs-on: [self-hosted, Linux, X64, bosgame]
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-noble
-      options: --network host
+      options: --add-host host.docker.internal:host-gateway
     timeout-minutes: 180
     env:
-      OLLAMA_BASE_URL: http://127.0.0.1:11434
-      LOCAL_LLM_BASE_URL: http://127.0.0.1:11434/v1
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      LOCAL_LLM_BASE_URL: http://host.docker.internal:11434/v1
       LOCAL_LLM_MODEL: gpt-oss:120b
       LOCAL_EMBEDDING_MODEL: qwen3-embedding:4b
       LOCAL_LLM_API_KEY: ollama
