@@ -134,6 +134,8 @@ def main() -> None:
         f"*Vision usage:* {usage.get('calls', 0)} local calls, "
         f"{usage.get('prompt_tokens', 0)} input tokens, "
         f"{usage.get('completion_tokens', 0)} output tokens\n"
+        f"*Candidate observations:* {len(report.get('candidate_findings') or [])} "
+        f"(only calibrated findings can fail CI)\n"
         f"*Findings:*\n" + "\n".join(finding_lines(report)) + "\n"
         f"*Media:* {' | '.join(media_links) if media_links else 'available in GitHub artifacts'}\n"
         f"{run_link}"

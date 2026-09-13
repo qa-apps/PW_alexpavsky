@@ -24,6 +24,7 @@ const report = {
   status: 'running',
   steps: [],
   deterministic_findings: [],
+  candidate_findings: [],
   confirmed_findings: [],
   model_usage: { calls: 0, prompt_tokens: 0, completion_tokens: 0, total_latency_ms: 0 },
 };
@@ -66,7 +67,9 @@ subjective style preferences. Do not infer a broken control that has not been ex
 Check for: overlap, clipped text, off-screen controls, broken or blank content, unreadable contrast, incoherent
 layout, error states, unexpected navigation, and controls that did not react. Then choose one safe next action
 that expands coverage. Never submit a form, enter credentials, make a purchase, delete data, or leave the site's
-origin. Prefer an unvisited navigation item, modal, tab, accordion, or scrolling to a new section.
+origin. A link marked safe=false is merely outside the automation boundary; it is not a website defect. Content
+below the viewport is normal and is not clipped or missing. Prefer an unvisited navigation item, modal, tab, or
+accordion over repeated scrolling.
 
 Return only JSON with this shape:
 {
@@ -167,6 +170,38 @@ function findingKey(finding) {
   return `${finding.kind}:${finding.title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}`;
 }
 
+function isKnownNonDefect(finding) {
+  const text = `${finding.title} ${finding.evidence}`.toLowerCase();
+  return [
+    'external link', 'unsafe content', 'marked as unsafe', 'third-party',
+    'below the fold', 'below the viewport', 'need to scroll', 'scroll down',
+    'section is not fully visible', 'content is not fully visible',
+  ].some((phrase) => text.includes(phrase));
+}
+
+function isConcreteVisualDefect(finding) {
+  const text = `${finding.title} ${finding.evidence}`.toLowerCase();
+  return [
+    'overlap', 'clipped text', 'unreadable', 'blank content', 'missing image',
+    'broken image', 'horizontal overflow', 'error message', 'distorted',
+  ].some((phrase) => text.includes(phrase));
+}
+
+function chooseCoverageOverride(action, elements, actionHistory, scrollStreak) {
+  if (action?.kind !== 'scroll' || scrollStreak < 2) return action;
+  const preferred = elements.find((element) => {
+    const key = `${element.label}|${element.href}`;
+    if (!element.safe || actionHistory.has(key)) return false;
+    return element.tag === 'button' || element.href.includes('#');
+  });
+  if (!preferred) return action;
+  return {
+    kind: 'click',
+    element_id: preferred.id,
+    reason: 'Deterministic coverage override after repeated scrolling.',
+  };
+}
+
 async function executeAction(page, action, elements, actionHistory, allowedOrigins) {
   if (!action || action.kind === 'finish') return { executed: false, finished: true };
   if (action.kind === 'scroll') {
@@ -213,6 +248,7 @@ async function main() {
   const actionHistory = new Set();
   const findingMap = new Map();
   let lastActionResult = { executed: false, action: 'initial page load' };
+  let scrollStreak = 0;
 
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -272,13 +308,24 @@ async function main() {
           if (!finding) continue;
           const key = findingKey(finding);
           const current = findingMap.get(key);
-          if (!current || finding.confidence > current.confidence) findingMap.set(key, finding);
+          if (!current) {
+            findingMap.set(key, { ...finding, occurrences: 1 });
+          } else {
+            findingMap.set(key, {
+              ...(finding.confidence > current.confidence ? finding : current),
+              occurrences: current.occurrences + 1,
+            });
+          }
         }
       }
 
-      const actionResult = await executeAction(
-        page, decision.next_action, elements, actionHistory, allowedOrigins,
+      const nextAction = chooseCoverageOverride(
+        decision.next_action, elements, actionHistory, scrollStreak,
       );
+      const actionResult = await executeAction(
+        page, nextAction, elements, actionHistory, allowedOrigins,
+      );
+      scrollStreak = actionResult.action?.startsWith('scroll:') ? scrollStreak + 1 : 0;
       lastActionResult = actionResult;
       report.steps.push({
         step: stepNumber,
@@ -286,7 +333,7 @@ async function main() {
         title: contextForModel.title,
         screenshot,
         summary: clip(decision.summary, 500),
-        decision,
+        decision: { ...decision, next_action_executed: nextAction },
         action_result: actionResult,
         model_latency_ms: latencyMs,
       });
@@ -320,9 +367,14 @@ async function main() {
     });
   }
 
-  report.confirmed_findings = [...findingMap.values()].filter(
-    (finding) => ['medium', 'high'].includes(finding.severity) && finding.confidence >= 0.9,
-  );
+  report.candidate_findings = [...findingMap.values()];
+  report.confirmed_findings = report.candidate_findings.filter((finding) => {
+    if (isKnownNonDefect(finding) || finding.confidence < 0.9) return false;
+    if (finding.kind === 'functional') return finding.severity === 'high';
+    return ['medium', 'high'].includes(finding.severity) && (
+      finding.occurrences >= 2 || isConcreteVisualDefect(finding)
+    );
+  });
   report.status = report.deterministic_findings.length || report.confirmed_findings.length
     ? 'failed'
     : 'passed';
