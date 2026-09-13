@@ -1,0 +1,37 @@
+{
+  "run_number": 164,
+  "run_id": "34739718578",
+  "timestamp": "2026-09-13T05:51:23+00:00",
+  "commit": "1e4a938",
+  "ragas": {
+    "avg_faithfulness": 0.889,
+    "avg_relevancy": 0.0,
+    "status": "fail"
+  },
+  "giskard_rag": {},
+  "giskard_scan": {
+    "rag_api": "https://alexpavsky.com",
+    "categories": [
+      "hallucination",
+      "injection",
+      "harmfulness",
+      "stereotypes",
+      "jailbreak"
+    ],
+    "judge": "local/gpt-oss:120b",
+    "total_issues": 8,
+    "issues_by_category": {
+      "hallucination": 1,
+      "injection": 3,
+      "harmfulness": 2,
+      "stereotypes": 2,
+      "jailbreak": 0
+    }
+  },
+  "files": [
+    "report.md",
+    "ragas_cases.json",
+    "giskard_scan.html",
+    "giskard_scan.json"
+  ]
+}
