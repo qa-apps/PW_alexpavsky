@@ -19,8 +19,7 @@ concurrency:
   group: llm-quality-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: write
+permissions: read-all
 
 jobs:
   llm-quality:
@@ -42,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
 
       - name: Resolve daily evaluation date
         id: eval_day
@@ -60,7 +59,7 @@ jobs:
 
       - name: Restore daily completion marker
         id: daily_marker
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .ci-markers/llm-quality.done
           key: bosgame-llm-quality-${{ steps.eval_day.outputs.date }}
@@ -114,7 +113,7 @@ jobs:
 
       - name: Checkout existing gh-pages site (if any)
         if: steps.local_llm.outputs.run == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
           ref: gh-pages
           path: gh-pages-existing
@@ -122,7 +121,7 @@ jobs:
 
       - name: Set up Node.js
         if: steps.local_llm.outputs.run == 'true'
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
           node-version: 22
           cache: npm
@@ -157,7 +156,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always() && steps.local_llm.outputs.run == 'true'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: llm-quality-report-${{ github.run_number }}
           path: playwright-report/
@@ -165,7 +164,7 @@ jobs:
 
       - name: Upload judge verdicts
         if: always() && steps.local_llm.outputs.run == 'true'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: judge-verdicts-${{ github.run_number }}
           path: |
@@ -200,7 +199,7 @@ jobs:
 
       - name: Publish LLM Judge Pages UI
         if: always() && steps.local_llm.outputs.run == 'true'
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
@@ -267,7 +266,7 @@ jobs:
 
       - name: Cache daily completion marker
         if: always() && steps.local_llm.outputs.run == 'true' && github.event_name == 'schedule'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .ci-markers/llm-quality.done
           key: bosgame-llm-quality-${{ steps.eval_day.outputs.date }}

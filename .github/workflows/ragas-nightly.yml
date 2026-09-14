@@ -30,8 +30,7 @@ concurrency:
   group: ragas-nightly-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: write
+permissions: read-all
 
 jobs:
   evaluate:
@@ -51,7 +50,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
 
       - name: Resolve daily evaluation date
         id: eval_day
@@ -69,7 +68,7 @@ jobs:
 
       - name: Restore daily completion marker
         id: daily_marker
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .ci-markers/ragas-giskard.done
           key: bosgame-ragas-giskard-${{ steps.eval_day.outputs.date }}
@@ -124,7 +123,7 @@ jobs:
 
       - name: Checkout existing gh-pages site (if any)
         if: steps.local_llm.outputs.run == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
           ref: gh-pages
           path: gh-pages-existing
@@ -132,7 +131,7 @@ jobs:
 
       - name: Set up Python 3.11
         if: steps.local_llm.outputs.run == 'true'
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -181,7 +180,7 @@ jobs:
 
       - name: Upload eval reports
         if: always() && steps.local_llm.outputs.run == 'true'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: eval-reports-${{ github.run_number }}
           path: |
@@ -205,7 +204,7 @@ jobs:
 
       - name: Publish to gh-pages
         if: always() && steps.local_llm.outputs.run == 'true'
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
@@ -350,7 +349,7 @@ jobs:
 
       - name: Cache daily completion marker
         if: always() && steps.local_llm.outputs.run == 'true' && github.event_name == 'schedule'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .ci-markers/ragas-giskard.done
           key: bosgame-ragas-giskard-${{ steps.eval_day.outputs.date }}
