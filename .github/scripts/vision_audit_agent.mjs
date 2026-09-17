@@ -229,13 +229,20 @@ async function clickSection(page, linkName, sectionSelector, linkSelector = '') 
   await link.click();
   const section = page.locator(sectionSelector).first();
   await section.waitFor({ state: 'visible', timeout: 10000 });
-  await section.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(500);
+  await page.waitForFunction((selector) => {
+    const target = document.querySelector(selector);
+    if (!target || window.location.hash !== selector) return false;
+    const rect = target.getBoundingClientRect();
+    return rect.bottom > 0 && rect.top < window.innerHeight;
+  }, sectionSelector, { timeout: 10000 });
   return {
     executed: true,
     action: `click link: ${linkName}`,
     current_url: page.url(),
-    checks: [`${sectionSelector} is visible`, `URL is ${page.url()}`],
+    checks: [
+      `${sectionSelector} is visible in the viewport after the click`,
+      `URL hash is ${sectionSelector}`,
+    ],
   };
 }
 

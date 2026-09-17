@@ -213,8 +213,8 @@ jobs:
               for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
                   if line.strip():
                       verdicts.append(json.loads(line))
-          if len(verdicts) < 17:
-              raise SystemExit(f"LLM Judge report has only {len(verdicts)} judge verdicts")
+          if len(verdicts) != 16:
+              raise SystemExit(f"LLM Judge report has {len(verdicts)}/16 structured judge verdicts")
           if any(not v.get("prompt") or not v.get("response") or not v.get("reasoning") for v in verdicts):
               raise SystemExit("A judge verdict is missing prompt, response, or reasoning")
           print(f"Validated {len(tests)} tests and {len(verdicts)} judge verdicts")

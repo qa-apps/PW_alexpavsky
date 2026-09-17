@@ -223,6 +223,8 @@ jobs:
               raise SystemExit(f"Giskard report has {len(giskard)}/{expected_giskard} cases")
           if not ragas or not all(c.get("prompt") and c.get("answer") and isinstance(c.get("passed"), bool) for c in ragas):
               raise SystemExit("Ragas report is missing prompt, answer, or verdict fields")
+          if any(not isinstance(c.get("faithfulness"), (int, float)) or not isinstance(c.get("relevancy"), (int, float)) for c in ragas):
+              raise SystemExit("Ragas report contains missing judge metrics")
           if not giskard or not all(c.get("prompt") and c.get("answer") and c.get("status") in {"PASS", "FAIL"} for c in giskard):
               raise SystemExit("Giskard report is missing prompt, answer, or verdict fields")
           if os.environ["REQUIRE_SCAN"].lower() == "true":

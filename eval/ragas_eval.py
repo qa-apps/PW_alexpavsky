@@ -457,15 +457,13 @@ def main() -> int:
         #  - one above threshold AND the other still credible (>= 0.3),
         #    which covers terse-but-correct answers where the judge can
         #    fact-check one dimension but not the other.
-        # If the judge couldn't score at all (NaN), the keyword match alone
-        # is treated as the signal — punishing keyword-correct answers for
-        # judge availability would be unfair.
+        # A missing judge metric is incomplete evaluation, not a quality pass.
         if not r.get("keyword_passed"):
             return False
         f = r.get("faithfulness", float("nan"))
         rel = r.get("relevancy", float("nan"))
         if math.isnan(f) or math.isnan(rel):
-            return True
+            return False
         if f >= MIN_FAITHFULNESS and rel >= MIN_RELEVANCY:
             return True
         MIN_CREDIBLE = 0.3
