@@ -167,6 +167,7 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
 
     provider = providers[0]
     ollama_root = provider["base_url"].removesuffix("/v1")
+    embedding_root = os.environ.get("OLLAMA_BASE_URL", "").rstrip("/") or ollama_root
     os.environ["OLLAMA_API_BASE"] = ollama_root
     os.environ["OLLAMA_BASE_URL"] = ollama_root
     os.environ["LITELLM_REQUEST_TIMEOUT"] = os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")
@@ -194,19 +195,18 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
     class OllamaOpenAIEmbedding(BaseEmbedding):
         def embed(self, texts):
             response = requests.post(
-                f"{provider['base_url']}/embeddings",
+                f"{embedding_root}/api/embed",
                 headers={"Authorization": f"Bearer {provider['api_key']}"},
-                json={"model": embedding_model, "input": list(texts)},
+                json={"model": embedding_model, "input": list(texts), "keep_alive": -1},
                 timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
             )
             response.raise_for_status()
-            rows = sorted(response.json()["data"], key=lambda row: row["index"])
-            return np.asarray([row["embedding"] for row in rows], dtype=np.float32)
+            return np.asarray(response.json()["embeddings"], dtype=np.float32)
 
     # Giskard 2.16 resets a custom default when no model name is registered.
     # Register a marker first, then install the direct adapter it will reuse.
     giskard.llm.set_embedding_model(f"local/{embedding_model}")
     set_default_embedding(OllamaOpenAIEmbedding())
-    log_fn(f"  Embeddings: {embedding_model} via {provider['base_url']}/embeddings")
+    log_fn(f"  Embeddings: {embedding_model} via {embedding_root}/api/embed")
 
     return f"local/{provider['model']}"

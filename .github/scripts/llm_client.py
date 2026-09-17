@@ -38,6 +38,15 @@ _PROVIDERS = [
         "model": "gpt-oss:120b",
     },
     {
+        "name": "opencode-go",
+        "key_env": "OPENCODE_API_KEY",
+        "opt_in_env": "ENABLE_OPENCODE_PROVIDER",
+        "base_url": "https://opencode.ai/zen/go/v1",
+        "model_env": "OPENCODE_MODEL",
+        "model": "kimi-k2.7-code",
+        "temperature": 1.0,
+    },
+    {
         "name": "groq",
         "key_env": "GROQ_API_KEY",
         "base_url": "https://api.groq.com/openai/v1",
@@ -165,6 +174,22 @@ def _normalize_tool_calls(message: dict) -> list[dict]:
     return out
 
 
+def _opencode_headers() -> dict[str, str]:
+    session = os.environ.get("OPENCODE_SESSION_ID", "").strip()
+    if not session:
+        run_id = os.environ.get("GITHUB_RUN_ID", "").strip()
+        attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "1").strip()
+        session = (
+            f"pw-agent-fix-{run_id}-{attempt}"
+            if run_id
+            else f"pw-agent-fix-local-{os.getpid()}"
+        )
+    return {
+        "User-Agent": "PW-alexpavsky-agent-fix/1.0",
+        "x-opencode-session": session,
+    }
+
+
 def chat(
     messages: list,
     *,
@@ -190,6 +215,9 @@ def chat(
     errors: list[str] = []
     providers = _PROVIDERS[:1] if os.environ.get("LOCAL_LLM_BASE_URL") else _PROVIDERS[1:]
     for prov in providers:
+        opt_in_env = prov.get("opt_in_env")
+        if opt_in_env and os.environ.get(opt_in_env, "").lower() != "true":
+            continue
         key = os.environ.get(prov["key_env"], "").strip()
         if prov["name"] == "ollama" and os.environ.get("LOCAL_LLM_BASE_URL"):
             key = key or "ollama"
@@ -208,9 +236,14 @@ def chat(
             "Content-Type": "application/json",
         }
         headers.update(prov.get("extra_headers", {}))
+        if prov["name"] == "opencode-go":
+            headers.update(_opencode_headers())
 
         model = os.environ.get(prov.get("model_env", ""), "").strip() or prov["model"]
-        payload = _build_payload(model, messages, system, tools, max_tokens, temperature)
+        provider_temperature = float(prov.get("temperature", temperature))
+        payload = _build_payload(
+            model, messages, system, tools, max_tokens, provider_temperature
+        )
         body = json.dumps(payload).encode()
 
         try:
@@ -255,7 +288,15 @@ def configured_providers() -> list[str]:
     """List names of providers whose API key is set. Useful for diagnostics."""
     if os.environ.get("LOCAL_LLM_BASE_URL"):
         return ["ollama"]
-    return [p["name"] for p in _PROVIDERS[1:] if os.environ.get(p["key_env"], "").strip()]
+    return [
+        p["name"]
+        for p in _PROVIDERS[1:]
+        if os.environ.get(p["key_env"], "").strip()
+        and (
+            not p.get("opt_in_env")
+            or os.environ.get(p["opt_in_env"], "").lower() == "true"
+        )
+    ]
 
 
 if __name__ == "__main__":

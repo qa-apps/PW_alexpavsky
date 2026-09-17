@@ -278,7 +278,7 @@ def main() -> int:
     log("  Loading Ragas + LangChain (first run can be slow)...")
 
     try:
-        from langchain_openai import OpenAIEmbeddings
+        from langchain_core.embeddings import Embeddings
         from ragas import evaluate, EvaluationDataset, SingleTurnSample
         from ragas.metrics import Faithfulness, ResponseRelevancy
         from ragas.llms import LangchainLLMWrapper
@@ -302,15 +302,29 @@ def main() -> int:
     fallbacks = providers[1:]
 
     embedding_model = os.environ.get("LOCAL_EMBEDDING_MODEL", "qwen3-embedding:4b")
-    judge_embeds = OpenAIEmbeddings(
-        model=embedding_model,
-        base_url=providers[0]["base_url"],
-        api_key=providers[0]["api_key"],
-        timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
-        max_retries=1,
-        check_embedding_ctx_length=False,
-    )
-    log(f"  Embeddings: {embedding_model} via bosgame")
+    embedding_root = os.environ.get("OLLAMA_BASE_URL", "").rstrip("/")
+    if not embedding_root:
+        embedding_root = providers[0]["base_url"].removesuffix("/v1")
+
+    class OllamaNativeEmbeddings(Embeddings):
+        def _embed(self, texts: list[str]) -> list[list[float]]:
+            response = requests.post(
+                f"{embedding_root}/api/embed",
+                headers={"Authorization": f"Bearer {providers[0]['api_key']}"},
+                json={"model": embedding_model, "input": texts, "keep_alive": -1},
+                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+            )
+            response.raise_for_status()
+            return response.json()["embeddings"]
+
+        def embed_documents(self, texts: list[str]) -> list[list[float]]:
+            return self._embed(texts)
+
+        def embed_query(self, text: str) -> list[float]:
+            return self._embed([text])[0]
+
+    judge_embeds = OllamaNativeEmbeddings()
+    log(f"  Embeddings: {embedding_model} via {embedding_root}/api/embed")
 
     ragas_llm = LangchainLLMWrapper(judge_llm)
     ragas_embeds = LangchainEmbeddingsWrapper(judge_embeds)
@@ -443,15 +457,13 @@ def main() -> int:
         #  - one above threshold AND the other still credible (>= 0.3),
         #    which covers terse-but-correct answers where the judge can
         #    fact-check one dimension but not the other.
-        # If the judge couldn't score at all (NaN), the keyword match alone
-        # is treated as the signal — punishing keyword-correct answers for
-        # judge availability would be unfair.
+        # A missing judge metric is incomplete evaluation, not a quality pass.
         if not r.get("keyword_passed"):
             return False
         f = r.get("faithfulness", float("nan"))
         rel = r.get("relevancy", float("nan"))
         if math.isnan(f) or math.isnan(rel):
-            return True
+            return False
         if f >= MIN_FAITHFULNESS and rel >= MIN_RELEVANCY:
             return True
         MIN_CREDIBLE = 0.3
@@ -483,8 +495,25 @@ def main() -> int:
         "accept_refusal": r.get("accept_refusal", False),
         "passed": _is_passed(r),
     } for r in records]
+
+    failed_count = len(records) - passed_count
+    failed_checks: list[str] = []
+    if avg_f < MIN_FAITHFULNESS:
+        failed_checks.append(f"avg faithfulness {avg_f:.3f} < {MIN_FAITHFULNESS}")
+    if avg_r < MIN_RELEVANCY:
+        failed_checks.append(f"avg relevancy {avg_r:.3f} < {MIN_RELEVANCY}")
+    if ALLOWED_FAILURES >= 0 and failed_count > ALLOWED_FAILURES:
+        failed_checks.append(
+            f"{failed_count} question(s) failed "
+            f"(> {ALLOWED_FAILURES} allowed)")
+    completion = {
+        "evaluation_completed": True,
+        "quality_passed": not failed_checks,
+    }
+
     (RESULTS_DIR / "ragas_cases.json").write_text(
         json.dumps({
+            **completion,
             "thresholds": {
                 "faithfulness": MIN_FAITHFULNESS,
                 "relevancy": MIN_RELEVANCY,
@@ -497,13 +526,14 @@ def main() -> int:
 
     summary_json = {
         "passed": passed_count,
-        "failed": len(records) - passed_count,
+        "failed": failed_count,
         "flaky": 0,
         "skipped": 0,
         "total": len(records),
         "avg_faithfulness": avg_f,
         "avg_relevancy": avg_r,
         "keyword_pass_rate": kw_rate,
+        **completion,
     }
     (RESULTS_DIR / "summary.json").write_text(
         json.dumps(summary_json, indent=2), encoding="utf-8"
@@ -514,17 +544,6 @@ def main() -> int:
     # run with individual question failures (e.g. 24/27 passed) still exited 0,
     # GitHub marked it "success", and the auto-fix gate (conclusion == failure)
     # never fired. We now also fail when too many individual questions fail.
-    failed_count = summary_json["failed"]
-    failed_checks: list[str] = []
-    if avg_f < MIN_FAITHFULNESS:
-        failed_checks.append(f"avg faithfulness {avg_f:.3f} < {MIN_FAITHFULNESS}")
-    if avg_r < MIN_RELEVANCY:
-        failed_checks.append(f"avg relevancy {avg_r:.3f} < {MIN_RELEVANCY}")
-    if ALLOWED_FAILURES >= 0 and failed_count > ALLOWED_FAILURES:
-        failed_checks.append(
-            f"{failed_count} question(s) failed "
-            f"(> {ALLOWED_FAILURES} allowed)")
-
     if failed_checks:
         log("FAIL: " + "; ".join(failed_checks))
         return 1

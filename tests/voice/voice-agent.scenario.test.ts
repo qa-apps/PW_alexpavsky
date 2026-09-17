@@ -26,7 +26,7 @@ if (!hasJudgeModel()) {
   // eslint-disable-next-line no-console
   console.warn(
     "[voice scenario] skipped: no evaluator LLM key " +
-      "(set GEMINI_API_KEY / GROQ_API_KEY / OPENAI_API_KEY).",
+      "(set LOCAL_LLM_BASE_URL).",
   );
 }
 

@@ -184,6 +184,9 @@ jobs:
           PROMPTFOO_DISABLE_TELEMETRY: "1"
           PROMPTFOO_DISABLE_UPDATE: "1"
           PROMPTFOO_DISABLE_SHARE: "1"
+          # Assertion failures are evaluated by the dedicated quality step below.
+          # Promptfoo still exits 1 for operational errors.
+          PROMPTFOO_FAILED_TEST_EXIT_CODE: "0"
           CI: "true"
         run: |
           CONFIG=promptfooconfig.yaml
@@ -356,15 +359,15 @@ jobs:
 
       - name: Mark reporting complete
         id: completion_ready
-        if: always() && steps.local_llm.outputs.run == 'true' && steps.eval.outcome == 'success' && steps.validate_results.outcome == 'success' && steps.assertions_passed.outcome == 'success' && steps.upload_results.outcome == 'success' && steps.build_site.outcome == 'success' && steps.upload_pages.outcome == 'success' && steps.notify_slack.outcome == 'success' && steps.nightly_results.outcome == 'success'
+        if: always() && steps.local_llm.outputs.run == 'true' && steps.eval.outcome == 'success' && steps.validate_results.outcome == 'success' && (steps.assertions_passed.outcome == 'success' || steps.assertions_passed.outcome == 'failure') && steps.upload_results.outcome == 'success' && steps.build_site.outcome == 'success' && steps.upload_pages.outcome == 'success' && steps.notify_slack.outcome == 'success' && steps.nightly_results.outcome == 'success'
         run: echo "ready=true" >> "$GITHUB_OUTPUT"
 
       # Keep report publishing and Slack notification above this gate, then
       # make the workflow conclusion reflect the real Promptfoo result.
       - name: Enforce Promptfoo result
-        if: always() && steps.local_llm.outputs.run == 'true' && steps.completion_ready.outputs.ready != 'true'
+        if: always() && steps.local_llm.outputs.run == 'true' && (steps.completion_ready.outputs.ready != 'true' || steps.assertions_passed.outcome != 'success')
         run: |
-          echo "::error::Promptfoo evaluation failed or produced an incomplete result; reports were published before this gate."
+          echo "::error::Promptfoo assertions failed or the evaluation report was incomplete."
           exit 1
 
       - name: Release background model lease
@@ -384,7 +387,7 @@ jobs:
     steps:
       - name: Download generated Pages site
         id: download_pages
-        continue-on-error: true
+        if: needs.promptfoo.outputs.completion_ready == 'true'
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
         with:
           name: promptfoo-pages-${{ github.run_id }}
@@ -392,7 +395,7 @@ jobs:
 
       - name: Publish Pages site
         id: publish_pages
-        if: steps.download_pages.outcome == 'success'
+        if: needs.promptfoo.outputs.completion_ready == 'true' && steps.download_pages.outcome == 'success'
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -412,8 +415,8 @@ jobs:
           exit 1
 
   complete-daily-run:
-    name: Save successful daily completion marker
-    if: always() && github.event_name == 'schedule' && needs.promptfoo.result == 'success' && needs.promptfoo.outputs.completion_ready == 'true' && needs['publish-promptfoo-pages'].result == 'success'
+    name: Save completed daily report marker
+    if: always() && github.event_name == 'schedule' && needs.promptfoo.outputs.completion_ready == 'true' && needs['publish-promptfoo-pages'].result == 'success'
     needs: [promptfoo, publish-promptfoo-pages]
     runs-on: ubuntu-latest
     steps:

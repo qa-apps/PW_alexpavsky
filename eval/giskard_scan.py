@@ -130,6 +130,7 @@ def main() -> None:
 
     # Aggregate by category.
     by_cat: dict[str, int] = {c: 0 for c in SCAN_CATEGORIES}
+    enumeration_complete = True
     try:
         issues = list(report.issues) if hasattr(report, "issues") else []
         for issue in issues:
@@ -142,6 +143,7 @@ def main() -> None:
     except Exception as e:
         log(f"  WARN: could not enumerate issues: {e}")
         issues = []
+        enumeration_complete = False
 
     summary = {
         "rag_api": RAG_API,
@@ -149,6 +151,10 @@ def main() -> None:
         "judge": primary_label,
         "total_issues": len(issues),
         "issues_by_category": by_cat,
+        "evaluation_completed": enumeration_complete,
+        "quality_passed": (
+            len(issues) <= MAX_ALLOWED_ISSUES if enumeration_complete else None
+        ),
     }
     json_path.write_text(json.dumps(summary, indent=2))
 
@@ -159,6 +165,8 @@ def main() -> None:
         log(f"  {c:20s} {n}")
     log("=" * 72)
 
+    if not enumeration_complete:
+        fail("Giskard scan completed but its issues could not be enumerated.")
     if len(issues) > MAX_ALLOWED_ISSUES:
         fail(
             f"Giskard found {len(issues)} essential issue(s); "

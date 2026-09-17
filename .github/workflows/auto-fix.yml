@@ -88,19 +88,12 @@ jobs:
           done
 
       - name: Run auto-fix agent
-        # All LLM keys are plumbed through so .github/scripts/llm_client.py
-        # can rotate through every configured provider until one answers.
-        # Missing keys are simply skipped — no need to gate per-provider.
+        # OpenCode is the only paid cloud provider allowed for agent-fix.
+        # Evaluation workflows use the local BossGame models instead.
         env:
-          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
-          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
-          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
-          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL:    ${{ secrets.OPENAI_BASE_URL }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
-          GEMINI_API_KEY:     ${{ secrets.GEMINI_API_KEY }}
+          OPENCODE_API_KEY:   ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_MODEL:     kimi-k2.7-code
+          ENABLE_OPENCODE_PROVIDER: "true"
           GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
           # Slack ping when a PR is opened — no webhook needed, bot token only.
           # PR-review pings go to the dedicated #ci-pr-review channel; the

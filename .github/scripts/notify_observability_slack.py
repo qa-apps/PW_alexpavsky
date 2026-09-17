@@ -157,12 +157,17 @@ def main() -> int:
     parser.add_argument("--health-url", default="")
     parser.add_argument("--check-outcome", default="", help="outcome of the agent check step")
     parser.add_argument("--key-configured", default="false", help="true when the backend API key secret is set")
+    parser.add_argument(
+        "--require-delivery",
+        action="store_true",
+        help="fail when Slack credentials or delivery are unavailable",
+    )
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
     if not token:
         print("SLACK_BOT_TOKEN not set; skipping Slack notification", file=sys.stderr)
-        return 0
+        return 1 if args.require_delivery else 0
 
     health_status, health = fetch_json(args.health_url)
     payload = build_payload(
@@ -181,7 +186,11 @@ def main() -> int:
         slack_api("conversations.join", token, {"channel": args.channel})
     except Exception:
         pass
-    slack_api("chat.postMessage", token, payload)
+    try:
+        slack_api("chat.postMessage", token, payload)
+    except Exception as exc:  # noqa: BLE001
+        print(f"Slack delivery failed: {exc}", file=sys.stderr)
+        return 1 if args.require_delivery else 0
     print(f"Posted {args.mode} observability message to {args.channel}")
     return 0
 
