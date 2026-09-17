@@ -49,6 +49,7 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          import re
           import subprocess
           import sys
           import urllib.error
@@ -133,7 +134,12 @@ jobs:
                           {"role": "user", "content": prompt},
                       ],
                       "temperature": 0.2,
-                      "max_tokens": 3000,
+                      "max_tokens": 12000,
+                  }),
+                  ("minimax-m3", "messages", {
+                      "system": "Your first token must be APPROVE or REJECT. Do not print chain-of-thought. After that token, give at most four concise findings.",
+                      "messages": [{"role": "user", "content": prompt}],
+                      "max_tokens": 4000,
                   }),
                   ("longcat-2.0", "chat/completions", {
                       "messages": [
@@ -171,9 +177,10 @@ jobs:
                       print(f"MODEL={body.get('model', model)}")
                       print(f"USAGE={json.dumps(body.get('usage', {}), sort_keys=True)}")
                       print(verdict)
-                      if not verdict.startswith(("APPROVE", "REJECT")):
+                      decisions = re.findall(r"(?m)^(APPROVE|REJECT)(?:\s|:|$)", verdict)
+                      if not decisions:
                           raise ValueError("reviewer returned no explicit verdict")
-                      group_approval = verdict.startswith("APPROVE")
+                      group_approval = decisions[-1] == "APPROVE"
                       break
                   except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, KeyError, ValueError) as exc:
                       print(f"::warning::{model} reviewer unavailable: {exc}")
