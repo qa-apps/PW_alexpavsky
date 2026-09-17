@@ -147,6 +147,11 @@ class VisionAuditReportingTests(unittest.TestCase):
         self.assertIn("llm-quality-start-ns", workflow)
         self.assertIn('statuses = {"expected", "unexpected", "flaky"}', workflow)
         self.assertIn("No current-run judge verdict files were created", workflow)
+        self.assertIn("complete report quality verdict", workflow)
+
+        promptfoo = (ROOT / ".github/workflows/promptfoo-basic.yml").read_text(encoding="utf-8")
+        self.assertIn('PROMPTFOO_FAILED_TEST_EXIT_CODE: "0"', promptfoo)
+        self.assertIn("steps.eval.outcome == 'success'", promptfoo)
 
     def test_llm_judge_site_keeps_only_latest_retry_per_test(self):
         records = [

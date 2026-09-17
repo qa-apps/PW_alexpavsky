@@ -184,6 +184,9 @@ jobs:
           PROMPTFOO_DISABLE_TELEMETRY: "1"
           PROMPTFOO_DISABLE_UPDATE: "1"
           PROMPTFOO_DISABLE_SHARE: "1"
+          # Assertion failures are evaluated by the dedicated quality step below.
+          # Promptfoo still exits 1 for operational errors.
+          PROMPTFOO_FAILED_TEST_EXIT_CODE: "0"
           CI: "true"
         run: |
           CONFIG=promptfooconfig.yaml
@@ -356,7 +359,7 @@ jobs:
 
       - name: Mark reporting complete
         id: completion_ready
-        if: always() && steps.local_llm.outputs.run == 'true' && steps.validate_results.outcome == 'success' && (steps.eval.outcome == 'success' || steps.assertions_passed.outcome == 'failure') && steps.upload_results.outcome == 'success' && steps.build_site.outcome == 'success' && steps.upload_pages.outcome == 'success' && steps.notify_slack.outcome == 'success' && steps.nightly_results.outcome == 'success'
+        if: always() && steps.local_llm.outputs.run == 'true' && steps.eval.outcome == 'success' && steps.validate_results.outcome == 'success' && (steps.assertions_passed.outcome == 'success' || steps.assertions_passed.outcome == 'failure') && steps.upload_results.outcome == 'success' && steps.build_site.outcome == 'success' && steps.upload_pages.outcome == 'success' && steps.notify_slack.outcome == 'success' && steps.nightly_results.outcome == 'success'
         run: echo "ready=true" >> "$GITHUB_OUTPUT"
 
       # Keep report publishing and Slack notification above this gate, then
