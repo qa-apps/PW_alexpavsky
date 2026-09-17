@@ -104,11 +104,11 @@ jobs:
           set +e
           python3 .github/scripts/notify_bosgame_run_slack.py \
             --channel "${{ secrets.SLACK_PROMPTFOO_RESULTS_CHANNEL_ID }}" \
-            --suite "Promptfoo Daily" --event down
+            --suite "Promptfoo Daily" --event down --require-delivery
           promptfoo_status=$?
           python3 .github/scripts/notify_bosgame_run_slack.py \
             --channel "${{ secrets.SLACK_NIGHTLY_BOSGAME_CHANNEL_ID }}" \
-            --suite "Promptfoo Daily" --event down
+            --suite "Promptfoo Daily" --event down --require-delivery
           nightly_status=$?
           set -e
           [ "$promptfoo_status" -eq 0 ] && [ "$nightly_status" -eq 0 ]
@@ -126,7 +126,7 @@ jobs:
         run: |
           python3 .github/scripts/notify_bosgame_run_slack.py \
             --channel "${{ secrets.SLACK_NIGHTLY_BOSGAME_CHANNEL_ID }}" \
-            --suite "Promptfoo Daily" --event up
+            --suite "Promptfoo Daily" --event up --require-delivery
 
       - name: Warm up local model (up to 2 min)
         if: steps.local_llm.outputs.run == 'true'
@@ -307,7 +307,8 @@ jobs:
             --channel "${{ secrets.SLACK_PROMPTFOO_RESULTS_CHANNEL_ID }}" \
             --results promptfoo-results.json \
             --dashboard-url "$PROMPTFOO_DASHBOARD_URL" \
-            --local-ui-url "${{ vars.PROMPTFOO_LOCAL_UI_URL || 'http://localhost:15500' }}"
+            --local-ui-url "${{ vars.PROMPTFOO_LOCAL_UI_URL || 'http://localhost:15500' }}" \
+            --require-delivery
 
       - name: Nightly Bosgame — post results
         id: nightly_results
@@ -319,7 +320,7 @@ jobs:
           python3 .github/scripts/notify_bosgame_run_slack.py \
             --channel "${{ secrets.SLACK_NIGHTLY_BOSGAME_CHANNEL_ID }}" \
             --suite "Promptfoo Daily" --event result \
-            --format promptfoo --results promptfoo-results.json
+            --format promptfoo --results promptfoo-results.json --require-delivery
 
       - name: Report incomplete Promptfoo evaluation
         id: incomplete_results
@@ -334,13 +335,13 @@ jobs:
           if [ "${{ steps.notify_slack.outcome }}" != success ]; then
             python3 .github/scripts/notify_bosgame_run_slack.py \
               --channel "${{ secrets.SLACK_PROMPTFOO_RESULTS_CHANNEL_ID }}" \
-              --suite "Promptfoo Daily" --event down
+              --suite "Promptfoo Daily" --event down --require-delivery
             promptfoo_status=$?
           fi
           if [ "${{ steps.nightly_results.outcome }}" != success ]; then
             python3 .github/scripts/notify_bosgame_run_slack.py \
               --channel "${{ secrets.SLACK_NIGHTLY_BOSGAME_CHANNEL_ID }}" \
-              --suite "Promptfoo Daily" --event down
+              --suite "Promptfoo Daily" --event down --require-delivery
             nightly_status=$?
           fi
           set -e
