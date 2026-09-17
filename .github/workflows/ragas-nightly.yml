@@ -45,11 +45,9 @@ jobs:
       LOCAL_LLM_BASE_URL: http://127.0.0.1:11434/v1
       LOCAL_LLM_MODEL: ${{ github.event_name == 'schedule' && 'scheduled/gpt-oss:120b' || 'gpt-oss:120b' }}
       LOCAL_LLM_UPSTREAM_MODEL: gpt-oss:120b
+      LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
       LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '0' }}
       LOCAL_EMBEDDING_MODEL: qwen3-embedding:4b
-      # LOCAL_LLM_API_KEY is not pinned here so a gateway key exported by the
-      # bosgame runner service (EnvironmentFile llm-gateway.env) is used;
-      # code and checks fall back to "ollama" when it is absent.
       LOCAL_LLM_TIMEOUT_SEC: '180'
       LOCAL_LLM_TIMEOUT_MS: '180000'
       LOCAL_LLM_MAX_TOKENS: '2048'
