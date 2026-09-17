@@ -64,53 +64,70 @@ jobs:
                   ["git", "-C", "/tmp/PW_nanotech-review", "diff", "--no-ext-diff", f"origin/main...{os.environ['NANOTECH_SHA']}"],
                   text=True,
               )
-          prompt = """Final merge gate for two QA repositories. Review only blocking correctness or security bugs, GitHub Actions expression/step-outcome bugs, false-green daily markers, report completeness, Slack delivery, and Pages publication. All evaluation workloads must use local BossGame LLMs; OpenCode is allowed only in agent-fix. Quality assertion failures may publish reports, but infrastructure/report/Slack/Pages failures must withhold completion markers. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.\n\nPW_alexpavsky DIFF:\n""" + alex_diff + "\n\nPW_nanotech DIFF:\n" + nano_diff
-          models = ("kimi-k2.7-code",)
-          last_error = None
-          for model in models:
-              payload = json.dumps({
-                  "model": model,
+          prompt = """Final agent-fix merge gate for two QA repositories. Review only blocking correctness or security bugs, GitHub Actions expression/step-outcome bugs, false-green daily markers, report completeness, Slack delivery, and Pages publication. All evaluation workloads must use local BossGame LLMs; OpenCode is used only by agent-fix and this final agent-fix merge gate. Quality assertion failures may publish reports, but infrastructure/report/Slack/Pages failures must withhold completion markers. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.\n\nPW_alexpavsky DIFF:\n""" + alex_diff + "\n\nPW_nanotech DIFF:\n" + nano_diff
+
+          headers = {
+              "Authorization": f"Bearer {os.environ['OPENCODE_API_KEY']}",
+              "Content-Type": "application/json",
+              "User-Agent": "PW-alexpavsky-merge-review/1.0",
+          }
+
+          def request_json(endpoint, model, payload):
+              request_headers = dict(headers)
+              request_headers["x-opencode-session"] = (
+                  f"pw-merge-review-{os.environ.get('GITHUB_RUN_ID', 'manual')}-{model}"
+              )
+              request = urllib.request.Request(
+                  f"https://opencode.ai/zen/go/v1/{endpoint}",
+                  data=json.dumps({"model": model, **payload}).encode(),
+                  headers=request_headers,
+                  method="POST",
+              )
+              with urllib.request.urlopen(request, timeout=240) as response:
+                  return json.load(response)
+
+          def response_text(body):
+              if isinstance(body.get("output_text"), str):
+                  return body["output_text"].strip()
+              parts = []
+              for item in body.get("output", []) or []:
+                  for content in item.get("content", []) or []:
+                      text = content.get("text")
+                      if isinstance(text, str):
+                          parts.append(text)
+              return "\n".join(parts).strip()
+
+          reviewers = (
+              ("gpt-5.6-luna", "responses", {
+                  "input": prompt,
+                  "max_output_tokens": 4000,
+                  "reasoning": {"effort": "high"},
+              }),
+              ("kimi-k2.7-code", "chat/completions", {
                   "messages": [{"role": "user", "content": prompt}],
                   "temperature": 1,
                   "max_tokens": 4000,
-              }).encode()
-              request = urllib.request.Request(
-                  "https://opencode.ai/zen/go/v1/chat/completions",
-                  data=payload,
-                  headers={
-                      "Authorization": f"Bearer {os.environ['OPENCODE_API_KEY']}",
-                      "Content-Type": "application/json",
-                      "User-Agent": "PW-alexpavsky-merge-review/1.0",
-                      "x-opencode-session": f"pw-merge-review-{os.environ.get('GITHUB_RUN_ID', 'manual')}",
-                  },
-                  method="POST",
-              )
+              }),
+          )
+          approvals = []
+          for model, endpoint, payload in reviewers:
               try:
-                  with urllib.request.urlopen(request, timeout=180) as response:
-                      body = json.load(response)
-                  choice = body["choices"][0]
-                  message = choice["message"]
-                  verdict = (message.get("content") or message.get("reasoning") or "").strip()
-                  usage = body.get("usage", {})
+                  body = request_json(endpoint, model, payload)
+                  if endpoint == "responses":
+                      verdict = response_text(body)
+                  else:
+                      message = body["choices"][0]["message"]
+                      verdict = (message.get("content") or message.get("reasoning") or "").strip()
                   print(f"MODEL={body.get('model', model)}")
-                  print(f"USAGE={json.dumps(usage, sort_keys=True)}")
-                  if not verdict:
-                      last_error = f"{model}: empty response ({choice.get('finish_reason')})"
-                      print(f"::warning::{last_error}")
-                      continue
+                  print(f"USAGE={json.dumps(body.get('usage', {}), sort_keys=True)}")
                   print(verdict)
-                  if verdict.startswith("APPROVE"):
-                      raise SystemExit(0)
-                  if verdict.startswith("REJECT"):
-                      raise SystemExit(1)
-                  last_error = f"{model}: response did not begin with APPROVE or REJECT"
-                  print(f"::warning::{last_error}")
-                  continue
+                  approvals.append(verdict.startswith("APPROVE"))
               except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, KeyError) as exc:
-                  last_error = f"{model}: {exc}"
-                  print(f"::warning::{last_error}")
-          print(f"::error::OpenCode reviewer did not answer: {last_error}")
-          sys.exit(2)
+                  print(f"::error::{model} reviewer failed: {exc}")
+                  approvals.append(False)
+          if len(approvals) != len(reviewers) or not all(approvals):
+              print("::error::Both independent OpenCode models must approve the exact commits")
+              sys.exit(1)
           PY
 
   agent-checks:
