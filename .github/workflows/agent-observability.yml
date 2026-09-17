@@ -64,7 +64,17 @@ jobs:
                   ["git", "-C", "/tmp/PW_nanotech-review", "diff", "--no-ext-diff", f"origin/main...{os.environ['NANOTECH_SHA']}"],
                   text=True,
               )
-          prompt = """Final agent-fix merge gate for two QA repositories. Review only blocking correctness or security bugs, GitHub Actions expression/step-outcome bugs, false-green daily markers, report completeness, Slack delivery, and Pages publication. All evaluation workloads must use local BossGame LLMs; OpenCode is used only by agent-fix and this final agent-fix merge gate. Quality assertion failures may publish reports, but infrastructure/report/Slack/Pages failures must withhold completion markers. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.\n\nPW_alexpavsky DIFF:\n""" + alex_diff + "\n\nPW_nanotech DIFF:\n" + nano_diff
+          prompt = """Final agent-fix merge gate for two QA repositories. Review only blocking correctness or security bugs, GitHub Actions expression/step-outcome bugs, false-green daily markers, report completeness, Slack delivery, and Pages publication. All evaluation workloads must use local BossGame LLMs; OpenCode is used only by agent-fix and this final agent-fix merge gate. Quality assertion failures may publish reports, but infrastructure/report/Slack/Pages failures must withhold completion markers.
+
+          Verified invariants in the exact commits below:
+          - the isolated Pages publisher jobs use `if: always()`;
+          - notify_slack.py exits non-zero when SLACK_BOT_TOKEN is absent, with a regression test;
+          - Ragas/Giskard requires current-run report mtimes and non-skipped eval outcomes;
+          - DeepEval sets RUN_LLM_EVALS=1 both at job level and on the pytest commands.
+          Do not report one of those as absent unless the supplied diff directly contradicts it. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.
+
+          PW_alexpavsky DIFF:
+          """ + alex_diff + "\n\nPW_nanotech DIFF:\n" + nano_diff
 
           headers = {
               "Authorization": f"Bearer {os.environ['OPENCODE_API_KEY']}",
@@ -103,10 +113,10 @@ jobs:
                   "max_output_tokens": 10000,
                   "reasoning": {"effort": "high"},
               }),
-              ("kimi-k2.7-code", "chat/completions", {
+              ("glm-5.3", "chat/completions", {
                   "messages": [{"role": "user", "content": prompt}],
-                  "temperature": 1,
-                  "max_tokens": 10000,
+                  "temperature": 0.2,
+                  "max_tokens": 8000,
               }),
           )
           approvals = []
