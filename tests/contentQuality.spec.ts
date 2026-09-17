@@ -211,7 +211,9 @@ test.describe('Content quality @upstream', () => {
 
     for (let i = 0; i < total; i++) {
       const card = homePage.youtubeVideoCards.nth(i);
-      await card.scrollIntoViewIfNeeded();
+      await card.evaluate((el) => {
+        el.scrollIntoView({ block: 'center', inline: 'center' });
+      });
 
       const img = card.locator('img').first();
       // Poll up to 8s for image to actually load — i.ytimg.com fetch can

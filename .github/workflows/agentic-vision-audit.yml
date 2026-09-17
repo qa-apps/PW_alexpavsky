@@ -1,0 +1,208 @@
+name: AlexPavsky Daily Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_steps:
+        description: "Maximum safe browser actions"
+        required: false
+        type: number
+        default: 8
+  schedule:
+    # 3 PM America/New_York. The gate handles daylight-saving time.
+    - cron: '0 19 * * *'
+    - cron: '0 20 * * *'
+
+concurrency:
+  group: agentic-vision-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions: read-all
+
+jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$(TZ=America/New_York date +%H)" == "15" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  vision-audit:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
+    runs-on: [self-hosted, Linux, X64, bosgame]
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '22'
+
+      - name: Install browser dependencies
+        env:
+          PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
+        run: |
+          npm ci --no-audit --no-fund --ignore-scripts
+          npx playwright install chromium
+
+      - name: Wait for local Vision model
+        env:
+          OLLAMA_BASE_URL: http://127.0.0.1:11434
+          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+        shell: bash
+        run: |
+          for attempt in {1..40}; do
+            if curl --fail --silent --max-time 10 "$OLLAMA_BASE_URL/api/tags" | \
+              python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("name") == wanted for m in data.get("models", [])) else 1)' "$VISION_MODEL"; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Vision model was not available after 10 minutes."
+          exit 1
+
+      - name: Release other resident models from RAM
+        env:
+          OLLAMA_BASE_URL: http://127.0.0.1:11434
+          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+        shell: bash
+        run: |
+          while IFS= read -r resident; do
+            [[ -z "$resident" || "$resident" == "$VISION_MODEL" ]] && continue
+            echo "Releasing resident model from RAM: $resident"
+            curl --fail --silent --max-time 60 "$OLLAMA_BASE_URL/api/generate" \
+              -d "$(jq -n --arg model "$resident" '{model:$model,keep_alive:0}')" \
+              >/dev/null
+          done < <(curl --fail --silent --max-time 15 "$OLLAMA_BASE_URL/api/ps" | jq -r '.models[].name // empty')
+
+      - name: Run autonomous visual and functional audit
+        id: audit
+        continue-on-error: true
+        env:
+          BASE_URL: https://www.alexpavsky.com
+          OLLAMA_BASE_URL: http://127.0.0.1:11434
+          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+          VISION_AUDIT_MAX_STEPS: ${{ inputs.max_steps || 8 }}
+          VISION_AUDIT_OUTPUT_DIR: vision-audit
+          PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
+        run: node .github/scripts/vision_audit_agent.mjs
+
+      - name: Checkout existing Daily Audit UI
+        if: always()
+        continue-on-error: true
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: gh-pages
+          path: gh-pages-existing
+
+      - name: Build detailed Daily Audit UI
+        if: always() && hashFiles('vision-audit/vision-audit-report.json') != ''
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ID: ${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          REPO_SLUG: ${{ github.repository }}
+        run: python3 scripts/build_vision_audit_site.py
+
+      - name: Upload screenshots, video, and decision trail
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: vision-audit-results
+          path: vision-audit/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Upload Daily Audit UI for isolated publisher
+        if: always() && hashFiles('gh-pages-site/vision-audit/**/index.html') != ''
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: vision-audit-pages-${{ github.run_id }}
+          path: gh-pages-site/
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Fail when the agent confirmed a defect
+        if: steps.audit.outcome == 'failure'
+        run: exit 1
+
+  publish-daily-audit-pages:
+    name: Publish Daily Audit UI
+    if: always() && needs.schedule-gate.outputs.should_run == 'true'
+    needs: [schedule-gate, vision-audit]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download generated Daily Audit UI
+        id: download_pages
+        continue-on-error: true
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: vision-audit-pages-${{ github.run_id }}
+          path: gh-pages-site
+
+      - name: Publish Daily Audit UI
+        if: steps.download_pages.outcome == 'success'
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./gh-pages-site
+          force_orphan: false
+          keep_files: true
+          enable_jekyll: false
+          commit_message: "vision audit site: run #${{ github.run_number }}"
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
+
+  notify-daily-audit:
+    name: Publish documented report to Slack
+    if: always() && needs.schedule-gate.outputs.should_run == 'true'
+    needs: [schedule-gate, vision-audit, publish-daily-audit-pages]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout reporting script
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+
+      - name: Download Daily Audit evidence
+        continue-on-error: true
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: vision-audit-results
+          path: vision-audit
+
+      - name: Post summary and every test case to Slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+          export VISION_AUDIT_DASHBOARD_URL="https://${OWNER_LC}.github.io/${REPO_NAME}/vision-audit/runs/${{ github.run_number }}/"
+          curl --fail --silent --show-error \
+            --retry 20 --retry-delay 5 --retry-all-errors --retry-max-time 120 \
+            "$VISION_AUDIT_DASHBOARD_URL" >/dev/null || \
+            echo "Daily Audit UI is still deploying; Slack links will become available shortly."
+          python3 .github/scripts/notify_vision_slack.py \
+            --report vision-audit/vision-audit-report.json \
+            --channel "${{ secrets.SLACK_UI_CODEX_CHANNEL_ID }}"

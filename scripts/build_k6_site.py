@@ -43,6 +43,10 @@ def load_results() -> list[dict]:
             "p99": metric(metrics, "http_req_duration", "p(99)", 0) or 0,
             "avg": metric(metrics, "http_req_duration", "avg", 0) or 0,
             "rps": metric(metrics, "http_reqs", "rate", 0) or 0,
+            "iterations": metric(metrics, "iterations", "count", 0) or 0,
+            "iteration_rate": metric(metrics, "iterations", "rate", 0) or 0,
+            "vus": metric(metrics, "vus", "value", 0) or 0,
+            "vus_max": metric(metrics, "vus_max", "value", 0) or 0,
             "requests": metric(metrics, "http_reqs", "count", 0) or 0,
             "fail_rate": metric(metrics, "http_req_failed", "rate", 0) or 0,
             "checks": metric(metrics, "checks", "rate", 0) or 0,
@@ -83,7 +87,8 @@ def run_html(results: list[dict]) -> str:
             "<tr>"
             f"<td>{escape(r['profile'])}</td>"
             f"<td>{r['p95']:.0f} ms</td><td>{r['p99']:.0f} ms</td><td>{r['avg']:.0f} ms</td>"
-            f"<td>{r['rps']:.1f}</td><td>{int(r['requests'])}</td>"
+            f"<td>{r['rps']:.1f}</td><td>{int(r['vus'])}/{int(r['vus_max'])}</td>"
+            f"<td>{r['iteration_rate']:.1f}</td><td>{int(r['requests'])}</td>"
             f"<td>{r['fail_rate'] * 100:.2f}%</td><td>{r['checks'] * 100:.2f}%</td><td>{int(r['dropped'])}</td>"
             "</tr>"
         )
@@ -99,8 +104,9 @@ th {{ background:#f6f8fa; }}
 <p><a href="../../index.html">← all k6 runs</a></p>
 <h1>k6 Performance #{escape(str(RUN_NUMBER))}</h1>
 <p class="meta">{escape(TIMESTAMP)} · commit {escape(COMMIT_SHA or 'unknown')} · {f'<a href="{run_link}">GitHub run</a>' if run_link else 'local run'}</p>
-<table><thead><tr><th>Profile</th><th>p95</th><th>p99</th><th>Avg</th><th>RPS</th><th>Requests</th><th>Fail rate</th><th>Checks</th><th>Dropped</th></tr></thead>
-<tbody>{''.join(rows) or '<tr><td colspan="9">No k6 results produced.</td></tr>'}</tbody></table>
+<p class="meta"><strong>RPS / calls per second</strong> is the observed HTTP request rate. <strong>VUs</strong> are concurrent virtual users. The rps-* profiles target request arrival rate; the vus-* profiles target simultaneous users.</p>
+<table><thead><tr><th>Profile</th><th>p95</th><th>p99</th><th>Avg</th><th>Calls/s</th><th>VUs current/max</th><th>Iterations/s</th><th>Requests</th><th>Fail rate</th><th>Checks</th><th>Dropped</th></tr></thead>
+<tbody>{''.join(rows) or '<tr><td colspan="11">No k6 results produced.</td></tr>'}</tbody></table>
 </body></html>"""
 
 

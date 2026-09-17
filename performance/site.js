@@ -102,6 +102,27 @@ const scenarios = {
     maxVUs: 500,
     tags: { suite: 'k6', profile: 'rps-100', surface: 'public' },
   },
+  'rps-50': {
+    executor: 'constant-arrival-rate',
+    rate: 50,
+    timeUnit: '1s',
+    duration: '20s',
+    preAllocatedVUs: 125,
+    maxVUs: 250,
+    tags: { suite: 'k6', profile: 'rps-50', surface: 'public' },
+  },
+  'vus-50': {
+    executor: 'constant-vus',
+    vus: 50,
+    duration: '30s',
+    tags: { suite: 'k6', profile: 'vus-50', surface: 'public' },
+  },
+  'vus-100': {
+    executor: 'constant-vus',
+    vus: 100,
+    duration: '30s',
+    tags: { suite: 'k6', profile: 'vus-100', surface: 'public' },
+  },
   'chatbot-minimal': {
     executor: 'shared-iterations',
     vus: 1,
@@ -148,6 +169,22 @@ const thresholdProfiles = {
     http_req_duration: ['avg<1500', 'p(95)<2500'],
     checks: ['rate>0.99'],
     dropped_iterations: ['count<1'],
+  },
+  'rps-50': {
+    http_req_failed: ['rate<0.01'],
+    http_req_duration: ['avg<1500', 'p(95)<2500'],
+    checks: ['rate>0.99'],
+    dropped_iterations: ['count<1'],
+  },
+  'vus-50': {
+    http_req_failed: ['rate<0.01'],
+    http_req_duration: ['avg<1500', 'p(95)<2500', 'p(99)<5000'],
+    checks: ['rate>0.99'],
+  },
+  'vus-100': {
+    http_req_failed: ['rate<0.02'],
+    http_req_duration: ['avg<2000', 'p(95)<3500', 'p(99)<6500'],
+    checks: ['rate>0.98'],
   },
   'chatbot-minimal': {
     http_req_failed: ['rate<0.20'],
@@ -218,7 +255,7 @@ export default function () {
     });
   });
 
-  if (scenarioName !== 'rps-100') {
+  if (!scenarioName.startsWith('rps-')) {
     sleep(1);
   }
 }
