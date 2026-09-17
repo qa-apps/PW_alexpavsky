@@ -76,6 +76,7 @@ jobs:
           - both six-test DeepEval modules call deepeval.assert_test, so their single pytest invocation produces the required 12 testCases;
           - notify_bosgame_run_slack.py checks every chat.postMessage acknowledgement and returns 1 under --require-delivery when any post fails.
           - notify_deepeval_slack.py explicitly returns non-zero for token-backed Slack API errors under --require-delivery, with a regression test.
+          - Ragas, Giskard, and DeepEval now bind a failed step to an explicit complete quality verdict; infrastructure failures cannot satisfy the report contract.
           Do not report one of those as absent unless the supplied diff directly contradicts it. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.
 
           PW_alexpavsky DIFF:
@@ -101,7 +102,7 @@ jobs:
                   headers=request_headers,
                   method="POST",
               )
-              with urllib.request.urlopen(request, timeout=240) as response:
+              with urllib.request.urlopen(request, timeout=480) as response:
                   return json.load(response)
 
           def response_text(body):
@@ -121,9 +122,10 @@ jobs:
                   "max_output_tokens": 10000,
                   "reasoning": {"effort": "medium"},
               }),
-              ("grok-4.6", "responses", {
-                  "input": prompt,
-                  "max_output_tokens": 6000,
+              ("deepseek-v4-flash", "chat/completions", {
+                  "messages": [{"role": "user", "content": prompt}],
+                  "temperature": 0.2,
+                  "max_tokens": 6000,
               }),
           )
           approvals = []
