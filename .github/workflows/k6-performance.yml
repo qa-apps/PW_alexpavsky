@@ -67,6 +67,7 @@ jobs:
         run: |
           k6 run \
             -e PERFORMANCE_SCENARIO=smoke \
+            --out json=performance-results/k6-smoke-calls.json.gz \
             --summary-export performance-results/k6-smoke.json \
             performance/site.js
 
@@ -78,6 +79,7 @@ jobs:
         run: |
           k6 run \
             -e PERFORMANCE_SCENARIO=rps-100 \
+            --out json=performance-results/k6-rps-100-calls.json.gz \
             --summary-export performance-results/k6-rps-100.json \
             performance/site.js
 
@@ -90,6 +92,7 @@ jobs:
         run: |
           k6 run \
             -e PERFORMANCE_SCENARIO=load \
+            --out json=performance-results/k6-load-calls.json.gz \
             --summary-export performance-results/k6-load.json \
             performance/site.js
 
@@ -102,6 +105,7 @@ jobs:
         run: |
           k6 run \
             -e PERFORMANCE_SCENARIO=stress \
+            --out json=performance-results/k6-stress-calls.json.gz \
             --summary-export performance-results/k6-stress.json \
             performance/site.js
 
@@ -114,6 +118,7 @@ jobs:
         run: |
           k6 run \
             -e PERFORMANCE_SCENARIO=spike \
+            --out json=performance-results/k6-spike-calls.json.gz \
             --summary-export performance-results/k6-spike.json \
             performance/site.js
 
@@ -127,6 +132,7 @@ jobs:
         run: |
           k6 run \
             -e PERFORMANCE_SCENARIO=chatbot-minimal \
+            --out json=performance-results/k6-chatbot-minimal-calls.json.gz \
             --summary-export performance-results/k6-chatbot-minimal.json \
             performance/site.js
 
