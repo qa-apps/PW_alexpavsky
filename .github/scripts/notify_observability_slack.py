@@ -186,7 +186,11 @@ def main() -> int:
         slack_api("conversations.join", token, {"channel": args.channel})
     except Exception:
         pass
-    slack_api("chat.postMessage", token, payload)
+    try:
+        slack_api("chat.postMessage", token, payload)
+    except Exception as exc:  # noqa: BLE001
+        print(f"Slack delivery failed: {exc}", file=sys.stderr)
+        return 1 if args.require_delivery else 0
     print(f"Posted {args.mode} observability message to {args.channel}")
     return 0
 

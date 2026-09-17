@@ -159,7 +159,7 @@ jobs:
 
       - name: Record LLM Judge run start
         if: steps.local_llm.outputs.run == 'true'
-        run: date +%s > "$RUNNER_TEMP/llm-quality-start"
+        run: python3 -c 'import os,time; from pathlib import Path; Path(os.environ["RUNNER_TEMP"]).joinpath("llm-quality-start-ns").write_text(str(time.time_ns()))'
 
       - name: Run LLM Judge tests
         if: steps.local_llm.outputs.run == 'true'
@@ -187,8 +187,8 @@ jobs:
           report_path = Path("test-results/results.json")
           if not report_path.is_file():
               raise SystemExit("Missing Playwright JSON report")
-          started = int(Path(os.environ["RUNNER_TEMP"]).joinpath("llm-quality-start").read_text())
-          if int(report_path.stat().st_mtime) < started:
+          started = int(Path(os.environ["RUNNER_TEMP"]).joinpath("llm-quality-start-ns").read_text())
+          if report_path.stat().st_mtime_ns < started:
               raise SystemExit("Playwright JSON report is stale")
           report = json.loads(report_path.read_text(encoding="utf-8"))
 
@@ -210,12 +210,15 @@ jobs:
 
           if len(tests) != 20:
               raise SystemExit(f"LLM Judge report has {len(tests)}/20 tests")
-          statuses = {"expected", "unexpected", "flaky", "skipped"}
+          statuses = {"expected", "unexpected", "flaky"}
           if any(test.get("status") not in statuses for test in tests):
-              raise SystemExit("LLM Judge report contains an incomplete test status")
+              raise SystemExit("LLM Judge report contains a skipped or incomplete test status")
 
           verdict_files = list(Path("test-results").rglob("verdicts.jsonl"))
           verdict_files += list(Path("judge-verdicts").rglob("verdicts.jsonl"))
+          verdict_files = [path for path in verdict_files if path.stat().st_mtime_ns >= started]
+          if not verdict_files:
+              raise SystemExit("No current-run judge verdict files were created")
           all_verdicts = []
           for path in verdict_files:
               for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():

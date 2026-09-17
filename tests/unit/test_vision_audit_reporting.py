@@ -20,6 +20,10 @@ def load_module(name: str, path: Path):
 SITE = load_module("build_vision_audit_site", ROOT / "scripts/build_vision_audit_site.py")
 SLACK = load_module("notify_vision_slack", ROOT / ".github/scripts/notify_vision_slack.py")
 PIPELINE_SLACK = load_module("notify_slack", ROOT / ".github/scripts/notify_slack.py")
+OBS_SLACK = load_module(
+    "notify_observability_slack",
+    ROOT / ".github/scripts/notify_observability_slack.py",
+)
 LLM_SITE = load_module("build_llm_judge_site", ROOT / "scripts/build_llm_judge_site.py")
 
 
@@ -97,6 +101,27 @@ class VisionAuditReportingTests(unittest.TestCase):
             with self.assertRaises(SystemExit) as raised:
                 PIPELINE_SLACK.main()
         self.assertEqual(raised.exception.code, 1)
+
+    def test_observability_delivery_rejects_slack_api_failure(self):
+        argv = [
+            "notify_observability_slack.py",
+            "--mode", "langfuse",
+            "--channel", "C123",
+            "--require-delivery",
+        ]
+        with mock.patch.dict(os.environ, {"SLACK_BOT_TOKEN": "test"}, clear=True):
+            with mock.patch("sys.argv", argv), mock.patch.object(
+                OBS_SLACK,
+                "slack_api",
+                side_effect=[{}, RuntimeError("not acknowledged")],
+            ):
+                self.assertEqual(OBS_SLACK.main(), 1)
+
+    def test_llm_quality_rejects_skips_and_stale_verdicts(self):
+        workflow = (ROOT / ".github/workflows/llm-quality.yml").read_text(encoding="utf-8")
+        self.assertIn("llm-quality-start-ns", workflow)
+        self.assertIn('statuses = {"expected", "unexpected", "flaky"}', workflow)
+        self.assertIn("No current-run judge verdict files were created", workflow)
 
     def test_llm_judge_site_keeps_only_latest_retry_per_test(self):
         records = [
