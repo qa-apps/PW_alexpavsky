@@ -75,6 +75,7 @@ jobs:
           - notify_observability_slack.py returns non-zero for an unacknowledged chat.postMessage when --require-delivery is set.
           - both six-test DeepEval modules call deepeval.assert_test, so their single pytest invocation produces the required 12 testCases;
           - notify_bosgame_run_slack.py checks every chat.postMessage acknowledgement and returns 1 under --require-delivery when any post fails.
+          - notify_deepeval_slack.py explicitly returns non-zero for token-backed Slack API errors under --require-delivery, with a regression test.
           Do not report one of those as absent unless the supplied diff directly contradicts it. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.
 
           PW_alexpavsky DIFF:
@@ -120,9 +121,9 @@ jobs:
                   "max_output_tokens": 10000,
                   "reasoning": {"effort": "medium"},
               }),
-              ("qwen3.8-flash", "messages", {
-                  "messages": [{"role": "user", "content": prompt}],
-                  "max_tokens": 4000,
+              ("grok-4.6", "responses", {
+                  "input": prompt,
+                  "max_output_tokens": 6000,
               }),
           )
           approvals = []
