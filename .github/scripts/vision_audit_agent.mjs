@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
-import { chromium } from '@playwright/test';
+import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
+
+const require = createRequire(import.meta.url);
+const playwrightPackage = process.env.PLAYWRIGHT_PACKAGE_PATH || '@playwright/test';
+const { chromium } = require(playwrightPackage);
 
 const baseUrl = process.env.BASE_URL || 'https://www.alexpavsky.com';
 const ollamaBaseUrl = (process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, '');

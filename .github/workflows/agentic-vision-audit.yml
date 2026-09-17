@@ -47,6 +47,7 @@ jobs:
       REPO_DIR: ${{ github.workspace }}/daily-audit-source
       PAGES_DIR: ${{ github.workspace }}/daily-audit-pages
       SITE_DIR: ${{ github.workspace }}/daily-audit-site
+      AUDIT_DEPS_DIR: ${{ github.workspace }}/.daily-audit-deps/playwright-1.58.2
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
       PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
       OLLAMA_BASE_URL: http://127.0.0.1:11435
@@ -79,15 +80,17 @@ jobs:
           export PATH="$NODE_BIN_DIR:$PATH"
           node --version
 
-          cd "$REPO_DIR"
+          mkdir -p "$AUDIT_DEPS_DIR" "$GITHUB_WORKSPACE/.npm-home" "$GITHUB_WORKSPACE/.npm-cache"
+          export HOME="$GITHUB_WORKSPACE/.npm-home"
+          export npm_config_cache="$GITHUB_WORKSPACE/.npm-cache"
           if command -v npm >/dev/null 2>&1; then
-            npm install --no-audit --no-fund --ignore-scripts
-            npm exec -- playwright install chromium
+            npm install --prefix "$AUDIT_DEPS_DIR" --no-audit --no-fund --ignore-scripts @playwright/test@1.58.2
+            npm exec --prefix "$AUDIT_DEPS_DIR" -- playwright install chromium
           else
             RUNNER_ROOT=$(dirname "$(dirname "$RUNNER_TEMP")")
             NPM_CLI="$RUNNER_ROOT/externals/node24/lib/node_modules/npm/bin/npm-cli.js"
-            node "$NPM_CLI" install --no-audit --no-fund --ignore-scripts
-            node "$NPM_CLI" exec -- playwright install chromium
+            node "$NPM_CLI" install --prefix "$AUDIT_DEPS_DIR" --no-audit --no-fund --ignore-scripts @playwright/test@1.58.2
+            node "$NPM_CLI" exec --prefix "$AUDIT_DEPS_DIR" -- playwright install chromium
           fi
 
       - name: Wait for local Vision model
@@ -123,6 +126,7 @@ jobs:
         continue-on-error: true
         env:
           BASE_URL: https://www.alexpavsky.com
+          PLAYWRIGHT_PACKAGE_PATH: ${{ github.workspace }}/.daily-audit-deps/playwright-1.58.2/node_modules/@playwright/test
           VISION_AUDIT_OUTPUT_DIR: ${{ github.workspace }}/daily-audit-source/vision-audit
         shell: bash
         run: |
