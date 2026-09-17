@@ -21,7 +21,8 @@ export function judgeModel(): LanguageModel {
       apiKey: process.env.GROQ_API_KEY,
       baseURL: "https://api.groq.com/openai/v1",
     });
-    return p(override || "llama-3.3-70b-versatile");
+    // Groq retired the llama-3.x ids for this account; gpt-oss-120b supports tool calls.
+    return p(override || "openai/gpt-oss-120b");
   };
   const openai = () => {
     const p = createOpenAI({
