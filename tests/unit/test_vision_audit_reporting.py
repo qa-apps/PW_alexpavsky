@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -17,6 +19,7 @@ def load_module(name: str, path: Path):
 
 SITE = load_module("build_vision_audit_site", ROOT / "scripts/build_vision_audit_site.py")
 SLACK = load_module("notify_vision_slack", ROOT / ".github/scripts/notify_vision_slack.py")
+PIPELINE_SLACK = load_module("notify_slack", ROOT / ".github/scripts/notify_slack.py")
 LLM_SITE = load_module("build_llm_judge_site", ROOT / "scripts/build_llm_judge_site.py")
 
 
@@ -79,6 +82,21 @@ class VisionAuditReportingTests(unittest.TestCase):
         self.assertIn("daily-audit-runs/${{ github.run_id }}", workflow)
         self.assertIn("Daily Audit report is stale", workflow)
         self.assertIn("Post summary and every test case to Slack", workflow)
+
+    def test_ragas_completion_requires_current_run_reports_and_eval_steps(self):
+        workflow = (ROOT / ".github/workflows/ragas-nightly.yml").read_text(encoding="utf-8")
+        self.assertIn("ragas-giskard-start-ns", workflow)
+        self.assertIn("Stale report from an earlier run", workflow)
+        self.assertIn("RAGAS_EVAL: ${{ steps.ragas_eval.outcome }}", workflow)
+        self.assertIn("GISKARD_EVAL: ${{ steps.giskard_eval.outcome }}", workflow)
+        self.assertIn("GISKARD_SCAN: ${{ steps.giskard_scan.outcome }}", workflow)
+
+    def test_slack_delivery_cannot_pass_without_a_token(self):
+        argv = ["notify_slack.py", "--channel", "C123", "--pipeline", "unit", "--require-delivery"]
+        with mock.patch.dict(os.environ, {}, clear=True), mock.patch("sys.argv", argv):
+            with self.assertRaises(SystemExit) as raised:
+                PIPELINE_SLACK.main()
+        self.assertEqual(raised.exception.code, 1)
 
     def test_llm_judge_site_keeps_only_latest_retry_per_test(self):
         records = [
