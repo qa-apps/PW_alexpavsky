@@ -61,18 +61,24 @@ async function lfGet(path: string): Promise<any> {
   return res.json();
 }
 
-/** Poll Langfuse until a trace for this session shows up (async ingestion). */
+/** Poll until the asynchronously ingested trace includes its generation usage. */
 async function waitForTrace(sessionId: string, attempts = 12, delayMs = 5000): Promise<any> {
+  let latestTrace: any = null;
   for (let i = 0; i < attempts; i++) {
     const list = await lfGet(`/api/public/traces?sessionId=${encodeURIComponent(sessionId)}`);
     const traces: any[] = list?.data || [];
     if (traces.length > 0) {
-      // fetch full detail (observations + usage) for the newest trace
-      return lfGet(`/api/public/traces/${encodeURIComponent(traces[0].id)}`);
+      // Trace creation and generation events are ingested independently. A
+      // trace can therefore appear briefly with no observations or usage yet.
+      latestTrace = await lfGet(`/api/public/traces/${encodeURIComponent(traces[0].id)}`);
+      const observations: any[] = latestTrace?.observations || [];
+      if (observations.length > 0 && totalTokens(latestTrace) > 0) {
+        return latestTrace;
+      }
     }
     await new Promise((r) => setTimeout(r, delayMs));
   }
-  return null;
+  return latestTrace;
 }
 
 function totalTokens(trace: any): number {
