@@ -331,7 +331,8 @@ jobs:
             --flaky 0 \
             --skipped 0 \
             --dashboard-url "https://${OWNER_LC}.github.io/${REPO_NAME}/runs/${{ github.run_number }}/#ragas" \
-            --dashboard-label "Open Ragas report"
+            --dashboard-label "Open Ragas report" \
+            --require-delivery
 
       - name: Notify Giskard Slack
         id: notify_giskard
@@ -349,7 +350,8 @@ jobs:
             --channel "${{ secrets.SLACK_GISKARD_CHANNEL_ID }}" \
             --results-dir eval/results \
             --run-url "$GITHUB_RUN_URL" \
-            --dashboard-url "https://${OWNER_LC}.github.io/${REPO_NAME}/runs/${{ github.run_number }}/giskard.html"
+            --dashboard-url "https://${OWNER_LC}.github.io/${REPO_NAME}/runs/${{ github.run_number }}/giskard.html" \
+            --require-delivery
 
       - name: Send failure email (severity-tagged)
         if: failure() && steps.local_llm.outputs.run == 'true'
@@ -397,7 +399,8 @@ jobs:
         run: |
           python3 .github/scripts/notify_bosgame_run_slack.py \
             --channel "${{ secrets.SLACK_NIGHTLY_BOSGAME_CHANNEL_ID }}" \
-            --suite "Ragas + Giskard" --event result --format none
+            --suite "Ragas + Giskard" --event result --format none \
+            --require-delivery
 
       - name: Evaluate daily completion gate
         id: completion_gate

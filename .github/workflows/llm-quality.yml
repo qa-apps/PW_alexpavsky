@@ -25,6 +25,9 @@ jobs:
   llm-quality:
     runs-on: [self-hosted, Linux, X64, bosgame]
     timeout-minutes: 480
+    outputs:
+      eval_date: ${{ steps.eval_day.outputs.date }}
+      completion_ready: ${{ steps.completion_gate.outputs.ready }}
     env:
       LLM_CATALOG_URL: http://127.0.0.1:11434
       OLLAMA_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445' || 'http://127.0.0.1:11434' }}
@@ -154,6 +157,10 @@ jobs:
             echo "Using the Playwright-managed Chromium binary."
           fi
 
+      - name: Record LLM Judge run start
+        if: steps.local_llm.outputs.run == 'true'
+        run: date +%s > "$RUNNER_TEMP/llm-quality-start"
+
       - name: Run LLM Judge tests
         if: steps.local_llm.outputs.run == 'true'
         # Keep later report, artifact, and Slack steps running on failures.
@@ -167,7 +174,54 @@ jobs:
           CI: true
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
 
+      - name: Validate complete LLM Judge report
+        id: report_contract
+        if: always() && steps.local_llm.outputs.run == 'true'
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report_path = Path("test-results/results.json")
+          if not report_path.is_file():
+              raise SystemExit("Missing Playwright JSON report")
+          started = int(Path(os.environ["RUNNER_TEMP"]).joinpath("llm-quality-start").read_text())
+          if int(report_path.stat().st_mtime) < started:
+              raise SystemExit("Playwright JSON report is stale")
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+
+          tests = []
+          def walk(suite):
+              for spec in suite.get("specs", []) or []:
+                  tests.extend(spec.get("tests", []) or [])
+              for child in suite.get("suites", []) or []:
+                  walk(child)
+          for suite in report.get("suites", []) or []:
+              walk(suite)
+
+          if len(tests) != 20:
+              raise SystemExit(f"LLM Judge report has {len(tests)}/20 tests")
+          statuses = {"expected", "unexpected", "flaky", "skipped"}
+          if any(test.get("status") not in statuses for test in tests):
+              raise SystemExit("LLM Judge report contains an incomplete test status")
+
+          verdict_files = list(Path("test-results").rglob("verdicts.jsonl"))
+          verdict_files += list(Path("judge-verdicts").rglob("verdicts.jsonl"))
+          verdicts = []
+          for path in verdict_files:
+              for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+                  if line.strip():
+                      verdicts.append(json.loads(line))
+          if len(verdicts) < 17:
+              raise SystemExit(f"LLM Judge report has only {len(verdicts)} judge verdicts")
+          if any(not v.get("prompt") or not v.get("response") or not v.get("reasoning") for v in verdicts):
+              raise SystemExit("A judge verdict is missing prompt, response, or reasoning")
+          print(f"Validated {len(tests)} tests and {len(verdicts)} judge verdicts")
+          PY
+
       - name: Upload Playwright report
+        id: upload_playwright
         if: always() && steps.local_llm.outputs.run == 'true'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
@@ -176,6 +230,7 @@ jobs:
           retention-days: 30
 
       - name: Upload judge verdicts
+        id: upload_verdicts
         if: always() && steps.local_llm.outputs.run == 'true'
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
@@ -202,6 +257,7 @@ jobs:
           echo "- \`judge-verdicts-${{ github.run_number }}\` — per-prompt judge scores + reasoning" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build LLM Judge Pages UI
+        id: build_pages
         if: always() && steps.local_llm.outputs.run == 'true'
         env:
           RUN_NUMBER: ${{ github.run_number }}
@@ -237,7 +293,8 @@ jobs:
             --pipeline "LLM Quality" \
             --results-dir test-results \
             --dashboard-url "$LLM_JUDGE_DASHBOARD_URL" \
-            --dashboard-label "Open LLM Judge UI"
+            --dashboard-label "Open LLM Judge UI" \
+            --require-delivery
 
 
       - name: Post bug report to Slack
@@ -257,6 +314,7 @@ jobs:
             --results-dir test-results
 
       - name: Nightly Bosgame — post results
+        id: notify_daily
         if: always() && steps.local_llm.outputs.run == 'true'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -265,31 +323,28 @@ jobs:
           python3 .github/scripts/notify_bosgame_run_slack.py \
             --channel "${{ secrets.SLACK_NIGHTLY_BOSGAME_CHANNEL_ID }}" \
             --suite "LLM Quality" --event result \
-            --format playwright --results test-results/results.json
+            --format playwright --results test-results/results.json \
+            --require-delivery
 
-      - name: Save daily completion marker
-        if: >-
-          always() && steps.local_llm.outputs.run == 'true' &&
-          github.event_name == 'schedule' &&
-          steps.install_browser.outcome == 'success' &&
-          steps.notify_slack.outcome == 'success' &&
-          (steps.run_tests.outcome == 'success' || steps.run_tests.outcome == 'failure')
-        shell: bash
+      - name: Evaluate daily completion gate
+        id: completion_gate
+        if: always() && steps.local_llm.outputs.run == 'true'
+        env:
+          BROWSER_INSTALL: ${{ steps.install_browser.outcome }}
+          REPORT_CONTRACT: ${{ steps.report_contract.outcome }}
+          PLAYWRIGHT_UPLOAD: ${{ steps.upload_playwright.outcome }}
+          VERDICT_UPLOAD: ${{ steps.upload_verdicts.outcome }}
+          PAGES_BUILD: ${{ steps.build_pages.outcome }}
+          PAGES_UPLOAD: ${{ steps.upload_pages.outcome }}
+          JUDGE_SLACK: ${{ steps.notify_slack.outcome }}
+          DAILY_SLACK: ${{ steps.notify_daily.outcome }}
         run: |
-          mkdir -p .ci-markers
-          date -u +%FT%TZ > .ci-markers/llm-quality.done
-
-      - name: Cache daily completion marker
-        if: >-
-          always() && steps.local_llm.outputs.run == 'true' &&
-          github.event_name == 'schedule' &&
-          steps.install_browser.outcome == 'success' &&
-          steps.notify_slack.outcome == 'success' &&
-          (steps.run_tests.outcome == 'success' || steps.run_tests.outcome == 'failure')
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
-        with:
-          path: .ci-markers/llm-quality.done
-          key: bosgame-llm-quality-${{ steps.eval_day.outputs.date }}
+          ready=true
+          for outcome in "$BROWSER_INSTALL" "$REPORT_CONTRACT" "$PLAYWRIGHT_UPLOAD" "$VERDICT_UPLOAD" "$PAGES_BUILD" "$PAGES_UPLOAD" "$JUDGE_SLACK" "$DAILY_SLACK"; do
+            [ "$outcome" = "success" ] || ready=false
+          done
+          echo "ready=$ready" >> "$GITHUB_OUTPUT"
+          [ "$ready" = "true" ] || echo "::warning::Daily marker withheld because report, artifact, Pages input, or Slack delivery was incomplete."
 
       - name: Fail if LLM quality tests failed
         if: steps.local_llm.outputs.run == 'true' && steps.run_tests.outcome == 'failure'
@@ -319,6 +374,7 @@ jobs:
           path: gh-pages-site
 
       - name: Publish Pages site
+        id: publish_pages
         if: steps.download_pages.outcome == 'success'
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453
         with:
@@ -331,3 +387,23 @@ jobs:
           commit_message: "llm judge site: run #${{ github.run_number }}"
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
+
+      - name: Save daily completion marker
+        if: >-
+          always() && github.event_name == 'schedule' &&
+          needs['llm-quality'].outputs.completion_ready == 'true' &&
+          steps.publish_pages.outcome == 'success'
+        shell: bash
+        run: |
+          mkdir -p .ci-markers
+          date -u +%FT%TZ > .ci-markers/llm-quality.done
+
+      - name: Cache daily completion marker
+        if: >-
+          always() && github.event_name == 'schedule' &&
+          needs['llm-quality'].outputs.completion_ready == 'true' &&
+          steps.publish_pages.outcome == 'success'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .ci-markers/llm-quality.done
+          key: bosgame-llm-quality-${{ needs['llm-quality'].outputs.eval_date }}

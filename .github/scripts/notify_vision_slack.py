@@ -152,16 +152,17 @@ def finding_lines(report: dict) -> list[str]:
     return lines
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", required=True)
     parser.add_argument("--channel", required=True)
+    parser.add_argument("--require-delivery", action="store_true")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "").strip()
     if not token:
         print("SLACK_BOT_TOKEN is not configured; skipping Slack notification.")
-        return
+        return 1 if args.require_delivery else 0
 
     report_path = Path(args.report)
     if not report_path.is_file():
@@ -177,7 +178,8 @@ def main() -> None:
         })
         if not result.get("ok"):
             print(f"Slack message failed: {result.get('error')}", file=sys.stderr)
-        return
+            return 1 if args.require_delivery else 0
+        return 0
 
     report = json.loads(report_path.read_text())
     status = report.get("status", "failed")
@@ -233,11 +235,12 @@ def main() -> None:
     result = slack_post(token, "chat.postMessage", {"channel": args.channel, "text": text})
     if not result.get("ok"):
         print(f"Slack message failed: {result.get('error')}", file=sys.stderr)
-        return
+        return 1 if args.require_delivery else 0
 
     thread_ts = result.get("ts")
     if not thread_ts:
-        return
+        return 1 if args.require_delivery else 0
+    delivered = True
     for step in steps:
         case_id = step.get("test_case_id") or f"step {step.get('step')}"
         thread_result = slack_post(token, "chat.postMessage", {
@@ -247,11 +250,13 @@ def main() -> None:
             "blocks": test_case_blocks(step, dashboard_url),
         })
         if not thread_result.get("ok"):
+            delivered = False
             print(
                 f"Slack test-case message failed for {case_id}: {thread_result.get('error')}",
                 file=sys.stderr,
             )
+    return 0 if delivered or not args.require_delivery else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

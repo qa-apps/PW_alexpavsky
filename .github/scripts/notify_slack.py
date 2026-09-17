@@ -193,8 +193,8 @@ def join_channel(token: str, channel: str) -> None:
         print(f"conversations.join HTTP error: {e}", file=sys.stderr)
 
 
-def post_message(token: str, payload: dict) -> None:
-    """Post to Slack. NEVER fails the job — Slack is convenience, not signal.
+def post_message(token: str, payload: dict) -> bool:
+    """Post to Slack and return whether Slack acknowledged the message.
 
     Historical: this script used to `sys.exit(1)` on `channel_not_found`,
     `not_in_channel`, etc. That meant every Slack misconfiguration (stale
@@ -221,7 +221,7 @@ def post_message(token: str, payload: dict) -> None:
             result = json.loads(resp.read())
             if result.get("ok"):
                 print(f"✅ Message posted to {channel}")
-                return
+                return True
             err = result.get("error", "unknown")
             print(f"⚠️  Slack delivery failed ({err}) for channel {channel}. "
                   f"CI status reflects test results, not Slack delivery — "
@@ -232,8 +232,7 @@ def post_message(token: str, payload: dict) -> None:
     except urllib.error.URLError as e:
         print(f"⚠️  Slack HTTP error ({e}) — non-fatal, see note above.",
               file=sys.stderr)
-    # Explicit exit 0: never fail the job for notification problems.
-    return
+    return False
 
 
 def main() -> None:
@@ -248,6 +247,11 @@ def main() -> None:
     parser.add_argument("--results-pattern", default="*.json", help="Glob under --results-dir to select result JSON files")
     parser.add_argument("--dashboard-url", default="", help="Optional web dashboard URL")
     parser.add_argument("--dashboard-label", default="Open results UI", help="Slack button label for dashboard URL")
+    parser.add_argument(
+        "--require-delivery",
+        action="store_true",
+        help="Exit non-zero unless Slack acknowledges the message",
+    )
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
@@ -280,7 +284,9 @@ def main() -> None:
         dashboard_label=args.dashboard_label,
         **stats
     )
-    post_message(token, payload)
+    delivered = post_message(token, payload)
+    if args.require_delivery and not delivered:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

@@ -87,7 +87,7 @@ def build_text(rag: dict, scan: dict) -> tuple[str, str]:
     return "Giskard eval results", "\n".join(lines)
 
 
-def post(channel: str, token: str, fallback: str, text: str, run_url: str, dashboard_url: str) -> None:
+def post(channel: str, token: str, fallback: str, text: str, run_url: str, dashboard_url: str) -> bool:
     blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": text}}]
     action_elements = []
     if dashboard_url:
@@ -124,8 +124,11 @@ def post(channel: str, token: str, fallback: str, text: str, run_url: str, dashb
             body = json.loads(resp.read().decode())
         if not body.get("ok"):
             print(f"WARNING: Slack API error: {body.get('error')}", file=sys.stderr)
+            return False
+        return True
     except urllib.error.URLError as exc:
         print(f"WARNING: Slack post failed: {exc}", file=sys.stderr)
+        return False
 
 
 def main() -> int:
@@ -134,21 +137,23 @@ def main() -> int:
     parser.add_argument("--results-dir", default="eval/results")
     parser.add_argument("--run-url", default=os.environ.get("GITHUB_RUN_URL", ""))
     parser.add_argument("--dashboard-url", default="")
+    parser.add_argument("--require-delivery", action="store_true")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "").strip()
     channel = (args.channel or "").strip()
     if not token or not channel:
         print("SLACK_BOT_TOKEN or channel not set — skipping Giskard Slack post.")
-        return 0
+        return 1 if args.require_delivery else 0
 
     results = Path(args.results_dir)
     rag = _load(results / "giskard_rag.json")
     scan = _load(results / "giskard_scan.json")
     fallback, text = build_text(rag, scan)
-    post(channel, token, fallback, text, args.run_url, args.dashboard_url)
-    print("Posted Giskard summary to Slack.")
-    return 0
+    delivered = post(channel, token, fallback, text, args.run_url, args.dashboard_url)
+    if delivered:
+        print("Posted Giskard summary to Slack.")
+    return 0 if delivered or not args.require_delivery else 1
 
 
 if __name__ == "__main__":

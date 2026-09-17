@@ -185,7 +185,8 @@ jobs:
           cd "$REPO_DIR"
           python3 .github/scripts/notify_vision_slack.py \
             --report "$REPO_DIR/vision-audit/vision-audit-report.json" \
-            --channel "${{ secrets.SLACK_UI_CODEX_CHANNEL_ID }}"
+            --channel "${{ secrets.SLACK_UI_CODEX_CHANNEL_ID }}" \
+            --require-delivery
 
       - name: Finalize Daily Audit status
         if: always()
