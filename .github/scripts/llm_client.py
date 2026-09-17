@@ -40,6 +40,7 @@ _PROVIDERS = [
     {
         "name": "opencode-go",
         "key_env": "OPENCODE_API_KEY",
+        "opt_in_env": "ENABLE_OPENCODE_PROVIDER",
         "base_url": "https://opencode.ai/zen/go/v1",
         "model_env": "OPENCODE_MODEL",
         "model": "kimi-k2.7-code",
@@ -214,6 +215,9 @@ def chat(
     errors: list[str] = []
     providers = _PROVIDERS[:1] if os.environ.get("LOCAL_LLM_BASE_URL") else _PROVIDERS[1:]
     for prov in providers:
+        opt_in_env = prov.get("opt_in_env")
+        if opt_in_env and os.environ.get(opt_in_env, "").lower() != "true":
+            continue
         key = os.environ.get(prov["key_env"], "").strip()
         if prov["name"] == "ollama" and os.environ.get("LOCAL_LLM_BASE_URL"):
             key = key or "ollama"
@@ -284,7 +288,15 @@ def configured_providers() -> list[str]:
     """List names of providers whose API key is set. Useful for diagnostics."""
     if os.environ.get("LOCAL_LLM_BASE_URL"):
         return ["ollama"]
-    return [p["name"] for p in _PROVIDERS[1:] if os.environ.get(p["key_env"], "").strip()]
+    return [
+        p["name"]
+        for p in _PROVIDERS[1:]
+        if os.environ.get(p["key_env"], "").strip()
+        and (
+            not p.get("opt_in_env")
+            or os.environ.get(p["opt_in_env"], "").lower() == "true"
+        )
+    ]
 
 
 if __name__ == "__main__":

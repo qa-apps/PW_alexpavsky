@@ -106,7 +106,7 @@ export async function runArticleQualityJudge(
     prompt: mode === 'headline'
       ? `Headline: ${articleTitle}\nSource: ${articleSource}`
       : `Title: ${articleTitle}\nSource: ${articleSource}\n\n${clip(articleBodyText, 4000)}`,
-    response: '',
+    response: mode === 'headline' ? articleTitle : clip(articleBodyText, 4000),
     reasoning: verdict.reasoning,
   });
   return verdict;

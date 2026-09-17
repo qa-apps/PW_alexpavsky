@@ -22,6 +22,7 @@ class OpenCodeGoProviderTests(unittest.TestCase):
         {
             "OPENCODE_API_KEY": "test-key",
             "OPENCODE_SESSION_ID": "test-session",
+            "ENABLE_OPENCODE_PROVIDER": "true",
         },
         clear=True,
     )
@@ -51,6 +52,7 @@ class OpenCodeGoProviderTests(unittest.TestCase):
         {
             "OPENCODE_API_KEY": "test-opencode-key",
             "GROQ_API_KEY": "test-groq-key",
+            "ENABLE_OPENCODE_PROVIDER": "true",
         },
         clear=True,
     )
@@ -70,6 +72,26 @@ class OpenCodeGoProviderTests(unittest.TestCase):
         self.assertEqual(result["provider"], "groq")
         self.assertEqual(post.call_count, 2)
         self.assertIn("opencode-go", result["errors"][0])
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "OPENCODE_API_KEY": "test-opencode-key",
+            "GROQ_API_KEY": "test-groq-key",
+        },
+        clear=True,
+    )
+    @mock.patch.object(LLM, "_post")
+    def test_opencode_is_disabled_without_agent_fix_opt_in(self, post):
+        post.return_value = {
+            "choices": [{"message": {"content": "fallback"}}],
+        }
+
+        result = LLM.chat([{"role": "user", "content": "ping"}], max_tokens=8)
+
+        self.assertEqual(result["provider"], "groq")
+        self.assertEqual(post.call_count, 1)
+        self.assertNotIn("opencode-go", LLM.configured_providers())
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ if (!hasJudgeModel()) {
   // eslint-disable-next-line no-console
   console.warn(
     "[voice scenario] skipped: no evaluator LLM key " +
-      "(set LOCAL_LLM_BASE_URL or a supported cloud-provider key).",
+      "(set LOCAL_LLM_BASE_URL).",
   );
 }
 
