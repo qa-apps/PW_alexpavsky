@@ -15,6 +15,7 @@
 
 import { request } from '@playwright/test';
 import { resolveAllProviders, getProviderSummary } from './model-registry';
+import { recordJudgeVerdict } from './verdict-reporter';
 
 export interface ArticleQualityVerdict {
   isReal: boolean;
@@ -86,6 +87,36 @@ export async function runArticleQualityJudge(
   articleSource: string,
   articleBodyText: string,
   mode: JudgeMode = 'body',
+): Promise<ArticleQualityVerdict> {
+  const verdict = await judgeArticle(articleTitle, articleSource, articleBodyText, mode);
+  recordJudgeVerdict({
+    judgeName: `articleQuality:${mode}`,
+    judge: mode === 'headline' ? 'Headline Quality' : 'Article Body Quality',
+    judgeModel: verdict.judgeUsed,
+    criteria: [
+      mode === 'headline'
+        ? 'Looks like a real, specific article headline (not a placeholder, error or gibberish).'
+        : 'Contains a real, meaningful article body (not an error, fallback notice or junk).',
+      `Scores ${PASSING}-5 pass; 1-${PASSING - 1} fail.`,
+    ],
+    score: verdict.score,
+    maxScore: 5,
+    passingScore: PASSING,
+    passed: verdict.isReal,
+    prompt: mode === 'headline'
+      ? `Headline: ${articleTitle}\nSource: ${articleSource}`
+      : `Title: ${articleTitle}\nSource: ${articleSource}\n\n${clip(articleBodyText, 4000)}`,
+    response: '',
+    reasoning: verdict.reasoning,
+  });
+  return verdict;
+}
+
+async function judgeArticle(
+  articleTitle: string,
+  articleSource: string,
+  articleBodyText: string,
+  mode: JudgeMode,
 ): Promise<ArticleQualityVerdict> {
   const providers = await resolveAllProviders('M');
   if (providers.length === 0) {
