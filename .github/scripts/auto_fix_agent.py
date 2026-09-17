@@ -663,7 +663,7 @@ def main() -> None:
 
     if not llm_client.configured_providers():
         print("No LLM API keys in env (need one of: "
-              "GROQ_API_KEY, CEREBRAS_API_KEY, SAMBANOVA_API_KEY, "
+              "OPENCODE_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, SAMBANOVA_API_KEY, "
               "MISTRAL_API_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY, HF_TOKEN)",
               file=sys.stderr)
         sys.exit(1)
