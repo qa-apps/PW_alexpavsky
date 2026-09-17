@@ -102,6 +102,13 @@ class VisionAuditReportingTests(unittest.TestCase):
         self.assertIn("GISKARD_EVAL: ${{ steps.giskard_eval.outcome }}", workflow)
         self.assertIn("GISKARD_SCAN: ${{ steps.giskard_scan.outcome }}", workflow)
         self.assertIn("does not match quality verdict", workflow)
+        scan = (ROOT / "eval/giskard_scan.py").read_text(encoding="utf-8")
+        self.assertIn(
+            "by_cat: dict[str, int] = {c: 0 for c in SCAN_CATEGORIES}\n"
+            "    enumeration_complete = True\n"
+            "    try:",
+            scan,
+        )
 
     def test_slack_delivery_cannot_pass_without_a_token(self):
         argv = ["notify_slack.py", "--channel", "C123", "--pipeline", "unit", "--require-delivery"]

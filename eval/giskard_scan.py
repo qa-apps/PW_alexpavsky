@@ -55,7 +55,6 @@ def fail(msg: str) -> None:
 
 
 def query_rag(question: str) -> str:
-    enumeration_complete = True
     try:
         r = requests.post(
             f"{RAG_API}/api/rag/query",
@@ -131,6 +130,7 @@ def main() -> None:
 
     # Aggregate by category.
     by_cat: dict[str, int] = {c: 0 for c in SCAN_CATEGORIES}
+    enumeration_complete = True
     try:
         issues = list(report.issues) if hasattr(report, "issues") else []
         for issue in issues:
