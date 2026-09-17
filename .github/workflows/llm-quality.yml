@@ -140,14 +140,18 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
+        id: install_browser
         if: steps.local_llm.outputs.run == 'true'
         shell: bash
         run: |
+          # A system Chrome executable is not sufficient: Playwright still
+          # requires its matching ffmpeg helper for video/trace capture.
+          npx playwright install chromium
           if command -v google-chrome >/dev/null 2>&1; then
             echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
             echo "Using system Google Chrome on the Ubuntu 26.04 Bosgame runner."
           else
-            npx playwright install --with-deps
+            echo "Using the Playwright-managed Chromium binary."
           fi
 
       - name: Run LLM Judge tests
@@ -217,6 +221,7 @@ jobs:
           if-no-files-found: error
 
       - name: Notify Slack
+        id: notify_slack
         if: always() && steps.local_llm.outputs.run == 'true'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -263,14 +268,24 @@ jobs:
             --format playwright --results test-results/results.json
 
       - name: Save daily completion marker
-        if: always() && steps.local_llm.outputs.run == 'true' && github.event_name == 'schedule'
+        if: >-
+          always() && steps.local_llm.outputs.run == 'true' &&
+          github.event_name == 'schedule' &&
+          steps.install_browser.outcome == 'success' &&
+          steps.notify_slack.outcome == 'success' &&
+          (steps.run_tests.outcome == 'success' || steps.run_tests.outcome == 'failure')
         shell: bash
         run: |
           mkdir -p .ci-markers
           date -u +%FT%TZ > .ci-markers/llm-quality.done
 
       - name: Cache daily completion marker
-        if: always() && steps.local_llm.outputs.run == 'true' && github.event_name == 'schedule'
+        if: >-
+          always() && steps.local_llm.outputs.run == 'true' &&
+          github.event_name == 'schedule' &&
+          steps.install_browser.outcome == 'success' &&
+          steps.notify_slack.outcome == 'success' &&
+          (steps.run_tests.outcome == 'success' || steps.run_tests.outcome == 'failure')
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .ci-markers/llm-quality.done

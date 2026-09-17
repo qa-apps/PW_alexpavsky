@@ -115,3 +115,17 @@ jobs:
             --health-url "$VOICE_AGENT_HEALTH_URL" \
             --check-outcome "${{ needs.agent-checks.outputs.voice }}" \
             --key-configured "${{ needs.agent-checks.outputs.langwatch_key }}"
+
+      - name: Enforce observability checks
+        if: always()
+        env:
+          VOICE_OUTCOME: ${{ needs.agent-checks.outputs.voice }}
+          LANGFUSE_OUTCOME: ${{ needs.agent-checks.outputs.langfuse }}
+          LANGWATCH_KEY: ${{ needs.agent-checks.outputs.langwatch_key }}
+          LANGFUSE_KEYS: ${{ needs.agent-checks.outputs.langfuse_keys }}
+        run: |
+          if [ "$VOICE_OUTCOME" != "success" ] || [ "$LANGFUSE_OUTCOME" != "success" ] || \
+             [ "$LANGWATCH_KEY" != "true" ] || [ "$LANGFUSE_KEYS" != "true" ]; then
+            echo "Observability gate failed: voice=$VOICE_OUTCOME langfuse=$LANGFUSE_OUTCOME langwatch_key=$LANGWATCH_KEY langfuse_keys=$LANGFUSE_KEYS"
+            exit 1
+          fi
