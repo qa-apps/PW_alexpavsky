@@ -14,8 +14,13 @@ concurrency:
 jobs:
   agent-checks:
     name: Voice Scenario (LangWatch) + chat traces (Langfuse)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: [self-hosted, Linux, X64, bosgame]
+    timeout-minutes: 30
+    env:
+      LOCAL_LLM_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445/v1' || 'http://127.0.0.1:11434/v1' }}
+      LOCAL_LLM_MODEL: ${{ github.event_name == 'schedule' && 'scheduled/gpt-oss:120b' || 'gpt-oss:120b' }}
+      LOCAL_LLM_UPSTREAM_MODEL: gpt-oss:120b
+      LOCAL_LLM_API_KEY: ollama
     outputs:
       voice: ${{ steps.voice.outcome }}
       langfuse: ${{ steps.langfuse.outcome }}
@@ -34,6 +39,36 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Wait for local evaluator
+        env:
+          LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '900' }}
+        run: |
+          deadline=$((SECONDS + LOCAL_LLM_PRIORITY_MAX_WAIT_SEC))
+          while true; do
+            if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error \
+              -H "Authorization: Bearer $LOCAL_LLM_API_KEY" \
+              -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
+              -H "X-LLM-Model: $LOCAL_LLM_UPSTREAM_MODEL" \
+              "${LOCAL_LLM_BASE_URL%/v1}/v1/models") && \
+              python3 -c 'import json,sys; wanted=sys.argv[1]; ids=[m.get("id") for m in json.load(sys.stdin).get("data", [])]; raise SystemExit(0 if wanted in ids or "gpt-oss:120b" in ids else 1)' "$LOCAL_LLM_MODEL" <<<"$models"; then
+              break
+            fi
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "Local Scenario evaluator is unavailable."
+              exit 1
+            fi
+            echo "Local model gateway is busy; retrying in 10s."
+            sleep 10
+          done
+
+          curl --fail --silent --show-error --max-time 180 \
+            -H "Authorization: Bearer $LOCAL_LLM_API_KEY" \
+            -H "Content-Type: application/json" \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
+            -H "X-LLM-Model: $LOCAL_LLM_UPSTREAM_MODEL" \
+            "$LOCAL_LLM_BASE_URL/chat/completions" \
+            -d "{\"model\":\"$LOCAL_LLM_MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"Reply ready\"}],\"max_tokens\":8,\"stream\":false}" >/dev/null
 
       - name: Detect backend keys
         id: keys
@@ -54,13 +89,8 @@ jobs:
           LANGWATCH_API_KEY: ${{ secrets.LANGWATCH_API_KEY }}
           LANGWATCH_ENDPOINT: ${{ vars.LANGWATCH_ENDPOINT || 'https://app.langwatch.ai' }}
           SCENARIO_BATCH_RUN_ID: gh-${{ github.run_id }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
-          # The repo's GROQ_API_KEY is rejected (Invalid API Key); OpenRouter works.
-          SCENARIO_JUDGE_PROVIDER: ${{ vars.SCENARIO_JUDGE_PROVIDER || 'openrouter' }}
-          SCENARIO_JUDGE_MODEL: ${{ vars.SCENARIO_JUDGE_MODEL || 'openai/gpt-oss-120b' }}
+          SCENARIO_JUDGE_PROVIDER: local
+          SCENARIO_JUDGE_MODEL: ${{ env.LOCAL_LLM_MODEL }}
         run: npx vitest run tests/voice
 
       - name: Chat agent → Langfuse trace check
@@ -97,7 +127,8 @@ jobs:
             --dashboard-url "$LANGFUSE_DASHBOARD_URL" \
             --health-url "$ALEXPAVSKY_HEALTH_URL" \
             --check-outcome "${{ needs.agent-checks.outputs.langfuse }}" \
-            --key-configured "${{ needs.agent-checks.outputs.langfuse_keys }}"
+            --key-configured "${{ needs.agent-checks.outputs.langfuse_keys }}" \
+            --require-delivery
 
       - name: Notify LangWatch Slack channel
         if: always()
@@ -114,7 +145,8 @@ jobs:
             --dashboard-url "$LANGWATCH_DASHBOARD_URL" \
             --health-url "$VOICE_AGENT_HEALTH_URL" \
             --check-outcome "${{ needs.agent-checks.outputs.voice }}" \
-            --key-configured "${{ needs.agent-checks.outputs.langwatch_key }}"
+            --key-configured "${{ needs.agent-checks.outputs.langwatch_key }}" \
+            --require-delivery
 
       - name: Enforce observability checks
         if: always()
