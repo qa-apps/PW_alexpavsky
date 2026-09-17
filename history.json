@@ -4568,5 +4568,33 @@
       "giskard_rag.json",
       "giskard_rag_cases.json"
     ]
+  },
+  {
+    "run_number": 193,
+    "run_id": "35249225333",
+    "timestamp": "2026-09-17T17:20:17+00:00",
+    "commit": "838deef",
+    "ragas": {
+      "avg_faithfulness": 0.708,
+      "avg_relevancy": 0.0,
+      "status": "fail"
+    },
+    "ragas_counts": {
+      "passed": 9,
+      "failed": 1,
+      "total": 10
+    },
+    "giskard_rag": {},
+    "giskard_counts": {
+      "passed": 0,
+      "failed": 0,
+      "total": 0
+    },
+    "giskard_scan": {},
+    "files": [
+      "report.md",
+      "summary.json",
+      "ragas_cases.json"
+    ]
   }
 ]
