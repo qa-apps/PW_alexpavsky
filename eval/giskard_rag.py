@@ -88,7 +88,10 @@ class PermissiveCorrectnessMetric:
             json={
                 "model": self.provider["model"],
                 "temperature": 0,
-                "max_tokens": 512,
+                # GPT-OSS reasons before answering; 512 tokens could end with
+                # empty content, so give it room and keep reasoning short.
+                "max_tokens": int(os.environ.get("LOCAL_LLM_MAX_TOKENS", "2048")),
+                "reasoning_effort": os.environ.get("LOCAL_LLM_REASONING_EFFORT", "low"),
                 "response_format": {"type": "json_object"},
                 "messages": [
                     {
@@ -117,7 +120,14 @@ class PermissiveCorrectnessMetric:
             timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
         )
         response.raise_for_status()
-        content = response.json()["choices"][0]["message"]["content"].strip()
+        payload = response.json()
+        content = (payload["choices"][0]["message"].get("content") or "").strip()
+        if not content:
+            usage = payload.get("usage", {})
+            raise ValueError(
+                "Judge returned empty content "
+                f"(completion_tokens={usage.get('completion_tokens', 'unknown')})"
+            )
         content = re.sub(r"^```(?:json)?\s*|\s*```$", "", content, flags=re.IGNORECASE)
         result = json.loads(content)
 
