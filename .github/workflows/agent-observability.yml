@@ -71,6 +71,8 @@ jobs:
           - notify_slack.py exits non-zero when SLACK_BOT_TOKEN is absent, with a regression test;
           - Ragas/Giskard requires current-run report mtimes and non-skipped eval outcomes;
           - DeepEval sets RUN_LLM_EVALS=1 both at job level and on the pytest commands.
+          - LLM Judge and DeepEval freshness checks use nanosecond timestamps; LLM Judge rejects skipped tests and stale verdict files;
+          - notify_observability_slack.py returns non-zero for an unacknowledged chat.postMessage when --require-delivery is set.
           Do not report one of those as absent unless the supplied diff directly contradicts it. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.
 
           PW_alexpavsky DIFF:
@@ -113,10 +115,10 @@ jobs:
                   "max_output_tokens": 10000,
                   "reasoning": {"effort": "high"},
               }),
-              ("glm-5.3", "chat/completions", {
+              ("glm-5.3-flash", "chat/completions", {
                   "messages": [{"role": "user", "content": prompt}],
                   "temperature": 0.2,
-                  "max_tokens": 8000,
+                  "max_tokens": 4000,
               }),
           )
           approvals = []
