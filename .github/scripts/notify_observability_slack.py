@@ -58,6 +58,8 @@ def build_payload(
     health_status: str,
     health: dict,
     run_url: str,
+    check_outcome: str = "",
+    key_configured: bool = False,
 ) -> dict:
     is_langfuse = mode == "langfuse"
     title = "Langfuse Agent Workflow Monitor" if is_langfuse else "LangWatch Voice Agent Monitor"
@@ -69,7 +71,16 @@ def build_payload(
     )
     configured = bool(dashboard_url)
     health_icon = "OK" if health_status == "ok" else "CHECK"
-    color = "#2eb886" if health_status == "ok" and configured else "#e9a820"
+    key_name = "LANGFUSE_PUBLIC_KEY/LANGFUSE_SECRET_KEY" if is_langfuse else "LANGWATCH_API_KEY"
+    check_name = "chat trace check" if is_langfuse else "voice Scenario run"
+    check_line = {
+        "success": f"✅ {check_name} passed",
+        "failure": f"❌ {check_name} failed (see View run)",
+        "skipped": f"⏭️ {check_name} not run",
+        "cancelled": f"⏭️ {check_name} cancelled",
+    }.get(check_outcome, f"⚪ {check_name} not run in this workflow")
+    healthy = health_status == "ok" and configured and key_configured and check_outcome == "success"
+    color = "#2eb886" if healthy else ("#d00000" if check_outcome == "failure" else "#e9a820")
 
     obs = (
         health.get("agent_runtime", {}).get("observability", {})
@@ -77,16 +88,23 @@ def build_payload(
         else health.get("observability", {})
     )
     obs_branch = obs.get("chat" if is_langfuse else "voice", {}) if isinstance(obs, dict) else {}
-    backend = obs_branch.get("backend") or ("langfuse" if is_langfuse else "langwatch")
+    backend = obs_branch.get("backend") or "not reported by the site health endpoint"
     deep = obs_branch.get("trace_deeplink")
     dashboard_from_health = obs_branch.get("dashboard_url") or ""
     if dashboard_from_health and not dashboard_url:
         dashboard_url = dashboard_from_health
 
+    reporting = (
+        f"✅ {key_name} configured — results are sent to {'Langfuse' if is_langfuse else 'LangWatch'}"
+        if key_configured
+        else f"⚠️ {key_name} secret missing — nothing is sent to {'Langfuse' if is_langfuse else 'LangWatch'}"
+    )
     text = (
         f"*Surface:* {surface}\n"
         f"*Trace shape:* `{trace_shape}`\n"
-        f"*Backend:* `{backend}`\n"
+        f"*Agent check:* {check_line}\n"
+        f"*Reporting:* {reporting}\n"
+        f"*Backend (site health):* `{backend}`\n"
         f"*Health:* `{health_icon} {health_status}`\n"
         f"*Trace deep links:* `{bool(deep)}`"
     )
@@ -137,6 +155,8 @@ def main() -> int:
     parser.add_argument("--channel", required=True)
     parser.add_argument("--dashboard-url", default="")
     parser.add_argument("--health-url", default="")
+    parser.add_argument("--check-outcome", default="", help="outcome of the agent check step")
+    parser.add_argument("--key-configured", default="false", help="true when the backend API key secret is set")
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
@@ -153,6 +173,8 @@ def main() -> int:
         health_status=health_status,
         health=health,
         run_url=os.environ.get("GITHUB_RUN_URL", ""),
+        check_outcome=args.check_outcome,
+        key_configured=args.key_configured.lower() == "true",
     )
 
     try:
