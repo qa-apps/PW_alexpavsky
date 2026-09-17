@@ -42,9 +42,9 @@ jobs:
           git fetch origin master --depth=1
           if [ -n "$NANOTECH_SHA" ]; then
             git clone --filter=blob:none https://github.com/qa-apps/PW_nanotech.git /tmp/PW_nanotech-review
-            git -C /tmp/PW_nanotech-review fetch origin "$NANOTECH_SHA" --depth=1
+            git -C /tmp/PW_nanotech-review fetch origin "$NANOTECH_SHA"
             git -C /tmp/PW_nanotech-review checkout --detach "$NANOTECH_SHA"
-            git -C /tmp/PW_nanotech-review fetch origin main --depth=1
+            git -C /tmp/PW_nanotech-review fetch origin main
           fi
           python3 - <<'PY'
           import json
@@ -64,7 +64,7 @@ jobs:
                   ["git", "-C", "/tmp/PW_nanotech-review", "diff", "--no-ext-diff", f"origin/main...{os.environ['NANOTECH_SHA']}"],
                   text=True,
               )
-          prompt = """Final merge gate for two QA repositories. Review only blocking correctness or security bugs, GitHub Actions expression/step-outcome bugs, false-green daily markers, report completeness, Slack delivery, and Pages publication. Quality assertion failures may publish reports, but infrastructure/report/Slack/Pages failures must withhold completion markers. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.\n\nPW_alexpavsky DIFF:\n""" + alex_diff + "\n\nPW_nanotech DIFF:\n" + nano_diff
+          prompt = """Final merge gate for two QA repositories. Review only blocking correctness or security bugs, GitHub Actions expression/step-outcome bugs, false-green daily markers, report completeness, Slack delivery, and Pages publication. All evaluation workloads must use local BossGame LLMs; OpenCode is allowed only in agent-fix. Quality assertion failures may publish reports, but infrastructure/report/Slack/Pages failures must withhold completion markers. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.\n\nPW_alexpavsky DIFF:\n""" + alex_diff + "\n\nPW_nanotech DIFF:\n" + nano_diff
           models = (
               "z-ai/glm-4.5-air",
               "deepseek/deepseek-v4.1-flash",
