@@ -356,7 +356,7 @@ jobs:
 
       - name: Mark reporting complete
         id: completion_ready
-        if: always() && steps.local_llm.outputs.run == 'true' && steps.validate_results.outcome == 'success' && steps.upload_results.outcome == 'success' && steps.build_site.outcome == 'success' && steps.upload_pages.outcome == 'success' && steps.notify_slack.outcome == 'success' && steps.nightly_results.outcome == 'success'
+        if: always() && steps.local_llm.outputs.run == 'true' && steps.validate_results.outcome == 'success' && (steps.eval.outcome == 'success' || steps.assertions_passed.outcome == 'failure') && steps.upload_results.outcome == 'success' && steps.build_site.outcome == 'success' && steps.upload_pages.outcome == 'success' && steps.notify_slack.outcome == 'success' && steps.nightly_results.outcome == 'success'
         run: echo "ready=true" >> "$GITHUB_OUTPUT"
 
       # Keep report publishing and Slack notification above this gate, then

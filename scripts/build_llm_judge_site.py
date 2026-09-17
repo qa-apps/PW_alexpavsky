@@ -115,6 +115,7 @@ def collect_tests(reports: list[dict]) -> list[dict]:
                     "status": t.get("status") or "unknown",
                     "duration_ms": duration,
                     "errors": errors,
+                    "retry": max(0, len(t.get("results", []) or []) - 1),
                     "verdicts": [],
                 })
         for child in suite.get("suites", []) or []:
@@ -143,6 +144,21 @@ def load_jsonl_verdicts() -> list[dict]:
                 except json.JSONDecodeError:
                     continue
     return records
+
+
+def final_attempt_verdicts(records: list[dict], tests: list[dict]) -> list[dict]:
+    """Keep every verdict from the latest Playwright attempt for each test."""
+    latest = {
+        tuple(str(part) for part in test["path"] + [test["title"]]): int(test.get("retry") or 0)
+        for test in tests
+    }
+    return [
+        record for record in records
+        if tuple(str(part) for part in record.get("titlePath") or []) in latest
+        and int(record.get("retry") or 0) == latest[
+            tuple(str(part) for part in record.get("titlePath") or [])
+        ]
+    ]
 
 
 MD_SECTION = re.compile(
@@ -382,7 +398,8 @@ def main() -> None:
     reports = playwright_reports()
     stats = playwright_stats(reports)
     tests = collect_tests(reports)
-    verdicts = load_jsonl_verdicts() or load_markdown_verdicts()
+    jsonl_verdicts = load_jsonl_verdicts()
+    verdicts = final_attempt_verdicts(jsonl_verdicts, tests) if jsonl_verdicts else load_markdown_verdicts()
     orphans = attach_verdicts(tests, verdicts)
     (run_dir / "index.html").write_text(run_html(run_dir, stats, tests, orphans), encoding="utf-8")
 

@@ -17,6 +17,7 @@ def load_module(name: str, path: Path):
 
 SITE = load_module("build_vision_audit_site", ROOT / "scripts/build_vision_audit_site.py")
 SLACK = load_module("notify_vision_slack", ROOT / ".github/scripts/notify_vision_slack.py")
+LLM_SITE = load_module("build_llm_judge_site", ROOT / "scripts/build_llm_judge_site.py")
 
 
 def sample_report() -> dict:
@@ -75,7 +76,23 @@ class VisionAuditReportingTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/agentic-vision-audit.yml").read_text(encoding="utf-8")
         self.assertNotIn("uses:", workflow)
         self.assertIn("http://127.0.0.1:11435", workflow)
+        self.assertIn("daily-audit-runs/${{ github.run_id }}", workflow)
+        self.assertIn("Daily Audit report is stale", workflow)
         self.assertIn("Post summary and every test case to Slack", workflow)
+
+    def test_llm_judge_site_keeps_only_latest_retry_per_test(self):
+        records = [
+            {"testFile": "a.spec.ts", "titlePath": ["suite", "case"], "retry": 0, "prompt": "old"},
+            {"testFile": "a.spec.ts", "titlePath": ["suite", "case"], "retry": 1, "prompt": "new-1"},
+            {"testFile": "a.spec.ts", "titlePath": ["suite", "case"], "retry": 1, "prompt": "new-2"},
+            {"testFile": "b.spec.ts", "titlePath": ["case"], "retry": 0, "prompt": "other"},
+        ]
+        tests = [
+            {"path": ["suite"], "title": "case", "retry": 1},
+            {"path": [], "title": "case", "retry": 0},
+        ]
+        filtered = LLM_SITE.final_attempt_verdicts(records, tests)
+        self.assertEqual([record["prompt"] for record in filtered], ["new-1", "new-2", "other"])
 
     def test_html_documents_evidence_and_local_model_provenance(self):
         html = SITE.run_html(sample_report())

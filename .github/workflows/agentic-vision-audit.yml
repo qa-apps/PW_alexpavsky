@@ -44,6 +44,7 @@ jobs:
       REPO_DIR: ${{ github.workspace }}/daily-audit-source
       PAGES_DIR: ${{ github.workspace }}/daily-audit-pages
       SITE_DIR: ${{ github.workspace }}/daily-audit-site
+      AUDIT_OUTPUT_DIR: ${{ github.workspace }}/daily-audit-runs/${{ github.run_id }}/vision-audit
       AUDIT_DEPS_DIR: ${{ github.workspace }}/.daily-audit-deps/playwright-1.58.2
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
       PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
@@ -124,9 +125,11 @@ jobs:
         env:
           BASE_URL: https://www.alexpavsky.com
           PLAYWRIGHT_PACKAGE_PATH: ${{ github.workspace }}/.daily-audit-deps/playwright-1.58.2/node_modules/@playwright/test
-          VISION_AUDIT_OUTPUT_DIR: ${{ github.workspace }}/daily-audit-source/vision-audit
+          VISION_AUDIT_OUTPUT_DIR: ${{ env.AUDIT_OUTPUT_DIR }}
         shell: bash
         run: |
+          mkdir -p "$AUDIT_OUTPUT_DIR"
+          date +%s > "$RUNNER_TEMP/vision-audit-start"
           cd "$REPO_DIR"
           node .github/scripts/vision_audit_agent.mjs
 
@@ -134,7 +137,7 @@ jobs:
         id: report_contract
         if: always() && steps.bootstrap.outcome == 'success'
         env:
-          REPORT_PATH: ${{ github.workspace }}/daily-audit-source/vision-audit/vision-audit-report.json
+          REPORT_PATH: ${{ env.AUDIT_OUTPUT_DIR }}/vision-audit-report.json
         run: |
           python3 - <<'PY'
           import json
@@ -144,6 +147,9 @@ jobs:
           report_path = Path(os.environ["REPORT_PATH"])
           if not report_path.is_file():
               raise SystemExit("Daily Audit report is missing")
+          started = int(Path(os.environ["RUNNER_TEMP"]).joinpath("vision-audit-start").read_text())
+          if int(report_path.stat().st_mtime) < started:
+              raise SystemExit("Daily Audit report is stale")
           report = json.loads(report_path.read_text(encoding="utf-8"))
           expected = {
               *(f"LINK-{index:03d}" for index in range(1, 11)),
@@ -193,13 +199,13 @@ jobs:
           RUN_ID: ${{ github.run_id }}
           COMMIT_SHA: ${{ github.sha }}
           REPO_SLUG: ${{ github.repository }}
-          VISION_AUDIT_SOURCE: ${{ github.workspace }}/daily-audit-source/vision-audit
+          VISION_AUDIT_SOURCE: ${{ env.AUDIT_OUTPUT_DIR }}
           VISION_AUDIT_EXISTING: ${{ github.workspace }}/daily-audit-pages
           VISION_AUDIT_SITE: ${{ github.workspace }}/daily-audit-site
         shell: bash
         run: |
           set -euo pipefail
-          REPORT="$REPO_DIR/vision-audit/vision-audit-report.json"
+          REPORT="$AUDIT_OUTPUT_DIR/vision-audit-report.json"
           [[ -f "$REPORT" ]] || { echo "No Vision report to publish."; exit 1; }
           AUTH_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           if [[ -d "$PAGES_DIR/.git" ]]; then
@@ -237,7 +243,7 @@ jobs:
             echo "Daily Audit UI is still deploying; Slack links will become available shortly."
           cd "$REPO_DIR"
           python3 .github/scripts/notify_vision_slack.py \
-            --report "$REPO_DIR/vision-audit/vision-audit-report.json" \
+            --report "$AUDIT_OUTPUT_DIR/vision-audit-report.json" \
             --channel "${{ secrets.SLACK_UI_CODEX_CHANNEL_ID }}" \
             --require-delivery
 

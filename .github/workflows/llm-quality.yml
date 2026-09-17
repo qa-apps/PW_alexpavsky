@@ -193,11 +193,18 @@ jobs:
           report = json.loads(report_path.read_text(encoding="utf-8"))
 
           tests = []
-          def walk(suite):
+          final_retries = {}
+          def walk(suite, parents=()):
+              title = str(suite.get("title") or "")
+              file = str(suite.get("file") or "")
+              path = parents + ((title,) if title and title != file else ())
               for spec in suite.get("specs", []) or []:
-                  tests.extend(spec.get("tests", []) or [])
+                  for test in spec.get("tests", []) or []:
+                      tests.append(test)
+                      key = path + (str(spec.get("title") or "test"),)
+                      final_retries[key] = max(0, len(test.get("results", []) or []) - 1)
               for child in suite.get("suites", []) or []:
-                  walk(child)
+                  walk(child, path)
           for suite in report.get("suites", []) or []:
               walk(suite)
 
@@ -209,13 +216,27 @@ jobs:
 
           verdict_files = list(Path("test-results").rglob("verdicts.jsonl"))
           verdict_files += list(Path("judge-verdicts").rglob("verdicts.jsonl"))
-          verdicts = []
+          all_verdicts = []
           for path in verdict_files:
               for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
                   if line.strip():
-                      verdicts.append(json.loads(line))
+                      all_verdicts.append(json.loads(line))
+
+          # Playwright records verdicts for every retry. A complete report is
+          # defined by the final attempt for each test, not by every attempt
+          # appended to the JSONL file.
+          verdicts = [
+              verdict for verdict in all_verdicts
+              if tuple(str(part) for part in verdict.get("titlePath") or []) in final_retries
+              and int(verdict.get("retry") or 0) == final_retries[
+                  tuple(str(part) for part in verdict.get("titlePath") or [])
+              ]
+          ]
           if len(verdicts) != 24:
-              raise SystemExit(f"LLM Judge report has {len(verdicts)}/24 structured judge verdicts")
+              raise SystemExit(
+                  f"LLM Judge final attempts have {len(verdicts)}/24 structured judge verdicts "
+                  f"({len(all_verdicts)} including retries)"
+              )
           if any(not v.get("prompt") or not v.get("response") or not v.get("reasoning") for v in verdicts):
               raise SystemExit("A judge verdict is missing prompt, response, or reasoning")
           print(f"Validated {len(tests)} tests and {len(verdicts)} judge verdicts")
