@@ -123,7 +123,13 @@ jobs:
                       print(f"::warning::{last_error}")
                       continue
                   print(verdict)
-                  raise SystemExit(0 if verdict.startswith("APPROVE") else 1)
+                  if verdict.startswith("APPROVE"):
+                      raise SystemExit(0)
+                  if verdict.startswith("REJECT"):
+                      raise SystemExit(1)
+                  last_error = f"{model}: response did not begin with APPROVE or REJECT"
+                  print(f"::warning::{last_error}")
+                  continue
               except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, KeyError) as exc:
                   last_error = f"{model}: {exc}"
                   print(f"::warning::{last_error}")
