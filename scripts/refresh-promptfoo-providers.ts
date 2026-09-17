@@ -1,7 +1,7 @@
 /**
  * scripts/refresh-promptfoo-providers.ts
  *
- * Fetches the latest models from Groq, OpenRouter, and HuggingFace
+ * Fetches the latest models from Groq and HuggingFace
  * and regenerates the `providers:` block in promptfooconfig.yaml.
  *
  * Run automatically before `npm run eval` via the `eval:refresh` script.
@@ -69,22 +69,6 @@ function buildGroqSection(models: ModelEntry[]): string {
   return `  # ── Groq (${groqModels.length} models fetched, ${selected.length} selected — newest first) ──\n` + blocks.join('\n\n');
 }
 
-function buildOpenRouterSection(models: ModelEntry[]): string {
-  const orModels = models.filter((m) => m.provider === 'openrouter');
-  if (!orModels.length) return '';
-
-  const selected = pickModels(orModels);
-  const extraHeaders = {
-    'HTTP-Referer': 'https://github.com/PW_alexpavsky',
-    'X-Title': 'PW AlexPavsky CI',
-  };
-  const blocks = selected.map((m) =>
-    providerBlock(m, 'https://openrouter.ai/api/v1', 'OPENROUTER_API_KEY', extraHeaders),
-  );
-
-  return `  # ── OpenRouter (${orModels.length} free models fetched, ${selected.length} selected — newest first) ──\n` + blocks.join('\n\n');
-}
-
 function buildHuggingFaceSection(models: ModelEntry[]): string {
   const hfModels = models.filter((m) => m.provider === 'huggingface');
   if (!hfModels.length) return '';
@@ -124,10 +108,9 @@ async function main() {
   })();
 
   const groqSection     = buildGroqSection(models);
-  const orSection       = buildOpenRouterSection(models);
   const hfSection       = buildHuggingFaceSection(models);
 
-  const providersBlock = [groqSection, orSection, hfSection]
+  const providersBlock = [groqSection, hfSection]
     .filter(Boolean)
     .join('\n\n');
 
@@ -167,12 +150,10 @@ async function main() {
   fs.writeFileSync(CONFIG_PATH, newConfig, 'utf-8');
 
   const groqCount = models.filter((m) => m.provider === 'groq').length;
-  const orCount   = models.filter((m) => m.provider === 'openrouter').length;
   const hfCount   = models.filter((m) => m.provider === 'huggingface').length;
 
   console.log(`[refresh-promptfoo-providers] Done!`);
   console.log(`  Groq:         ${groqCount} models`);
-  console.log(`  OpenRouter:   ${orCount} models`);
   console.log(`  HuggingFace:  ${hfCount} models`);
   console.log(`  Default:      ${defaultProvider}`);
   console.log(`  Config:       ${CONFIG_PATH}`);

@@ -78,20 +78,6 @@ _PROVIDERS = [
         "model": "gpt-4o-mini",
     },
     {
-        "name": "openrouter-llama",
-        "key_env": "OPENROUTER_API_KEY",
-        "base_url": "https://openrouter.ai/api/v1",
-        "model": "meta-llama/llama-3.3-70b-instruct:free",
-        "extra_headers": {"HTTP-Referer": "https://alexpavsky.com"},
-    },
-    {
-        "name": "openrouter-deepseek",
-        "key_env": "OPENROUTER_API_KEY",
-        "base_url": "https://openrouter.ai/api/v1",
-        "model": "deepseek/deepseek-r1-0528:free",
-        "extra_headers": {"HTTP-Referer": "https://alexpavsky.com"},
-    },
-    {
         "name": "huggingface",
         "key_env": "HF_TOKEN",
         "base_url": "https://router.huggingface.co/v1",
@@ -213,7 +199,13 @@ def chat(
     """
     timeout = timeout or int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180"))
     errors: list[str] = []
-    providers = _PROVIDERS[:1] if os.environ.get("LOCAL_LLM_BASE_URL") else _PROVIDERS[1:]
+    provider_mode = os.environ.get("LLM_PROVIDER_MODE", "").strip().lower()
+    if os.environ.get("LOCAL_LLM_BASE_URL") or provider_mode == "local-only":
+        providers = _PROVIDERS[:1]
+    elif provider_mode == "opencode-only":
+        providers = [p for p in _PROVIDERS if p["name"] == "opencode-go"]
+    else:
+        providers = _PROVIDERS[1:]
     for prov in providers:
         opt_in_env = prov.get("opt_in_env")
         if opt_in_env and os.environ.get(opt_in_env, "").lower() != "true":
@@ -286,11 +278,17 @@ def chat(
 
 def configured_providers() -> list[str]:
     """List names of providers whose API key is set. Useful for diagnostics."""
-    if os.environ.get("LOCAL_LLM_BASE_URL"):
+    provider_mode = os.environ.get("LLM_PROVIDER_MODE", "").strip().lower()
+    if os.environ.get("LOCAL_LLM_BASE_URL") or provider_mode == "local-only":
         return ["ollama"]
+    providers = (
+        [p for p in _PROVIDERS if p["name"] == "opencode-go"]
+        if provider_mode == "opencode-only"
+        else _PROVIDERS[1:]
+    )
     return [
         p["name"]
-        for p in _PROVIDERS[1:]
+        for p in providers
         if os.environ.get(p["key_env"], "").strip()
         and (
             not p.get("opt_in_env")

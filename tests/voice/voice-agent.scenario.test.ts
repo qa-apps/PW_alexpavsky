@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import scenario from "@langwatch/scenario";
 import { voiceAgent, SAY_URL } from "../support/voiceAgentAdapter";
-import { judgeModel, hasJudgeModel } from "../support/scenarioModel";
+import { judgeModel, hasJudgeModel, strictLocalJudge } from "../support/scenarioModel";
 
 /**
  * LangWatch Scenario check for Alex Pavlovsky's AI voice assistant.
@@ -21,6 +21,12 @@ import { judgeModel, hasJudgeModel } from "../support/scenarioModel";
  */
 
 const describeVoice = hasJudgeModel() ? describe : describe.skip;
+
+const criteria = [
+  "The assistant understands that the user is asking a QA / test-automation question.",
+  "The assistant gives a relevant, on-topic answer about QA / testing and does NOT wrongly refuse it as out of scope.",
+  "The answer is coherent and phrased for speech (concise, plain sentences, no markdown or code blocks).",
+];
 
 if (!hasJudgeModel()) {
   // eslint-disable-next-line no-console
@@ -42,14 +48,7 @@ describeVoice("voice assistant — LangWatch Scenario", () => {
       agents: [
         voiceAgent(),
         scenario.userSimulatorAgent({ model }),
-        scenario.judgeAgent({
-          model,
-          criteria: [
-            "The assistant understands that the user is asking a QA / test-automation question.",
-            "The assistant gives a relevant, on-topic answer about QA / testing and does NOT wrongly refuse it as out of scope.",
-            "The answer is coherent and phrased for speech (concise, plain sentences, no markdown or code blocks).",
-          ],
-        }),
+        strictLocalJudge(criteria),
       ],
       script: [
         scenario.user(
@@ -64,6 +63,8 @@ describeVoice("voice assistant — LangWatch Scenario", () => {
       // eslint-disable-next-line no-console
       console.error("[voice scenario] verdict:", JSON.stringify(result, null, 2));
     }
+    expect(result.metCriteria).toHaveLength(criteria.length);
+    expect(result.unmetCriteria).toHaveLength(0);
     expect(result.success).toBe(true);
   }, 120_000);
 });

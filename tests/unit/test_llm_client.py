@@ -78,6 +78,30 @@ class OpenCodeGoProviderTests(unittest.TestCase):
         {
             "OPENCODE_API_KEY": "test-opencode-key",
             "GROQ_API_KEY": "test-groq-key",
+            "ENABLE_OPENCODE_PROVIDER": "true",
+            "LLM_PROVIDER_MODE": "opencode-only",
+        },
+        clear=True,
+    )
+    @mock.patch.object(LLM, "_post")
+    def test_opencode_only_mode_never_rotates_to_other_clouds(self, post):
+        post.side_effect = RuntimeError("HTTP 401: rejected")
+
+        result = LLM.chat(
+            [{"role": "user", "content": "ping"}],
+            max_tokens=8,
+            quiet=True,
+        )
+
+        self.assertEqual(result["provider"], "")
+        self.assertEqual(post.call_count, 1)
+        self.assertEqual(LLM.configured_providers(), ["opencode-go"])
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "OPENCODE_API_KEY": "test-opencode-key",
+            "GROQ_API_KEY": "test-groq-key",
         },
         clear=True,
     )

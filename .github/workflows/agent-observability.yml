@@ -20,7 +20,7 @@ jobs:
       LOCAL_LLM_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445/v1' || 'http://127.0.0.1:11434/v1' }}
       LOCAL_LLM_MODEL: ${{ github.event_name == 'schedule' && 'scheduled/gpt-oss:120b' || 'gpt-oss:120b' }}
       LOCAL_LLM_UPSTREAM_MODEL: gpt-oss:120b
-      LOCAL_LLM_API_KEY: ollama
+      LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
     outputs:
       voice: ${{ steps.voice.outcome }}
       langfuse: ${{ steps.langfuse.outcome }}

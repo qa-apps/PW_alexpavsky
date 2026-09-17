@@ -173,6 +173,22 @@ class VisionAuditReportingTests(unittest.TestCase):
         self.assertIn('PROMPTFOO_FAILED_TEST_EXIT_CODE: "0"', promptfoo)
         self.assertIn("steps.eval.outcome == 'success'", promptfoo)
 
+    def test_local_eval_workflows_use_the_gateway_secret(self):
+        for name in (
+            "agent-observability.yml",
+            "llm-quality.yml",
+            "promptfoo-basic.yml",
+            "ragas-nightly.yml",
+        ):
+            workflow = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
+            self.assertIn("LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}", workflow)
+            self.assertNotIn("LOCAL_LLM_API_KEY: ollama", workflow)
+            self.assertNotIn("LOCAL_LLM_API_KEY:-ollama", workflow)
+
+    def test_runtime_workflows_do_not_reference_openrouter(self):
+        for path in (ROOT / ".github/workflows").glob("*.yml"):
+            self.assertNotIn("OPENROUTER", path.read_text(encoding="utf-8"), path.name)
+
     def test_llm_judge_site_keeps_only_latest_retry_per_test(self):
         records = [
             {"testFile": "a.spec.ts", "titlePath": ["suite", "case"], "retry": 0, "prompt": "old"},
