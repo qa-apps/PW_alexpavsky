@@ -151,6 +151,11 @@ def main() -> int:
     parser.add_argument("--results", required=True, help="promptfoo JSON results file")
     parser.add_argument("--dashboard-url", default="", help="Optional Promptfoo web UI URL")
     parser.add_argument(
+        "--require-delivery",
+        action="store_true",
+        help="Exit non-zero instead of silently skipping when Slack delivery is impossible",
+    )
+    parser.add_argument(
         "--local-ui-url",
         default=os.environ.get("PROMPTFOO_LOCAL_UI_URL", "http://localhost:15500"),
         help="Local `promptfoo view` URL; pass an empty string to hide the button",
@@ -160,11 +165,11 @@ def main() -> int:
     token = os.environ.get("SLACK_BOT_TOKEN", "")
     if not token:
         print("SLACK_BOT_TOKEN not set; skipping Slack notification", file=sys.stderr)
-        return 0
+        return 1 if args.require_delivery else 0
 
     if not os.path.exists(args.results):
         print(f"results file {args.results} missing; skipping", file=sys.stderr)
-        return 0
+        return 1 if args.require_delivery else 0
 
     results = load_results(args.results)
     payload = build_payload(

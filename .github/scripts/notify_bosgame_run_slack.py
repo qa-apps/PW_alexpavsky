@@ -254,44 +254,58 @@ def main() -> int:
     ap.add_argument("--format", default="none",
                     choices=["none", "playwright", "promptfoo", "deepeval"])
     ap.add_argument("--results", default=None)
+    ap.add_argument(
+        "--require-delivery",
+        action="store_true",
+        help="Exit non-zero unless every required Slack message is acknowledged",
+    )
     args = ap.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "").strip()
     if not token:
         print("[notify_bosgame] SLACK_BOT_TOKEN unset — no-op.")
-        return 0
+        return 1 if args.require_delivery else 0
 
     channel = resolve_channel(token, args.channel, args.channel_name)
     if not channel:
         print("[notify_bosgame] no channel resolved — no-op.")
-        return 0
+        return 1 if args.require_delivery else 0
 
     now = _now(args.tz)
     suite = args.suite
 
     if args.event == "down":
-        _post(channel, token,
-              f":red_circle: *{suite}* — bosgame unavailable at {now} ({args.tz}). "
-              f"Tests not started; will retry on the next hourly check.")
-        return 0
+        delivered = _post(
+            channel,
+            token,
+            f":red_circle: *{suite}* — bosgame unavailable at {now} ({args.tz}). "
+            f"Tests not started; will retry on the next hourly check.",
+        )
+        return 0 if delivered or not args.require_delivery else 1
 
     if args.event == "skip":
-        _post(channel, token,
-              f":fast_forward: *{suite}* — already completed for today at {now}. Skipping.")
-        return 0
+        delivered = _post(
+            channel,
+            token,
+            f":fast_forward: *{suite}* — already completed for today at {now}. Skipping.",
+        )
+        return 0 if delivered or not args.require_delivery else 1
 
     if args.event == "up":
-        _post(channel, token,
-              f":large_green_circle: *{suite}* — bosgame available at {now} ({args.tz}). "
-              f"Warming gpt-oss and starting the suite…")
-        return 0
+        delivered = _post(
+            channel,
+            token,
+            f":large_green_circle: *{suite}* — bosgame available at {now} ({args.tz}). "
+            f"Warming gpt-oss and starting the suite…",
+        )
+        return 0 if delivered or not args.require_delivery else 1
 
     # event == result
     if args.format == "none":
         msg = (f":checkered_flag: *{suite}* — evaluation finished at {now}. "
                f"See the suite's own Slack channel for per-metric detail.")
-        _post(channel, token, msg, blocks=_button_blocks(msg, args.run_url))
-        return 0
+        delivered = _post(channel, token, msg, blocks=_button_blocks(msg, args.run_url))
+        return 0 if delivered or not args.require_delivery else 1
 
     cases = _collect(args.format, args.results)
     total = len(cases)
@@ -305,10 +319,11 @@ def main() -> int:
         + ("  ·  no parseable results" if total == 0 else "")
     )
     ts = _post(channel, token, headline, blocks=_button_blocks(headline, args.run_url))
+    delivered = bool(ts)
     if ts and cases:
         for chunk in _detail_replies(cases):
-            _post(channel, token, chunk, thread_ts=ts)
-    return 0
+            delivered = bool(_post(channel, token, chunk, thread_ts=ts)) and delivered
+    return 0 if delivered or not args.require_delivery else 1
 
 
 if __name__ == "__main__":
