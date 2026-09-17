@@ -2,12 +2,6 @@ name: AlexPavsky Daily Audit
 
 on:
   workflow_dispatch:
-    inputs:
-      max_steps:
-        description: "Maximum safe browser actions"
-        required: false
-        type: number
-        default: 8
   schedule:
     # 3 PM America/New_York. The gate handles daylight-saving time.
     - cron: '0 19 * * *'
@@ -90,14 +84,13 @@ jobs:
               >/dev/null
           done < <(curl --fail --silent --max-time 15 "$OLLAMA_BASE_URL/api/ps" | jq -r '.models[].name // empty')
 
-      - name: Run autonomous visual and functional audit
+      - name: Run required UI, AI Chat, Voice, Challenge, and Vision journeys
         id: audit
         continue-on-error: true
         env:
           BASE_URL: https://www.alexpavsky.com
           OLLAMA_BASE_URL: http://127.0.0.1:11434
           VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
-          VISION_AUDIT_MAX_STEPS: ${{ inputs.max_steps || 8 }}
           VISION_AUDIT_OUTPUT_DIR: vision-audit
           PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
         run: node .github/scripts/vision_audit_agent.mjs

@@ -64,6 +64,8 @@ def finding_list(findings: list[dict]) -> str:
 
 def browser_evidence(evidence: dict) -> str:
     problems: list[str] = []
+    for check in evidence.get("deterministic_checks") or []:
+        problems.append(f"<li><strong>Passed:</strong> {h(check)}</li>")
     for label, key in (
         ("Console", "console_errors"),
         ("Page", "page_errors"),
@@ -81,25 +83,19 @@ def step_html(step: dict) -> str:
     screenshot_name = Path(str(step.get("screenshot", ""))).name
     screenshot = f"screenshots/{screenshot_name}" if screenshot_name else ""
     decision = step.get("decision") or {}
-    action = decision.get("next_action_executed") or decision.get("next_action") or {}
     action_result = step.get("action_result") or {}
     verdict = str(step.get("verdict", "unknown"))
     verdict_class = "pass" if verdict == "passed" else "fail"
-    action_label = action.get("kind", "none")
-    if action.get("element_id"):
-        action_label += f" {action['element_id']}"
-    if action.get("direction"):
-        action_label += f" {action['direction']}"
-    actual_action = action_result.get("action") or action_result.get("rejected") or (
-        "finished" if action_result.get("finished") else "not executed"
-    )
+    actual_action = action_result.get("action") or action_result.get("rejected") or "not executed"
+    scenario_input = step.get("scenario_input") or "No text input required."
+    scenario_output = step.get("scenario_output") or "The browser assertions and screenshot are the output."
     candidate_findings = step.get("candidate_findings") or []
     confirmed_findings = step.get("confirmed_findings") or []
     return f"""
     <article class="test-case" id="test-{number}">
       <header>
         <div><span class="case-id">{h(step.get('test_case_id', f'VISION-{number:03d}'))}</span>
-        <h2>{h(step.get('title') or step.get('url') or 'Untitled page')}</h2></div>
+        <h2>{h(step.get('test_case_name') or step.get('title') or step.get('url') or 'Untitled page')}</h2></div>
         <span class="verdict {verdict_class}">{h(verdict.upper())}</span>
       </header>
       <p class="url"><a href="{h(step.get('url'))}">{h(step.get('url'))}</a></p>
@@ -112,12 +108,12 @@ def step_html(step: dict) -> str:
             <dt>Objective</dt><dd>{h(step.get('objective'))}</dd>
             <dt>Expected</dt><dd>{h(step.get('expected_result'))}</dd>
             <dt>Actual</dt><dd>{h(step.get('actual_result'))}</dd>
+            <dt>Input</dt><dd><pre>{h(scenario_input)}</pre></dd>
+            <dt>Output</dt><dd><pre>{h(scenario_output)}</pre></dd>
           </dl>
-          <h3>Local LLM decision</h3>
+          <h3>Local Vision review</h3>
           <p>{h(step.get('summary'))}</p>
           <dl>
-            <dt>Chosen action</dt><dd><code>{h(action_label)}</code></dd>
-            <dt>Reason</dt><dd>{h(action.get('reason'))}</dd>
             <dt>Execution</dt><dd><code>{h(actual_action)}</code></dd>
             <dt>Latency</dt><dd>{h(step.get('model_latency_ms', 0))} ms</dd>
           </dl>
@@ -154,16 +150,16 @@ main{{max-width:1240px;margin:0 auto;padding:28px 22px 72px}} a{{color:var(--blu
 .metrics{{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px;margin:18px 0 26px}} .metric{{border:1px solid var(--line);border-radius:6px;padding:12px}} .metric b{{display:block;font-size:20px}} .metric span{{color:var(--muted)}}
 .test-case{{border-top:3px solid #24292f;padding:18px 0 28px;margin-top:24px}} .test-case header{{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}} .case-id{{font:12px ui-monospace,SFMono-Regular,monospace;color:var(--gold)}}
 .case-grid{{display:grid;grid-template-columns:minmax(360px,1.15fr) minmax(320px,.85fr);gap:24px;align-items:start}} .shot img{{display:block;width:100%;border:1px solid var(--line);border-radius:6px;background:var(--soft)}}
-dl{{display:grid;grid-template-columns:110px 1fr;gap:7px 12px;margin:0}} dt{{font-weight:600;color:var(--muted)}} dd{{margin:0;min-width:0;overflow-wrap:anywhere}} code{{font:12px ui-monospace,SFMono-Regular,monospace;background:var(--soft);padding:2px 4px;border-radius:4px}}
+dl{{display:grid;grid-template-columns:110px 1fr;gap:7px 12px;margin:0}} dt{{font-weight:600;color:var(--muted)}} dd{{margin:0;min-width:0;overflow-wrap:anywhere}} code,pre{{font:12px/1.5 ui-monospace,SFMono-Regular,monospace;background:var(--soft);padding:2px 4px;border-radius:4px}} pre{{white-space:pre-wrap;margin:0;padding:8px;max-height:240px;overflow:auto}}
 .details-grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}} .details-grid section{{border-top:1px solid var(--line)}} ul{{padding-left:20px}} .findings li{{margin-bottom:10px}} .findings p{{margin:3px 0;color:var(--muted)}} .severity{{font:11px ui-monospace,SFMono-Regular,monospace;color:var(--red);margin-right:7px}}
 video{{width:100%;max-width:900px;border:1px solid var(--line);border-radius:6px;background:#000}}
 @media(max-width:820px){{.top,.test-case header{{align-items:flex-start}}.metrics{{grid-template-columns:repeat(2,1fr)}}.case-grid,.details-grid{{grid-template-columns:1fr}}.case-grid{{gap:12px}}}}
 </style></head><body><main>
 <p><a href="../../index.html">All Daily Audit runs</a></p>
 <div class="top"><div><h1>AlexPavsky Daily Audit #{h(RUN_NUMBER)}</h1><p class="meta">{h(TIMESTAMP)} UTC · commit {h(COMMIT_SHA or 'unknown')} · {f'<a href="{h(run_url)}">GitHub run</a>' if run_url else 'local build'}</p></div><span class="status {status_class}">{h(status.upper())}</span></div>
-<div class="proof"><strong>Local LLM only.</strong> Provider: {h(provenance.get('provider', 'Ollama'))}; endpoint: <code>{h(provenance.get('endpoint', 'unknown'))}</code>; model: <code>{h(provenance.get('model', report.get('model', 'unknown')))}</code>; cloud LLM calls: <strong>{h(provenance.get('cloud_llm_calls', 0))}</strong>.</div>
+<div class="proof"><strong>Local audit evaluator only.</strong> Provider: {h(provenance.get('provider', 'Ollama'))}; endpoint: <code>{h(provenance.get('endpoint', 'unknown'))}</code>; model: <code>{h(provenance.get('model', report.get('model', 'unknown')))}</code>; cloud evaluator calls: <strong>{h(provenance.get('cloud_llm_calls', 0))}</strong>. AI Chat, Voice, and Challenge are production systems under test and may use their own configured providers.</div>
 <div class="metrics"><div class="metric"><b>{len(steps)}</b><span>documented test cases</span></div><div class="metric"><b>{h(usage.get('calls', 0))}</b><span>local Vision calls</span></div><div class="metric"><b>{h(usage.get('prompt_tokens', 0))}</b><span>input tokens</span></div><div class="metric"><b>{h(usage.get('completion_tokens', 0))}</b><span>output tokens</span></div><div class="metric"><b>{len(report.get('confirmed_findings') or [])}</b><span>confirmed defects</span></div></div>
-<p>Test cases are generated dynamically by the local Vision agent. Every case below records the input page state, screenshot, objective, expected result, model reasoning, selected action, actual browser result, and calibrated verdict.</p>
+<p>The run executes ten required UI openings plus live AI Chat, Voice Agent, and Challenge journeys. Every case records its screenshot, objective, expected result, exact input and output, deterministic browser checks, local Vision review, and calibrated verdict.</p>
 {test_cases}
 <section><h2>Full session recording</h2>{f'<video controls preload="metadata" src="{h(video)}"></video>' if video else '<p class="empty">No video produced.</p>'}</section>
 <p class="meta"><a href="vision-audit-report.json">Raw JSON decision trail</a></p>

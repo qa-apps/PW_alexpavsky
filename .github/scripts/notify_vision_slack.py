@@ -75,22 +75,14 @@ def screenshot_url(dashboard_url: str, screenshot: str) -> str:
 
 
 def action_description(step: dict) -> tuple[str, str, str]:
-    decision = step.get("decision") or {}
-    action = decision.get("next_action_executed") or decision.get("next_action") or {}
     result = step.get("action_result") or {}
-    selected = str(action.get("kind") or "none")
-    if action.get("element_id"):
-        selected += f" {action['element_id']}"
-    if action.get("direction"):
-        selected += f" {action['direction']}"
-    actual = result.get("action") or result.get("rejected") or (
-        "finished" if result.get("finished") else "not executed"
-    )
-    return selected, str(action.get("reason") or ""), str(actual)
+    actual = result.get("action") or result.get("rejected") or "not executed"
+    checks = "; ".join(result.get("checks") or [])
+    return str(actual), checks, "passed" if result.get("executed") else "failed"
 
 
 def test_case_blocks(step: dict, dashboard_url: str) -> list[dict]:
-    selected, reason, actual = action_description(step)
+    selected, checks, actual = action_description(step)
     case_id = step.get("test_case_id") or f"VISION-{int(step.get('step', 0)):03d}"
     verdict = str(step.get("verdict") or "unknown").upper()
     marker = ":white_check_mark:" if verdict == "PASSED" else ":x:"
@@ -105,7 +97,8 @@ def test_case_blocks(step: dict, dashboard_url: str) -> list[dict]:
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    f"{marker} *Dynamic local-agent test case*\n"
+                    f"{marker} *Required browser journey + local Vision review*\n"
+                    f"*Case:* {slack_text(step.get('test_case_name') or case_id)}\n"
                     f"*Page:* {slack_text(step.get('title') or step.get('url'))}\n"
                     f"*URL:* {slack_text(step.get('url'))}"
                 ),
@@ -126,9 +119,11 @@ def test_case_blocks(step: dict, dashboard_url: str) -> list[dict]:
                 "type": "mrkdwn",
                 "text": (
                     f"*Local Vision analysis*\n{slack_text(step.get('summary'))}\n\n"
-                    f"*Chosen action:* `{slack_text(selected, 150)}`\n"
-                    f"*Why:* {slack_text(reason)}\n"
-                    f"*Browser result:* `{slack_text(actual, 250)}`"
+                    f"*Browser action:* `{slack_text(selected, 250)}`\n"
+                    f"*Checks:* {slack_text(checks or 'No completed assertions')}\n"
+                    f"*Deterministic result:* `{slack_text(actual, 80)}`\n\n"
+                    f"*Input*\n{slack_text(step.get('scenario_input') or 'No text input required.')}\n\n"
+                    f"*Output*\n{slack_text(step.get('scenario_output') or 'See browser checks and screenshot.') }"
                 ),
             },
         },
@@ -219,10 +214,11 @@ def main() -> None:
         f"{marker} *AlexPavsky Daily Audit - {status.upper()}*\n"
         f"_{meaning}_\n"
         f"*Model:* `{report.get('model', 'unknown')}`\n"
-        f"*LLM execution:* `{provenance.get('execution', 'local-only')}` via "
+        f"*Audit evaluator:* `{provenance.get('execution', 'local-only')}` via "
         f"`{provenance.get('provider', 'Ollama')}` at `{provenance.get('endpoint', 'local endpoint')}`\n"
-        f"*Cloud LLM calls:* *{provenance.get('cloud_llm_calls', 0)}*\n"
-        f"*Coverage:* {len(steps)} agent steps, "
+        f"*Cloud evaluator calls:* *{provenance.get('cloud_llm_calls', 0)}*\n"
+        "_Production AI Chat, Voice, and Challenge may use their own configured providers._\n"
+        f"*Coverage:* {len(steps)} documented journeys, "
         f"{len(report.get('pages_observed') or [])} unique URLs\n"
         f"*Vision usage:* {usage.get('calls', 0)} local calls, "
         f"{usage.get('prompt_tokens', 0)} input tokens, "
@@ -232,7 +228,7 @@ def main() -> None:
         f"*Findings:*\n" + "\n".join(finding_lines(report)) + "\n"
         f"*Evidence:* {' | '.join(media_links) if media_links else 'screenshots, video, and raw JSON are in the full report'}\n"
         f"{' | '.join(link for link in (dashboard_link, run_link) if link)}\n"
-        f"Each dynamic test case is documented in this thread."
+        f"Every UI opening and AI input/output pair is documented in this thread."
     )
     result = slack_post(token, "chat.postMessage", {"channel": args.channel, "text": text})
     if not result.get("ok"):
