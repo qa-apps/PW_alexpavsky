@@ -228,7 +228,7 @@ jobs:
               if grep -Eqi '(^|[^0-9])(HTTP (423|503)|status( code)?[:= ]+(423|503)|service unavailable|ECONNRESET|socket hang up|connection refused)([^0-9]|$)' "$attempt_log"; then
                 infra_no_output=true
               fi
-            elif python3 -c 'import json,sys; results=json.load(open(sys.argv[1], encoding="utf-8")).get("results", {}).get("results", []); transient=("423", "503", "service unavailable", "econnreset", "socket hang up", "connection refused"); transport=sum(1 for result in results if any(marker in str(result.get("error", "")).lower() for marker in transient)); fast_blank=sum(1 for result in results if result.get("error") == "No output" and not str((result.get("response") or {}).get("output", "")).strip() and isinstance(result.get("latencyMs"), (int, float)) and result["latencyMs"] < 1000); raise SystemExit(0 if transport > 0 or (results and fast_blank > len(results) / 2) else 1)' "$attempt_results"
+            elif python3 -c 'import json,re,sys; results=json.load(open(sys.argv[1], encoding="utf-8")).get("results", {}).get("results", []); transient=re.compile(r"(?:\bHTTP\s*(?:423|503)\b|\bstatus(?: code)?\s*[:=]?\s*(?:423|503)\b|\bservice unavailable\b|\bECONNRESET\b|\bsocket hang up\b|\bconnection refused\b)", re.I); transport=sum(1 for result in results if transient.search(str(result.get("error", "")))); fast_blank=sum(1 for result in results if result.get("error") == "No output" and not str((result.get("response") or {}).get("output", "")).strip() and isinstance(result.get("latencyMs"), (int, float)) and result["latencyMs"] < 1000); raise SystemExit(0 if transport > 0 or (results and fast_blank > len(results) / 2) else 1)' "$attempt_results"
             then
               infra_no_output=true
             elif [ "$(python3 -c 'import json,sys; print(len(json.load(open(sys.argv[1], encoding="utf-8")).get("results", {}).get("results", [])))' "$attempt_results")" -lt "$expected_count" ]; then
@@ -262,6 +262,13 @@ jobs:
         continue-on-error: true
         run: |
           node -e 'const fs=require("fs"); const YAML=require("yaml"); const config=YAML.parse(fs.readFileSync(process.argv[1], "utf8")); const results=JSON.parse(fs.readFileSync(process.argv[2], "utf8")).results?.results ?? []; const providerIds=config.providers.map(provider => typeof provider === "string" ? provider : provider.id); const expected=[]; for (let testIdx=0; testIdx<config.tests.length; testIdx++) for (let promptIdx=0; promptIdx<config.prompts.length; promptIdx++) for (const providerId of providerIds) expected.push({testIdx,promptIdx,providerId,description:config.tests[testIdx].description,vars:config.tests[testIdx].vars}); const actual=results.map(result => ({testIdx:result.testIdx,promptIdx:result.promptIdx,providerId:result.provider?.id,description:result.testCase?.description,vars:result.vars})).sort((a,b) => a.testIdx-b.testIdx || a.promptIdx-b.promptIdx || a.providerId.localeCompare(b.providerId)); expected.sort((a,b) => a.testIdx-b.testIdx || a.promptIdx-b.promptIdx || a.providerId.localeCompare(b.providerId)); if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(`test identities differ: expected ${JSON.stringify(expected)}, found ${JSON.stringify(actual)}`); const invalid=results.filter(result => result.error || !String(result.response?.output ?? "").trim()); if (invalid.length) throw new Error(`found ${invalid.length} error or empty-output results`);' promptfooconfig.yaml promptfoo-results.json
+
+      - name: Verify all Promptfoo assertions passed
+        id: assertions_passed
+        if: always() && steps.validate_results.outcome == 'success'
+        continue-on-error: true
+        run: |
+          node -e 'const fs=require("fs"); const results=JSON.parse(fs.readFileSync(process.argv[1], "utf8")).results?.results ?? []; const failed=results.filter(result => result.success !== true); if (failed.length) throw new Error(`${failed.length} Promptfoo assertions failed`);' promptfoo-results.json
 
       - name: Upload promptfoo results
         id: upload_results
@@ -349,7 +356,7 @@ jobs:
 
       - name: Mark reporting complete
         id: completion_ready
-        if: always() && steps.local_llm.outputs.run == 'true' && steps.eval.outcome == 'success' && steps.validate_results.outcome == 'success' && steps.upload_results.outcome == 'success' && steps.build_site.outcome == 'success' && steps.upload_pages.outcome == 'success' && steps.notify_slack.outcome == 'success' && steps.nightly_results.outcome == 'success'
+        if: always() && steps.local_llm.outputs.run == 'true' && steps.eval.outcome == 'success' && steps.validate_results.outcome == 'success' && steps.assertions_passed.outcome == 'success' && steps.upload_results.outcome == 'success' && steps.build_site.outcome == 'success' && steps.upload_pages.outcome == 'success' && steps.notify_slack.outcome == 'success' && steps.nightly_results.outcome == 'success'
         run: echo "ready=true" >> "$GITHUB_OUTPUT"
 
       # Keep report publishing and Slack notification above this gate, then
