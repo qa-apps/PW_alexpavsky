@@ -662,9 +662,8 @@ def main() -> None:
         sys.exit(1)
 
     if not llm_client.configured_providers():
-        print("No LLM API keys in env (need one of: "
-              "OPENCODE_API_KEY, GROQ_API_KEY, CEREBRAS_API_KEY, SAMBANOVA_API_KEY, "
-              "MISTRAL_API_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY, HF_TOKEN)",
+        print("OpenCode is not configured for agent-fix "
+              "(OPENCODE_API_KEY is missing or OpenCode is disabled)",
               file=sys.stderr)
         sys.exit(1)
 
