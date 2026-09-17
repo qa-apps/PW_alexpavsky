@@ -1,0 +1,202 @@
+name: AlexPavsky Daily Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 3 PM America/New_York. The gate handles daylight-saving time.
+    - cron: '0 19 * * *'
+    - cron: '0 20 * * *'
+
+concurrency:
+  group: agentic-vision-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions: read-all
+
+jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$(TZ=America/New_York date +%H)" == "15" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  vision-audit:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
+    runs-on: [self-hosted, Linux, X64, bosgame]
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      REPO_DIR: ${{ github.workspace }}/daily-audit-source
+      PAGES_DIR: ${{ github.workspace }}/daily-audit-pages
+      SITE_DIR: ${{ github.workspace }}/daily-audit-site
+      AUDIT_DEPS_DIR: ${{ github.workspace }}/.daily-audit-deps/playwright-1.58.2
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+      PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
+      OLLAMA_BASE_URL: http://127.0.0.1:11435
+      VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+    steps:
+      - name: Bootstrap source without marketplace actions
+        id: bootstrap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          AUTH_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if [[ -d "$REPO_DIR/.git" ]]; then
+            git -C "$REPO_DIR" remote set-url origin "$AUTH_URL"
+            git -C "$REPO_DIR" fetch --depth 1 origin "$GITHUB_SHA"
+          else
+            mkdir -p "$REPO_DIR"
+            git clone --filter=blob:none --no-checkout "$AUTH_URL" "$REPO_DIR"
+            git -C "$REPO_DIR" fetch --depth 1 origin "$GITHUB_SHA"
+          fi
+          git -C "$REPO_DIR" checkout --detach "$GITHUB_SHA"
+
+          NODE_BIN_DIR=$(find "${RUNNER_TOOL_CACHE:-/nonexistent}/node" -type d -path '*/x64/bin' 2>/dev/null | sort -V | tail -1 || true)
+          if [[ -z "$NODE_BIN_DIR" || ! -x "$NODE_BIN_DIR/node" ]]; then
+            RUNNER_ROOT=$(dirname "$(dirname "$RUNNER_TEMP")")
+            NODE_BIN_DIR="$RUNNER_ROOT/externals/node24/bin"
+          fi
+          echo "$NODE_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$NODE_BIN_DIR:$PATH"
+          node --version
+
+          mkdir -p "$AUDIT_DEPS_DIR" "$GITHUB_WORKSPACE/.npm-home" "$GITHUB_WORKSPACE/.npm-cache"
+          export HOME="$GITHUB_WORKSPACE/.npm-home"
+          export npm_config_cache="$GITHUB_WORKSPACE/.npm-cache"
+          if command -v npm >/dev/null 2>&1; then
+            npm install --prefix "$AUDIT_DEPS_DIR" --no-audit --no-fund --ignore-scripts @playwright/test@1.58.2
+            npm exec --prefix "$AUDIT_DEPS_DIR" -- playwright install chromium
+          else
+            RUNNER_ROOT=$(dirname "$(dirname "$RUNNER_TEMP")")
+            NPM_CLI="$RUNNER_ROOT/externals/node24/lib/node_modules/npm/bin/npm-cli.js"
+            node "$NPM_CLI" install --prefix "$AUDIT_DEPS_DIR" --no-audit --no-fund --ignore-scripts @playwright/test@1.58.2
+            node "$NPM_CLI" exec --prefix "$AUDIT_DEPS_DIR" -- playwright install chromium
+          fi
+
+      - name: Wait for local Vision model
+        id: model
+        continue-on-error: true
+        shell: bash
+        run: |
+          for attempt in {1..40}; do
+            if curl --fail --silent --max-time 10 "$OLLAMA_BASE_URL/api/tags" | \
+              python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("name") == wanted for m in data.get("models", [])) else 1)' "$VISION_MODEL"; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Vision model was not available after 10 minutes."
+          exit 1
+
+      - name: Release other resident models from RAM
+        if: steps.model.outcome == 'success'
+        shell: bash
+        run: |
+          while IFS= read -r resident; do
+            [[ -z "$resident" || "$resident" == "$VISION_MODEL" ]] && continue
+            echo "Releasing resident model from RAM: $resident"
+            curl --fail --silent --max-time 60 "$OLLAMA_BASE_URL/api/generate" \
+              -d "$(jq -n --arg model "$resident" '{model:$model,keep_alive:0}')" \
+              >/dev/null
+          done < <(curl --fail --silent --max-time 15 "$OLLAMA_BASE_URL/api/ps" | jq -r '.models[].name // empty')
+
+      - name: Run required UI, AI Chat, Voice, Challenge, and Vision journeys
+        id: audit
+        if: steps.model.outcome == 'success'
+        continue-on-error: true
+        env:
+          BASE_URL: https://www.alexpavsky.com
+          PLAYWRIGHT_PACKAGE_PATH: ${{ github.workspace }}/.daily-audit-deps/playwright-1.58.2/node_modules/@playwright/test
+          VISION_AUDIT_OUTPUT_DIR: ${{ github.workspace }}/daily-audit-source/vision-audit
+        shell: bash
+        run: |
+          cd "$REPO_DIR"
+          node .github/scripts/vision_audit_agent.mjs
+
+      - name: Build and publish detailed Daily Audit UI
+        id: publish
+        if: always() && steps.bootstrap.outcome == 'success'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ID: ${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          REPO_SLUG: ${{ github.repository }}
+          VISION_AUDIT_SOURCE: ${{ github.workspace }}/daily-audit-source/vision-audit
+          VISION_AUDIT_EXISTING: ${{ github.workspace }}/daily-audit-pages
+          VISION_AUDIT_SITE: ${{ github.workspace }}/daily-audit-site
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$REPO_DIR/vision-audit/vision-audit-report.json"
+          [[ -f "$REPORT" ]] || { echo "No Vision report to publish."; exit 1; }
+          AUTH_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if [[ -d "$PAGES_DIR/.git" ]]; then
+            git -C "$PAGES_DIR" remote set-url origin "$AUTH_URL"
+            git -C "$PAGES_DIR" pull --ff-only origin gh-pages
+          else
+            git clone --branch gh-pages --single-branch "$AUTH_URL" "$PAGES_DIR"
+          fi
+          cd "$REPO_DIR"
+          python3 scripts/build_vision_audit_site.py
+          cp -a "$SITE_DIR"/. "$PAGES_DIR"/
+          git -C "$PAGES_DIR" config user.name "github-actions[bot]"
+          git -C "$PAGES_DIR" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$PAGES_DIR" add .nojekyll vision-audit
+          if ! git -C "$PAGES_DIR" diff --cached --quiet; then
+            git -C "$PAGES_DIR" commit -m "vision audit site: run #${RUN_NUMBER}"
+            git -C "$PAGES_DIR" push origin gh-pages
+          fi
+
+      - name: Post summary and every test case to Slack
+        id: notify
+        if: always() && steps.bootstrap.outcome == 'success'
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+          export VISION_AUDIT_DASHBOARD_URL="https://${OWNER_LC}.github.io/${REPO_NAME}/vision-audit/runs/${{ github.run_number }}/"
+          curl --fail --silent --show-error \
+            --retry 20 --retry-delay 5 --retry-all-errors --retry-max-time 120 \
+            "$VISION_AUDIT_DASHBOARD_URL" >/dev/null || \
+            echo "Daily Audit UI is still deploying; Slack links will become available shortly."
+          cd "$REPO_DIR"
+          python3 .github/scripts/notify_vision_slack.py \
+            --report "$REPO_DIR/vision-audit/vision-audit-report.json" \
+            --channel "${{ secrets.SLACK_UI_CODEX_CHANNEL_ID }}"
+
+      - name: Finalize Daily Audit status
+        if: always()
+        shell: bash
+        run: |
+          failed=0
+          for outcome in \
+            "${{ steps.model.outcome }}" \
+            "${{ steps.audit.outcome }}" \
+            "${{ steps.publish.outcome }}" \
+            "${{ steps.notify.outcome }}"; do
+            [[ "$outcome" == "failure" ]] && failed=1
+          done
+          exit "$failed"
