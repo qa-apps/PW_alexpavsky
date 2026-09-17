@@ -7,7 +7,7 @@ on:
       - "LLM Quality (LLM Judge tests)"
       - "LLM Eval Nightly (Ragas + Giskard)"
       - "Daily Design Check (visual + structural regression)"
-      - "Daily Agentic Vision Audit"
+      - "AlexPavsky Daily Audit"
       - "k6 Performance"
       - "promptfoo Daily Eval"
       - "Agent Observability Dashboards"

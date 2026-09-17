@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish an Agentic Vision Audit report and selected media to Slack."""
+"""Publish an evidence-first Agentic Vision Audit report to Slack."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ import os
 import sys
 import urllib.request
 from pathlib import Path
+from urllib.parse import quote
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 
@@ -57,11 +58,89 @@ def upload_file(token: str, channel: str, file_path: str, title: str) -> str:
     return files[0].get("permalink", "") if files else ""
 
 
-def selected_steps(steps: list[dict]) -> list[dict]:
-    if len(steps) <= 3:
-        return steps
-    indexes = sorted({0, len(steps) // 2, len(steps) - 1})
-    return [steps[index] for index in indexes]
+def slack_text(value: object, limit: int = 900) -> str:
+    return (
+        str(value or "")
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")[:limit]
+    )
+
+
+def screenshot_url(dashboard_url: str, screenshot: str) -> str:
+    name = Path(str(screenshot or "")).name
+    if not dashboard_url or not name:
+        return ""
+    return f"{dashboard_url.rstrip('/')}/screenshots/{quote(name)}"
+
+
+def action_description(step: dict) -> tuple[str, str, str]:
+    decision = step.get("decision") or {}
+    action = decision.get("next_action_executed") or decision.get("next_action") or {}
+    result = step.get("action_result") or {}
+    selected = str(action.get("kind") or "none")
+    if action.get("element_id"):
+        selected += f" {action['element_id']}"
+    if action.get("direction"):
+        selected += f" {action['direction']}"
+    actual = result.get("action") or result.get("rejected") or (
+        "finished" if result.get("finished") else "not executed"
+    )
+    return selected, str(action.get("reason") or ""), str(actual)
+
+
+def test_case_blocks(step: dict, dashboard_url: str) -> list[dict]:
+    selected, reason, actual = action_description(step)
+    case_id = step.get("test_case_id") or f"VISION-{int(step.get('step', 0)):03d}"
+    verdict = str(step.get("verdict") or "unknown").upper()
+    marker = ":white_check_mark:" if verdict == "PASSED" else ":x:"
+    image_url = screenshot_url(dashboard_url, step.get("screenshot", ""))
+    blocks = [
+        {
+            "type": "header",
+            "text": {"type": "plain_text", "text": f"{case_id} - {verdict}"[:150]},
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f"{marker} *Dynamic local-agent test case*\n"
+                    f"*Page:* {slack_text(step.get('title') or step.get('url'))}\n"
+                    f"*URL:* {slack_text(step.get('url'))}"
+                ),
+            },
+        },
+        {
+            "type": "section",
+            "fields": [
+                {"type": "mrkdwn", "text": f"*Objective*\n{slack_text(step.get('objective'))}"},
+                {"type": "mrkdwn", "text": f"*Expected*\n{slack_text(step.get('expected_result'))}"},
+                {"type": "mrkdwn", "text": f"*Actual*\n{slack_text(step.get('actual_result'))}"},
+                {"type": "mrkdwn", "text": f"*Local model latency*\n{step.get('model_latency_ms', 0)} ms"},
+            ],
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f"*Local Vision analysis*\n{slack_text(step.get('summary'))}\n\n"
+                    f"*Chosen action:* `{slack_text(selected, 150)}`\n"
+                    f"*Why:* {slack_text(reason)}\n"
+                    f"*Browser result:* `{slack_text(actual, 250)}`"
+                ),
+            },
+        },
+    ]
+    if image_url:
+        blocks.append({
+            "type": "image",
+            "image_url": image_url,
+            "alt_text": f"Screenshot for {case_id}"[:2000],
+            "title": {"type": "plain_text", "text": f"{case_id} screenshot"[:2000]},
+        })
+    return blocks
 
 
 def finding_lines(report: dict) -> list[str]:
@@ -109,26 +188,40 @@ def main() -> None:
     status = report.get("status", "failed")
     marker = ":white_check_mark:" if status == "passed" else ":x:"
     steps = report.get("steps") or []
+    dashboard_url = os.environ.get("VISION_AUDIT_DASHBOARD_URL", "").strip()
     media_links = []
-    for step in selected_steps(steps):
-        link = upload_file(
-            token, args.channel, step.get("screenshot", ""),
-            f"Vision audit step {step.get('step')}: {step.get('title') or step.get('url')}",
-        )
-        if link:
-            media_links.append(f"<{link}|step {step.get('step')} screenshot>")
+    if not dashboard_url:
+        for step in steps:
+            link = upload_file(
+                token, args.channel, step.get("screenshot", ""),
+                f"Vision audit step {step.get('step')}: {step.get('title') or step.get('url')}",
+            )
+            if link:
+                media_links.append(f"<{link}|step {step.get('step')} screenshot>")
 
     video = report.get("video") or ""
-    video_link = upload_file(token, args.channel, video, "Agentic Vision Audit recording")
-    if video_link:
-        media_links.append(f"<{video_link}|session video>")
+    if not dashboard_url:
+        video_link = upload_file(token, args.channel, video, "Agentic Vision Audit recording")
+        if video_link:
+            media_links.append(f"<{video_link}|session video>")
 
     run_url = os.environ.get("GITHUB_RUN_URL", "")
     usage = report.get("model_usage") or {}
+    provenance = report.get("model_provenance") or {}
     run_link = f"<{run_url}|Open GitHub run>" if run_url else ""
+    dashboard_link = f"<{dashboard_url}|Open full Daily Audit UI>" if dashboard_url else ""
+    meaning = (
+        "PASS means no calibrated defect was confirmed."
+        if status == "passed"
+        else "FAIL means at least one calibrated defect or infrastructure error was confirmed."
+    )
     text = (
-        f"{marker} *Daily Agentic Vision Audit - {status.upper()}*\n"
+        f"{marker} *AlexPavsky Daily Audit - {status.upper()}*\n"
+        f"_{meaning}_\n"
         f"*Model:* `{report.get('model', 'unknown')}`\n"
+        f"*LLM execution:* `{provenance.get('execution', 'local-only')}` via "
+        f"`{provenance.get('provider', 'Ollama')}` at `{provenance.get('endpoint', 'local endpoint')}`\n"
+        f"*Cloud LLM calls:* *{provenance.get('cloud_llm_calls', 0)}*\n"
         f"*Coverage:* {len(steps)} agent steps, "
         f"{len(report.get('pages_observed') or [])} unique URLs\n"
         f"*Vision usage:* {usage.get('calls', 0)} local calls, "
@@ -137,12 +230,31 @@ def main() -> None:
         f"*Candidate observations:* {len(report.get('candidate_findings') or [])} "
         f"(only calibrated findings can fail CI)\n"
         f"*Findings:*\n" + "\n".join(finding_lines(report)) + "\n"
-        f"*Media:* {' | '.join(media_links) if media_links else 'available in GitHub artifacts'}\n"
-        f"{run_link}"
+        f"*Evidence:* {' | '.join(media_links) if media_links else 'screenshots, video, and raw JSON are in the full report'}\n"
+        f"{' | '.join(link for link in (dashboard_link, run_link) if link)}\n"
+        f"Each dynamic test case is documented in this thread."
     )
     result = slack_post(token, "chat.postMessage", {"channel": args.channel, "text": text})
     if not result.get("ok"):
         print(f"Slack message failed: {result.get('error')}", file=sys.stderr)
+        return
+
+    thread_ts = result.get("ts")
+    if not thread_ts:
+        return
+    for step in steps:
+        case_id = step.get("test_case_id") or f"step {step.get('step')}"
+        thread_result = slack_post(token, "chat.postMessage", {
+            "channel": args.channel,
+            "thread_ts": thread_ts,
+            "text": f"{case_id}: {step.get('summary') or 'No model summary.'}",
+            "blocks": test_case_blocks(step, dashboard_url),
+        })
+        if not thread_result.get("ok"):
+            print(
+                f"Slack test-case message failed for {case_id}: {thread_result.get('error')}",
+                file=sys.stderr,
+            )
 
 
 if __name__ == "__main__":
