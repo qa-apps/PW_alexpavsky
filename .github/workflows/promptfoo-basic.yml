@@ -25,7 +25,6 @@ jobs:
     env:
       LLM_CATALOG_URL: http://127.0.0.1:11434
       OLLAMA_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445' || 'http://127.0.0.1:11434' }}
-      OLLAMA_API_KEY: ollama
       LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '0' }}
       REQUEST_TIMEOUT_MS: '180000'
       LOCAL_LLM_MODEL: gpt-oss:120b
@@ -61,12 +60,17 @@ jobs:
         if: steps.daily_marker.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error "$LLM_CATALOG_URL/v1/models") && \
-             python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("id") == wanted for m in data.get("data", [])) else 1)' "$LOCAL_LLM_MODEL" <<<"$models"; then
+          # Since 2026-09-14 the gateway answers 401 without a key; send the runner-provided one.
+          # promptfoo's ollama provider reads OLLAMA_API_KEY, so export the same key.
+          KEY="${LOCAL_LLM_API_KEY:-${OLLAMA_API_KEY:-ollama}}"
+          echo "::add-mask::$KEY"
+          echo "OLLAMA_API_KEY=$KEY" >> "$GITHUB_ENV"
+          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error -H "Authorization: Bearer $KEY" "$LLM_CATALOG_URL/v1/models") && \
+             python3 -c 'import json,sys; wanted=[w for w in sys.argv[1:] if w]; ids=[m.get("id") for m in json.load(sys.stdin).get("data", [])]; ok=any(w in ids for w in wanted); ok or print(f"::warning::None of {wanted} is listed by the model catalog; available: {ids}"); raise SystemExit(0 if ok else 1)' "$LOCAL_LLM_MODEL" <<<"$models"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Local model unavailable; the next hourly schedule will retry."
+            echo "::warning::Local model unavailable (reason above); the next hourly schedule will retry."
           fi
 
       - name: Nightly Bosgame — report unavailable

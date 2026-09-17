@@ -44,9 +44,13 @@ jobs:
       LOCAL_LLM_UPSTREAM_MODEL: gpt-oss:120b
       LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '0' }}
       LOCAL_EMBEDDING_MODEL: qwen3-embedding:4b
-      LOCAL_LLM_API_KEY: ollama
+      # LOCAL_LLM_API_KEY is not pinned here so a gateway key exported by the
+      # bosgame runner service (EnvironmentFile llm-gateway.env) is used;
+      # code and checks fall back to "ollama" when it is absent.
       LOCAL_LLM_TIMEOUT_SEC: '180'
       LOCAL_LLM_TIMEOUT_MS: '180000'
+      LOCAL_LLM_MAX_TOKENS: '2048'
+      LOCAL_LLM_REASONING_EFFORT: low
 
     steps:
       - name: Checkout
@@ -78,14 +82,17 @@ jobs:
         if: steps.daily_marker.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error "$LLM_CATALOG_URL/v1/models") && \
-             python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("id") == wanted for m in data.get("data", [])) else 1)' "$LOCAL_LLM_MODEL" <<<"$models" && \
-             tags=$(curl --connect-timeout 5 --max-time 30 --fail --silent --show-error -H "X-LLM-Job-ID: $GITHUB_RUN_ID" -H "X-LLM-Model: $LOCAL_LLM_UPSTREAM_MODEL" "$OLLAMA_BASE_URL/api/tags") && \
-             python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("name") == wanted for m in data.get("models", [])) else 1)' "$LOCAL_EMBEDDING_MODEL" <<<"$tags"; then
+          # Since 2026-09-14 the gateway answers 401 without a key; send the runner-provided one.
+          AUTH="Authorization: Bearer ${LOCAL_LLM_API_KEY:-ollama}"
+          # The catalog lists the upstream id; the scheduled alias may be routed without being listed.
+          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error -H "$AUTH" "$LLM_CATALOG_URL/v1/models") && \
+             python3 -c 'import json,sys; wanted=[w for w in sys.argv[1:] if w]; ids=[m.get("id") for m in json.load(sys.stdin).get("data", [])]; ok=any(w in ids for w in wanted); ok or print(f"::warning::None of {wanted} is listed by the model catalog; available: {ids}"); raise SystemExit(0 if ok else 1)' "$LOCAL_LLM_MODEL" "$LOCAL_LLM_UPSTREAM_MODEL" <<<"$models" && \
+             tags=$(curl --connect-timeout 5 --max-time 30 --fail --silent --show-error -H "$AUTH" -H "X-LLM-Job-ID: $GITHUB_RUN_ID" -H "X-LLM-Model: $LOCAL_LLM_UPSTREAM_MODEL" "$OLLAMA_BASE_URL/api/tags") && \
+             python3 -c 'import json,sys; wanted=sys.argv[1]; names=[m.get("name") for m in json.load(sys.stdin).get("models", [])]; ok=wanted in names; ok or print(f"::warning::{wanted} is not listed by {sys.argv[2]}/api/tags; available: {names}"); raise SystemExit(0 if ok else 1)' "$LOCAL_EMBEDDING_MODEL" "$OLLAMA_BASE_URL" <<<"$tags"; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "Local judge or embedding model unavailable; the next hourly schedule will retry."
+            echo "::warning::Local judge or embedding model unavailable (reason above); the next hourly schedule will retry."
           fi
 
       - name: Nightly Bosgame — report unavailable
@@ -112,11 +119,13 @@ jobs:
         run: |
           echo "Warming $LOCAL_LLM_UPSTREAM_MODEL + $LOCAL_EMBEDDING_MODEL…"
           curl -s --max-time 150 "$OLLAMA_BASE_URL/api/generate" \
+            -H "Authorization: Bearer ${LOCAL_LLM_API_KEY:-ollama}" \
             -H "X-LLM-Job-ID: $GITHUB_RUN_ID" -H "X-LLM-Model: $LOCAL_LLM_UPSTREAM_MODEL" \
             -d "{\"model\":\"$LOCAL_LLM_UPSTREAM_MODEL\",\"prompt\":\"ok\",\"stream\":false,\"keep_alive\":-1,\"options\":{\"num_predict\":1}}" \
             >/dev/null || echo "warm-up request timed out (continuing anyway)"
           if [ -n "${LOCAL_EMBEDDING_MODEL:-}" ]; then
             curl -s --max-time 60 "$OLLAMA_BASE_URL/api/embed" \
+              -H "Authorization: Bearer ${LOCAL_LLM_API_KEY:-ollama}" \
               -H "X-LLM-Job-ID: $GITHUB_RUN_ID" -H "X-LLM-Model: $LOCAL_EMBEDDING_MODEL" \
               -d "{\"model\":\"$LOCAL_EMBEDDING_MODEL\",\"input\":\"ok\",\"keep_alive\":-1}" >/dev/null || true
           fi
