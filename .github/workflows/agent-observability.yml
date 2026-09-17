@@ -49,9 +49,7 @@ jobs:
           )
           prompt = """Final merge gate. Review only blocking correctness or security bugs in this GitHub Actions diff, including bash, retry semantics, artifact/report gating, and daily-marker gating. Failed assertion reports are intentionally published, but the completion marker must require successful eval, artifacts, both Slack reports, and Pages. Reply with exactly APPROVE plus at most three brief bullets, or REJECT plus blocking findings.\n\nDIFF:\n""" + diff
           models = (
-              "deepseek/deepseek-r1-0528:free",
-              "qwen/qwen3-coder:free",
-              "meta-llama/llama-3.3-70b-instruct:free",
+              "z-ai/glm-5.2:free",
           )
           last_error = None
           for model in models:
