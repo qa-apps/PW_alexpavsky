@@ -1,0 +1,34 @@
+name: I-Copilot Diagnostics
+
+# The full workflow diagnostic (server, MacBook audio, iPad mirror, iPhone
+# camera, voice ping with headphone/speaker audio) runs on the i-Copilot
+# server every day at 13:30 Europe/Berlin (systemd ico-pilot-diagnostic.timer)
+# and publishes latest.json. This workflow posts that result to #ico-pilot.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 13 * * *"
+
+concurrency:
+  group: ico-pilot-diagnostics
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Post diagnostic to #ico-pilot
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 .github/scripts/notify_icopilot_diagnostic_slack.py \
+            --channel "${{ vars.SLACK_ICO_PILOT_CHANNEL_ID || 'C0C1FRGJB1Q' }}"
