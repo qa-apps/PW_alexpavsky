@@ -125,12 +125,24 @@ jobs:
               }),),
               (
                   ("mimo-v2.5", "chat/completions", {
-                      "messages": [{"role": "user", "content": prompt}],
+                      "messages": [
+                          {
+                              "role": "system",
+                              "content": "Your first token must be APPROVE or REJECT. Do not print chain-of-thought. After that token, give at most four concise findings.",
+                          },
+                          {"role": "user", "content": prompt},
+                      ],
                       "temperature": 0.2,
-                      "max_tokens": 6000,
+                      "max_tokens": 3000,
                   }),
                   ("longcat-2.0", "chat/completions", {
-                      "messages": [{"role": "user", "content": prompt}],
+                      "messages": [
+                          {
+                              "role": "system",
+                              "content": "Your first token must be APPROVE or REJECT. Do not print chain-of-thought. After that token, give at most four concise findings.",
+                          },
+                          {"role": "user", "content": prompt},
+                      ],
                       "temperature": 0.2,
                       "max_tokens": 6000,
                   }),
