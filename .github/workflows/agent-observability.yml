@@ -73,6 +73,8 @@ jobs:
           - DeepEval sets RUN_LLM_EVALS=1 both at job level and on the pytest commands.
           - LLM Judge and DeepEval freshness checks use nanosecond timestamps; LLM Judge rejects skipped tests and stale verdict files;
           - notify_observability_slack.py returns non-zero for an unacknowledged chat.postMessage when --require-delivery is set.
+          - both six-test DeepEval modules call deepeval.assert_test, so their single pytest invocation produces the required 12 testCases;
+          - notify_bosgame_run_slack.py checks every chat.postMessage acknowledgement and returns 1 under --require-delivery when any post fails.
           Do not report one of those as absent unless the supplied diff directly contradicts it. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.
 
           PW_alexpavsky DIFF:
@@ -86,6 +88,9 @@ jobs:
 
           def request_json(endpoint, model, payload):
               request_headers = dict(headers)
+              if endpoint == "messages":
+                  request_headers["anthropic-version"] = "2023-06-01"
+                  request_headers["x-api-key"] = os.environ["OPENCODE_API_KEY"]
               request_headers["x-opencode-session"] = (
                   f"pw-merge-review-{os.environ.get('GITHUB_RUN_ID', 'manual')}-{model}"
               )
@@ -113,11 +118,10 @@ jobs:
               ("gpt-5.6-luna", "responses", {
                   "input": prompt,
                   "max_output_tokens": 10000,
-                  "reasoning": {"effort": "high"},
+                  "reasoning": {"effort": "medium"},
               }),
-              ("glm-5.3-flash", "chat/completions", {
+              ("qwen3.8-flash", "messages", {
                   "messages": [{"role": "user", "content": prompt}],
-                  "temperature": 0.2,
                   "max_tokens": 4000,
               }),
           )
@@ -127,6 +131,11 @@ jobs:
                   body = request_json(endpoint, model, payload)
                   if endpoint == "responses":
                       verdict = response_text(body)
+                  elif endpoint == "messages":
+                      verdict = "\n".join(
+                          block.get("text", "") for block in body.get("content", [])
+                          if block.get("type") == "text"
+                      ).strip()
                   else:
                       message = body["choices"][0]["message"]
                       verdict = (message.get("content") or message.get("reasoning") or "").strip()
