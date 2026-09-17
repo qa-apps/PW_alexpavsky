@@ -204,6 +204,9 @@ jobs:
           EXPECTED_RAGAS_CASES: ${{ inputs.max_questions || '10' }}
           EXPECTED_GISKARD_CASES: ${{ inputs.giskard_num_questions || '5' }}
           REQUIRE_SCAN: ${{ github.event_name == 'schedule' || inputs.run_giskard_scan == true || inputs.run_giskard_scan == 'true' }}
+          RAGAS_OUTCOME: ${{ steps.ragas_eval.outcome }}
+          GISKARD_OUTCOME: ${{ steps.giskard_eval.outcome }}
+          SCAN_OUTCOME: ${{ steps.giskard_scan.outcome }}
         run: |
           python3 - <<'PY'
           import json
@@ -232,8 +235,11 @@ jobs:
                            "giskard_rag_cases.json"):
               require_fresh(required)
 
-          ragas = load("ragas_cases.json").get("cases", [])
-          giskard = load("giskard_rag_cases.json").get("cases", [])
+          ragas_data = load("ragas_cases.json")
+          ragas_summary = load("summary.json")
+          giskard_data = load("giskard_rag_cases.json")
+          ragas = ragas_data.get("cases", [])
+          giskard = giskard_data.get("cases", [])
           expected_ragas = int(os.environ["EXPECTED_RAGAS_CASES"])
           expected_giskard = int(os.environ["EXPECTED_GISKARD_CASES"])
 
@@ -247,11 +253,24 @@ jobs:
               raise SystemExit("Ragas report contains missing judge metrics")
           if not giskard or not all(c.get("prompt") and c.get("answer") and c.get("status") in {"PASS", "FAIL"} for c in giskard):
               raise SystemExit("Giskard report is missing prompt, answer, or verdict fields")
+
+          def validate_outcome(label, data, outcome):
+              if data.get("evaluation_completed") is not True or not isinstance(data.get("quality_passed"), bool):
+                  raise SystemExit(f"{label} did not record a completed evaluation")
+              expected = "success" if data["quality_passed"] else "failure"
+              if outcome != expected:
+                  raise SystemExit(f"{label} outcome {outcome!r} does not match quality verdict {expected!r}")
+
+          validate_outcome("Ragas", ragas_summary, os.environ["RAGAS_OUTCOME"])
+          validate_outcome("Giskard RAG", giskard_data, os.environ["GISKARD_OUTCOME"])
           if os.environ["REQUIRE_SCAN"].lower() == "true":
               require_fresh("giskard_scan.html")
               scan = load("giskard_scan.json")
               if not isinstance(scan.get("total_issues"), int):
                   raise SystemExit("Giskard vulnerability report is incomplete")
+              validate_outcome("Giskard scan", scan, os.environ["SCAN_OUTCOME"])
+          elif os.environ["SCAN_OUTCOME"] != "skipped":
+              raise SystemExit(f"Optional Giskard scan should be skipped, got {os.environ['SCAN_OUTCOME']!r}")
           print(f"Validated {len(ragas)} Ragas and {len(giskard)} Giskard cases")
           PY
 

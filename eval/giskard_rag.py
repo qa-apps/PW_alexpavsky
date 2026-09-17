@@ -277,6 +277,14 @@ def main() -> None:
         pass
     if summary["correctness"] is None and cases:
         summary["correctness"] = passed / len(cases)
+    summary["evaluation_completed"] = (
+        summary["correctness"] is not None and len(cases) == NUM_QUESTIONS
+    )
+    summary["quality_passed"] = (
+        summary["correctness"] >= MIN_CORRECTNESS
+        if summary["evaluation_completed"]
+        else None
+    )
 
     json_path.write_text(json.dumps(summary, indent=2))
     log(f"  JSON summary: {json_path}")

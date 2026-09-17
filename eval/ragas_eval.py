@@ -495,8 +495,25 @@ def main() -> int:
         "accept_refusal": r.get("accept_refusal", False),
         "passed": _is_passed(r),
     } for r in records]
+
+    failed_count = len(records) - passed_count
+    failed_checks: list[str] = []
+    if avg_f < MIN_FAITHFULNESS:
+        failed_checks.append(f"avg faithfulness {avg_f:.3f} < {MIN_FAITHFULNESS}")
+    if avg_r < MIN_RELEVANCY:
+        failed_checks.append(f"avg relevancy {avg_r:.3f} < {MIN_RELEVANCY}")
+    if ALLOWED_FAILURES >= 0 and failed_count > ALLOWED_FAILURES:
+        failed_checks.append(
+            f"{failed_count} question(s) failed "
+            f"(> {ALLOWED_FAILURES} allowed)")
+    completion = {
+        "evaluation_completed": True,
+        "quality_passed": not failed_checks,
+    }
+
     (RESULTS_DIR / "ragas_cases.json").write_text(
         json.dumps({
+            **completion,
             "thresholds": {
                 "faithfulness": MIN_FAITHFULNESS,
                 "relevancy": MIN_RELEVANCY,
@@ -509,13 +526,14 @@ def main() -> int:
 
     summary_json = {
         "passed": passed_count,
-        "failed": len(records) - passed_count,
+        "failed": failed_count,
         "flaky": 0,
         "skipped": 0,
         "total": len(records),
         "avg_faithfulness": avg_f,
         "avg_relevancy": avg_r,
         "keyword_pass_rate": kw_rate,
+        **completion,
     }
     (RESULTS_DIR / "summary.json").write_text(
         json.dumps(summary_json, indent=2), encoding="utf-8"
@@ -526,17 +544,6 @@ def main() -> int:
     # run with individual question failures (e.g. 24/27 passed) still exited 0,
     # GitHub marked it "success", and the auto-fix gate (conclusion == failure)
     # never fired. We now also fail when too many individual questions fail.
-    failed_count = summary_json["failed"]
-    failed_checks: list[str] = []
-    if avg_f < MIN_FAITHFULNESS:
-        failed_checks.append(f"avg faithfulness {avg_f:.3f} < {MIN_FAITHFULNESS}")
-    if avg_r < MIN_RELEVANCY:
-        failed_checks.append(f"avg relevancy {avg_r:.3f} < {MIN_RELEVANCY}")
-    if ALLOWED_FAILURES >= 0 and failed_count > ALLOWED_FAILURES:
-        failed_checks.append(
-            f"{failed_count} question(s) failed "
-            f"(> {ALLOWED_FAILURES} allowed)")
-
     if failed_checks:
         log("FAIL: " + "; ".join(failed_checks))
         return 1
