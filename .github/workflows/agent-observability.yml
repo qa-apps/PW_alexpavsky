@@ -55,9 +55,11 @@ jobs:
           LANGWATCH_ENDPOINT: ${{ vars.LANGWATCH_ENDPOINT || 'https://app.langwatch.ai' }}
           SCENARIO_BATCH_RUN_ID: gh-${{ github.run_id }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
-          SCENARIO_JUDGE_PROVIDER: ${{ vars.SCENARIO_JUDGE_PROVIDER || 'groq' }}
+          # The repo's GROQ_API_KEY is rejected (Invalid API Key); OpenRouter works.
+          SCENARIO_JUDGE_PROVIDER: ${{ vars.SCENARIO_JUDGE_PROVIDER || 'openrouter' }}
           SCENARIO_JUDGE_MODEL: ${{ vars.SCENARIO_JUDGE_MODEL || 'openai/gpt-oss-120b' }}
         run: npx vitest run tests/voice
 
