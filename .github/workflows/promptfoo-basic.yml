@@ -68,7 +68,8 @@ jobs:
         shell: bash
         run: |
           # Since 2026-09-14 the gateway answers 401 without a key; send the runner-provided one.
-          KEY="${LOCAL_LLM_API_KEY:-${OLLAMA_API_KEY:-ollama}}"
+          : "${LOCAL_LLM_API_KEY:?LOCAL_LLM_API_KEY secret is required}"
+          KEY="${LOCAL_LLM_API_KEY}"
           echo "::add-mask::$KEY"
           ready=false
           deadline=$((SECONDS + LOCAL_LLM_PRIORITY_MAX_WAIT_SEC))
@@ -133,7 +134,8 @@ jobs:
         if: steps.local_llm.outputs.run == 'true'
         shell: bash
         run: |
-          KEY="${LOCAL_LLM_API_KEY:-${OLLAMA_API_KEY:-ollama}}"
+          : "${LOCAL_LLM_API_KEY:?LOCAL_LLM_API_KEY secret is required}"
+          KEY="${LOCAL_LLM_API_KEY}"
           echo "::add-mask::$KEY"
           echo "Warming $LOCAL_LLM_MODEL (cold load ~30s; budget 150s)…"
           printf 'Authorization: Bearer %s\n' "$KEY" | curl -s --max-time 150 -H @- "$OLLAMA_BASE_URL/api/generate" \
@@ -191,7 +193,8 @@ jobs:
           CI: "true"
         run: |
           CONFIG=promptfooconfig.yaml
-          export OLLAMA_API_KEY="${LOCAL_LLM_API_KEY:-${OLLAMA_API_KEY:-ollama}}"
+          : "${LOCAL_LLM_API_KEY:?LOCAL_LLM_API_KEY secret is required}"
+          export OLLAMA_API_KEY="${LOCAL_LLM_API_KEY}"
           echo "::add-mask::$OLLAMA_API_KEY"
           expected_count=$(node -e 'const fs=require("fs"); const YAML=require("yaml"); const c=YAML.parse(fs.readFileSync(process.argv[1], "utf8")); console.log(c.tests.length * c.prompts.length * c.providers.length)' "$CONFIG")
           echo "Running promptfoo with $CONFIG"

@@ -17,8 +17,10 @@ export function judgeModel(): LanguageModel {
   const override = process.env.SCENARIO_JUDGE_MODEL;
   const baseURL = process.env.LOCAL_LLM_BASE_URL;
   if (!baseURL) throw new Error("Scenario needs the local evaluator. Set LOCAL_LLM_BASE_URL.");
+  const apiKey = process.env.LOCAL_LLM_API_KEY;
+  if (!apiKey) throw new Error("Scenario needs the local gateway key. Set LOCAL_LLM_API_KEY.");
   const p = createOpenAI({
-    apiKey: process.env.LOCAL_LLM_API_KEY || "ollama",
+    apiKey,
     baseURL,
     headers: {
       "X-LLM-Job-ID": process.env.GITHUB_RUN_ID || "local-scenario",
@@ -30,5 +32,5 @@ export function judgeModel(): LanguageModel {
 
 /** True when at least one evaluator LLM key is present. */
 export function hasJudgeModel(): boolean {
-  return Boolean(process.env.LOCAL_LLM_BASE_URL);
+  return Boolean(process.env.LOCAL_LLM_BASE_URL && process.env.LOCAL_LLM_API_KEY);
 }

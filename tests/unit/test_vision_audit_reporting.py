@@ -183,6 +183,7 @@ class VisionAuditReportingTests(unittest.TestCase):
             workflow = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
             self.assertIn("LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}", workflow)
             self.assertNotIn("LOCAL_LLM_API_KEY: ollama", workflow)
+            self.assertNotIn("LOCAL_LLM_API_KEY:-ollama", workflow)
 
     def test_llm_judge_site_keeps_only_latest_retry_per_test(self):
         records = [

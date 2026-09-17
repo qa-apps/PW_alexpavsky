@@ -22,6 +22,34 @@ import { judgeModel, hasJudgeModel } from "../support/scenarioModel";
 
 const describeVoice = hasJudgeModel() ? describe : describe.skip;
 
+const criteria = [
+  "The assistant understands that the user is asking a QA / test-automation question.",
+  "The assistant gives a relevant, on-topic answer about QA / testing and does NOT wrongly refuse it as out of scope.",
+  "The answer is coherent and phrased for speech (concise, plain sentences, no markdown or code blocks).",
+];
+
+const judgeSystemPrompt = `
+<role>
+You are a strict evaluator of a simulated conversation.
+</role>
+
+<task>
+Evaluate only the transcript against every criterion below, then call finish_test.
+</task>
+
+<criteria>
+${criteria.map((criterion, index) => `${index + 1}. ${criterion}`).join("\n")}
+</criteria>
+
+<verdict_contract>
+- Set each criterion to exactly true, false, or inconclusive based on the transcript.
+- Set verdict to success if and only if every criterion is true.
+- Set verdict to failure if any criterion is false.
+- Set verdict to inconclusive only if no criterion is false and at least one is inconclusive.
+- The reasoning must agree with the criterion values and the verdict.
+</verdict_contract>
+`.trim();
+
 if (!hasJudgeModel()) {
   // eslint-disable-next-line no-console
   console.warn(
@@ -44,11 +72,8 @@ describeVoice("voice assistant — LangWatch Scenario", () => {
         scenario.userSimulatorAgent({ model }),
         scenario.judgeAgent({
           model,
-          criteria: [
-            "The assistant understands that the user is asking a QA / test-automation question.",
-            "The assistant gives a relevant, on-topic answer about QA / testing and does NOT wrongly refuse it as out of scope.",
-            "The answer is coherent and phrased for speech (concise, plain sentences, no markdown or code blocks).",
-          ],
+          criteria,
+          systemPrompt: judgeSystemPrompt,
         }),
       ],
       script: [
@@ -64,6 +89,8 @@ describeVoice("voice assistant — LangWatch Scenario", () => {
       // eslint-disable-next-line no-console
       console.error("[voice scenario] verdict:", JSON.stringify(result, null, 2));
     }
+    expect(result.metCriteria).toHaveLength(criteria.length);
+    expect(result.unmetCriteria).toHaveLength(0);
     expect(result.success).toBe(true);
   }, 120_000);
 });
