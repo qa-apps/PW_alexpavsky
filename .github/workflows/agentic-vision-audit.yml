@@ -2,9 +2,6 @@ name: AlexPavsky Daily Audit
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - codex/slack-report-refresh-20260913
   schedule:
     # 3 PM America/New_York. The gate handles daylight-saving time.
     - cron: '0 19 * * *'
