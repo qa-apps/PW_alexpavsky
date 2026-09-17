@@ -1,0 +1,12 @@
+[
+  {
+    "run_number": "live-35183806644",
+    "run_id": "35183806644",
+    "timestamp": "2026-09-17T05:00:49+00:00",
+    "status": "passed",
+    "test_cases": 4,
+    "confirmed_findings": 0,
+    "model": "qwen3-vl-30b-a3b-screen:latest",
+    "commit": "d2c229b"
+  }
+]
