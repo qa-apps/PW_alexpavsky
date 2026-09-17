@@ -84,7 +84,9 @@ Check for: overlap, clipped text, off-screen controls, broken or blank content, 
 layout, error states, unexpected navigation, and controls that did not react. The deterministic browser runner has
 already executed the scenario; assess its result instead of inventing another action. A link marked safe=false is
 merely outside the automation boundary; it is not a website defect. Content below the viewport is normal and is
-not clipped or missing.
+not clipped or missing. Treat successful deterministic checks as authoritative for functional behavior. Do not
+report a functional defect that contradicts passed browser assertions unless the supplied browser evidence contains
+a concrete page error, HTTP failure, or failed control response.
 
 Return only JSON with this shape:
 {
@@ -296,9 +298,19 @@ function plannedJourneys() {
     },
     {
       id: 'LINK-005', name: 'Open Digest navigation',
-      objective: 'Click Digest and verify the digest section.',
-      expected: 'The Digest section is visible and the URL targets #digest.',
-      run: (page) => clickSection(page, 'Digest', '#digest'),
+      objective: 'Click Digest and verify the subscription dialog.',
+      expected: 'The Daily Digest subscription modal becomes visible without submitting an email address.',
+      run: async (page) => {
+        await resetToHome(page);
+        const link = page.locator('a.nav-link[href="#digest"]').first();
+        await link.waitFor({ state: 'visible', timeout: 10000 });
+        await link.click();
+        await page.locator('#digest-modal .modal-content').waitFor({ state: 'visible', timeout: 10000 });
+        return {
+          executed: true, action: 'click link: Digest', current_url: page.url(),
+          checks: ['Digest navigation is clickable', '#digest-modal .modal-content is visible'],
+        };
+      },
     },
     {
       id: 'LINK-006', name: 'Open hero Live Feed link',
@@ -440,7 +452,8 @@ function plannedJourneys() {
         const botResponse = clip(await page.locator('#challenge-bot-response').innerText(), 1600);
         const verdict = clip(await page.locator('#verdict-title').innerText(), 500);
         const analysis = clip(await page.locator('#verdict-analysis').innerText(), 1600);
-        const judge = clip(await page.locator('#verdict-judge-model').innerText(), 300);
+        const judge = clip(await page.locator('#verdict-judge-model').innerText(), 300)
+          .replace(/^Judge:\s*/i, '');
         requireCondition(botResponse.length > 0, 'Challenge returned no bot response');
         requireCondition(verdict.length > 0 && analysis.length > 0, 'Challenge returned no verdict explanation');
         return {
@@ -619,7 +632,10 @@ async function main() {
   report.candidate_findings = [...findingMap.values()];
   report.confirmed_findings = report.candidate_findings.filter((finding) => {
     if (isKnownNonDefect(finding) || finding.confidence < 0.9) return false;
-    if (finding.kind === 'functional') return finding.severity === 'high';
+    if (finding.kind === 'functional') {
+      const step = report.steps.find((candidate) => candidate.step === finding.step);
+      return finding.severity === 'high' && !step?.deterministic_passed;
+    }
     return ['medium', 'high'].includes(finding.severity) && (
       finding.occurrences >= 2 || isConcreteVisualDefect(finding)
     );
