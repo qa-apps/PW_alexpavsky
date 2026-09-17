@@ -33,9 +33,9 @@ jobs:
           ref: ${{ inputs.review_sha }}
           fetch-depth: 0
 
-      - name: Review exact diff with an independent OpenRouter model
+      - name: Review exact diff with the OpenCode subscription
         env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           REVIEW_SHA: ${{ inputs.review_sha }}
           NANOTECH_SHA: ${{ inputs.nanotech_sha }}
         run: |
@@ -65,25 +65,23 @@ jobs:
                   text=True,
               )
           prompt = """Final merge gate for two QA repositories. Review only blocking correctness or security bugs, GitHub Actions expression/step-outcome bugs, false-green daily markers, report completeness, Slack delivery, and Pages publication. All evaluation workloads must use local BossGame LLMs; OpenCode is allowed only in agent-fix. Quality assertion failures may publish reports, but infrastructure/report/Slack/Pages failures must withhold completion markers. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.\n\nPW_alexpavsky DIFF:\n""" + alex_diff + "\n\nPW_nanotech DIFF:\n" + nano_diff
-          models = (
-              "z-ai/glm-4.5-air",
-              "deepseek/deepseek-v4.1-flash",
-          )
+          models = ("kimi-k2.7-code",)
           last_error = None
           for model in models:
               payload = json.dumps({
                   "model": model,
                   "messages": [{"role": "user", "content": prompt}],
-                  "temperature": 0,
+                  "temperature": 1,
                   "max_tokens": 4000,
               }).encode()
               request = urllib.request.Request(
-                  "https://openrouter.ai/api/v1/chat/completions",
+                  "https://opencode.ai/zen/go/v1/chat/completions",
                   data=payload,
                   headers={
-                      "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
+                      "Authorization": f"Bearer {os.environ['OPENCODE_API_KEY']}",
                       "Content-Type": "application/json",
-                      "HTTP-Referer": "https://github.com/qa-apps/PW_alexpavsky",
+                      "User-Agent": "PW-alexpavsky-merge-review/1.0",
+                      "x-opencode-session": f"pw-merge-review-{os.environ.get('GITHUB_RUN_ID', 'manual')}",
                   },
                   method="POST",
               )
@@ -111,7 +109,7 @@ jobs:
               except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, KeyError) as exc:
                   last_error = f"{model}: {exc}"
                   print(f"::warning::{last_error}")
-          print(f"::error::No independent cloud reviewer answered: {last_error}")
+          print(f"::error::OpenCode reviewer did not answer: {last_error}")
           sys.exit(2)
           PY
 
