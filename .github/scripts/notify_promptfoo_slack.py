@@ -56,7 +56,13 @@ def build_donut(passed: int, failed: int, errors: int = 0) -> str:
     return f"`{'🟩' * filled}{'🟥' * failed_width}`  {passed}/{total} passed"
 
 
-def build_payload(channel: str, run_url: str, results: list[dict], dashboard_url: str = "") -> dict:
+def build_payload(
+    channel: str,
+    run_url: str,
+    results: list[dict],
+    dashboard_url: str = "",
+    local_ui_url: str = "",
+) -> dict:
     passed = sum(1 for r in results if r["passed"])
     errors = sum(1 for r in results if r.get("error"))
     failed = len(results) - passed - errors
@@ -98,9 +104,17 @@ def build_payload(channel: str, run_url: str, results: list[dict], dashboard_url
     if dashboard_url:
         action_elements.append({
             "type": "button",
-            "text": {"type": "plain_text", "text": "Open Promptfoo UI", "emoji": True},
+            "text": {"type": "plain_text", "text": "Open Promptfoo GitHub UI", "emoji": True},
             "url": dashboard_url,
             "style": "primary" if failed == 0 and errors == 0 else "danger",
+        })
+    if local_ui_url:
+        # Native `promptfoo view` on the Mac (launchd com.alexp.promptfoo-local-ui),
+        # which imports CI results from GitHub Pages every 30 minutes.
+        action_elements.append({
+            "type": "button",
+            "text": {"type": "plain_text", "text": "Open Promptfoo Local UI", "emoji": True},
+            "url": local_ui_url,
         })
     if run_url:
         action_elements.append({
@@ -136,6 +150,11 @@ def main() -> int:
     parser.add_argument("--channel", required=True, help="Slack channel ID or name")
     parser.add_argument("--results", required=True, help="promptfoo JSON results file")
     parser.add_argument("--dashboard-url", default="", help="Optional Promptfoo web UI URL")
+    parser.add_argument(
+        "--local-ui-url",
+        default=os.environ.get("PROMPTFOO_LOCAL_UI_URL", "http://localhost:15500"),
+        help="Local `promptfoo view` URL; pass an empty string to hide the button",
+    )
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "")
@@ -148,7 +167,13 @@ def main() -> int:
         return 0
 
     results = load_results(args.results)
-    payload = build_payload(args.channel, os.environ.get("GITHUB_RUN_URL", ""), results, args.dashboard_url)
+    payload = build_payload(
+        args.channel,
+        os.environ.get("GITHUB_RUN_URL", ""),
+        results,
+        args.dashboard_url,
+        args.local_ui_url,
+    )
 
     # Best-effort auto-join, then post.
     try:
