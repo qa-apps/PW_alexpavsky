@@ -25,12 +25,6 @@ const PROVIDERS: PingTarget[] = [
     keyEnv: 'GROQ_API_KEY',
   },
   {
-    name: 'OpenRouter',
-    url: 'https://openrouter.ai/api/v1/models',
-    headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY ?? ''}` },
-    keyEnv: 'OPENROUTER_API_KEY',
-  },
-  {
     name: 'HuggingFace',
     url: 'https://huggingface.co/api/models?pipeline_tag=text-generation&limit=1',
     headers: { Authorization: `Bearer ${process.env.HF_TOKEN ?? ''}` },

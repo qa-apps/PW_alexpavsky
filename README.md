@@ -39,7 +39,6 @@ Required repository secret for Slack notifications:
 Optional repository secrets for live LLM judge runs:
 
 - `GROQ_API_KEY`
-- `OPENROUTER_API_KEY`
 - `GEMINI_API_KEY`
 
 The nightly schedule is implemented with two UTC cron entries and a New York

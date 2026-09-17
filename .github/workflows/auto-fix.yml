@@ -94,6 +94,7 @@ jobs:
           OPENCODE_API_KEY:   ${{ secrets.OPENCODE_API_KEY }}
           OPENCODE_MODEL:     kimi-k2.7-code
           ENABLE_OPENCODE_PROVIDER: "true"
+          LLM_PROVIDER_MODE:  opencode-only
           GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
           # Slack ping when a PR is opened — no webhook needed, bot token only.
           # PR-review pings go to the dedicated #ci-pr-review channel; the

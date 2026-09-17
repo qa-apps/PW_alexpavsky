@@ -109,7 +109,6 @@ jobs:
           CI: true
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results-pure.json
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
@@ -126,7 +125,6 @@ jobs:
           CI: true
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/upstream/results.json
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
@@ -210,16 +208,8 @@ jobs:
           GITHUB_REF:         ${{ github.ref }}
           PR_NUMBER:          ${{ github.event.pull_request.number }}
           PR_TITLE:           ${{ github.event.pull_request.title }}
-          # Full provider set — bug_report_slack.py uses llm_client.py which
-          # rotates across all configured providers for root-cause analysis.
-          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          CEREBRAS_API_KEY:   ${{ secrets.CEREBRAS_API_KEY }}
-          SAMBANOVA_API_KEY:  ${{ secrets.SAMBANOVA_API_KEY }}
-          MISTRAL_API_KEY:    ${{ secrets.MISTRAL_API_KEY }}
-          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL:    ${{ secrets.OPENAI_BASE_URL }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          HF_TOKEN:           ${{ secrets.HF_TOKEN }}
+          # Root-cause repair is handled separately by Auto-fix Agent through
+          # OpenCode. This notification step remains deterministic.
         run: |
           python .github/scripts/bug_report_slack.py \
             --channel "${{ secrets.BUG_REPORTS_CHANNEL_ID }}" \

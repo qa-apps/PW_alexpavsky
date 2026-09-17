@@ -185,6 +185,10 @@ class VisionAuditReportingTests(unittest.TestCase):
             self.assertNotIn("LOCAL_LLM_API_KEY: ollama", workflow)
             self.assertNotIn("LOCAL_LLM_API_KEY:-ollama", workflow)
 
+    def test_runtime_workflows_do_not_reference_openrouter(self):
+        for path in (ROOT / ".github/workflows").glob("*.yml"):
+            self.assertNotIn("OPENROUTER", path.read_text(encoding="utf-8"), path.name)
+
     def test_llm_judge_site_keeps_only_latest_retry_per_test(self):
         records = [
             {"testFile": "a.spec.ts", "titlePath": ["suite", "case"], "retry": 0, "prompt": "old"},

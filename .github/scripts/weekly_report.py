@@ -2,8 +2,8 @@
 """
 weekly_report.py — Weekly QA Report generator for alexpavsky.com.
 
-Runs in GitHub Actions every Sunday. Uses the same open-source LLM rotation
-as the site (Groq → Cerebras → OpenRouter). Zero Anthropic tokens.
+Runs in GitHub Actions every Sunday. Uses the configured Groq/Cerebras
+report-writing fallback. Evaluation workflows use the local BossGame LLM.
 
 Delivers reports to:
   1. Slack  (SLACK_WEBHOOK_URL)
@@ -23,7 +23,6 @@ import httpx
 # Config
 # ---------------------------------------------------------------------------
 GROQ_KEY       = os.environ.get("GROQ_API_KEY", "")
-OPENROUTER_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 CEREBRAS_KEY   = os.environ.get("CEREBRAS_API_KEY", "")
 SLACK_URL      = os.environ.get("SLACK_WEBHOOK_URL", "")
 SITE_URL       = os.environ.get("SITE_REPORTS_URL", "")
@@ -38,8 +37,6 @@ WEEK_START     = REPORT_DATE - timedelta(days=7)
 LLM_PROVIDERS = [
     ("groq",     GROQ_KEY,       "https://api.groq.com/openai/v1",      "llama-3.3-70b-versatile"),
     ("cerebras", CEREBRAS_KEY,   "https://api.cerebras.ai/v1",          "llama-3.3-70b"),
-    ("or-llama", OPENROUTER_KEY, "https://openrouter.ai/api/v1",        "meta-llama/llama-3.3-70b-instruct:free"),
-    ("or-qwen",  OPENROUTER_KEY, "https://openrouter.ai/api/v1",        "qwen/qwen3-coder:free"),
 ]
 
 # ---------------------------------------------------------------------------

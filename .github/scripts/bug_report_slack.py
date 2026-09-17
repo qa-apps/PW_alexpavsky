@@ -27,7 +27,6 @@ Required env vars:
   GITHUB_SHA            Commit SHA
   GITHUB_REF            e.g. refs/heads/fix/retry-rag-api
   GROQ_API_KEY          For LLM root-cause analysis (optional)
-  OPENROUTER_API_KEY    Fallback LLM (optional)
   PR_NUMBER             PR number if this run was triggered by a PR (optional)
   PR_TITLE              PR title (optional)
 """
