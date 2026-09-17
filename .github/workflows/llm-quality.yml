@@ -148,6 +148,7 @@ jobs:
         run: |
           if command -v google-chrome >/dev/null 2>&1; then
             echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+            npx playwright install ffmpeg
             echo "Using system Google Chrome on the Ubuntu 26.04 Bosgame runner."
           else
             npx playwright install chromium
