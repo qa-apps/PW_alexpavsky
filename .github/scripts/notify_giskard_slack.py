@@ -59,9 +59,14 @@ def build_text(rag: dict, scan: dict) -> tuple[str, str]:
 
     if rag:
         c_txt = "n/a" if correctness is None else f"{correctness:.2f}"
+        total = rag.get("total")
+        questions = (
+            f"{rag.get('passed', 0)}/{total} passed" if total
+            else f"{rag.get('num_questions', '?')} asked"
+        )
         lines.append(
             f"{_correctness_emoji(correctness)} *RAG correctness:* {c_txt}"
-            f"  ·  questions: {rag.get('num_questions', '?')}"
+            f"  ·  questions: {questions}"
             f"  ·  judge: {rag.get('judge', '?')}"
         )
     else:
@@ -88,7 +93,7 @@ def post(channel: str, token: str, fallback: str, text: str, run_url: str, dashb
     if dashboard_url:
         action_elements.append({
             "type": "button",
-            "text": {"type": "plain_text", "text": "Open Giskard UI"},
+            "text": {"type": "plain_text", "text": "Open Giskard report"},
             "url": dashboard_url,
             "style": "primary",
         })

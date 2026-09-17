@@ -13,9 +13,9 @@ on:
         required: false
         default: 'https://alexpavsky.com'
       giskard_num_questions:
-        description: 'Giskard RAG questions for manual light runs'
+        description: 'Giskard RAG questions (auto-generated)'
         required: false
-        default: '1'
+        default: '5'
       run_giskard_scan:
         description: 'Run the full Giskard vulnerability scan'
         required: false
@@ -163,7 +163,7 @@ jobs:
         working-directory: eval
         env:
           RAG_API_URL: ${{ inputs.rag_api_url || 'https://alexpavsky.com' }}
-          GISKARD_NUM_QUESTIONS: ${{ inputs.giskard_num_questions || '2' }}
+          GISKARD_NUM_QUESTIONS: ${{ inputs.giskard_num_questions || '5' }}
           MIN_GISKARD_CORRECTNESS: '0.50'
         run: |
           python giskard_rag.py
@@ -185,8 +185,11 @@ jobs:
           name: eval-reports-${{ github.run_number }}
           path: |
             eval/results/report.md
+            eval/results/summary.json
+            eval/results/ragas_cases.json
             eval/results/giskard_rag.html
             eval/results/giskard_rag.json
+            eval/results/giskard_rag_cases.json
             eval/results/giskard_scan.html
             eval/results/giskard_scan.json
           retention-days: 30
@@ -222,7 +225,8 @@ jobs:
           PAGES_URL="https://${OWNER_LC}.github.io/${REPO_NAME}"
           echo "## 📊 Live dashboard" >> "$GITHUB_STEP_SUMMARY"
           echo "- All runs: ${PAGES_URL}/" >> "$GITHUB_STEP_SUMMARY"
-          echo "- This run: ${PAGES_URL}/runs/${{ github.run_number }}/" >> "$GITHUB_STEP_SUMMARY"
+          echo "- This run (Ragas): ${PAGES_URL}/runs/${{ github.run_number }}/" >> "$GITHUB_STEP_SUMMARY"
+          echo "- This run (Giskard): ${PAGES_URL}/runs/${{ github.run_number }}/giskard.html" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           if [ -f eval/results/report.md ]; then
             echo "## Ragas Evaluation Summary" >> "$GITHUB_STEP_SUMMARY"
@@ -270,7 +274,7 @@ jobs:
             --flaky 0 \
             --skipped 0 \
             --dashboard-url "https://${OWNER_LC}.github.io/${REPO_NAME}/runs/${{ github.run_number }}/#ragas" \
-            --dashboard-label "Open Ragas UI"
+            --dashboard-label "Open Ragas report"
 
       - name: Notify Giskard Slack
         if: always() && steps.local_llm.outputs.run == 'true'
@@ -287,7 +291,7 @@ jobs:
             --channel "${{ secrets.SLACK_GISKARD_CHANNEL_ID }}" \
             --results-dir eval/results \
             --run-url "$GITHUB_RUN_URL" \
-            --dashboard-url "https://${OWNER_LC}.github.io/${REPO_NAME}/runs/${{ github.run_number }}/#giskard-rag"
+            --dashboard-url "https://${OWNER_LC}.github.io/${REPO_NAME}/runs/${{ github.run_number }}/giskard.html"
 
       - name: Send failure email (severity-tagged)
         if: failure() && steps.local_llm.outputs.run == 'true'

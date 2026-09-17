@@ -244,6 +244,8 @@ def main() -> int:
             "category": q.get("category", "—"),
             "question": question_text,
             "answer": answer,
+            "sources": sources,
+            "expected_keywords": kw_terms,
             "contexts_count": len(contexts),
             "faithfulness": 0.0,    # filled in step 2
             "relevancy": 0.0,       # filled in step 2
@@ -458,6 +460,41 @@ def main() -> int:
         return one_strong and other_credible
 
     passed_count = sum(1 for r in records if _is_passed(r))
+
+    # Per-question rows for the Ragas Pages report (scripts/build_eval_site.py).
+    def _num(v):
+        return None if v is None or (isinstance(v, float) and math.isnan(v)) else v
+
+    case_rows = [{
+        "id": r.get("id"),
+        "category": r.get("category"),
+        "prompt": r.get("question", ""),
+        "answer": r.get("answer", ""),
+        "sources": [
+            {"file": s.get("filename") or s.get("title") or s.get("source") or "", "score": s.get("score")}
+            for s in (r.get("sources") or []) if isinstance(s, dict)
+        ],
+        "contexts_count": r.get("contexts_count", 0),
+        "faithfulness": _num(r.get("faithfulness")),
+        "relevancy": _num(r.get("relevancy")),
+        "expected_keywords": r.get("expected_keywords", []),
+        "keyword_passed": r.get("keyword_passed"),
+        "keyword_matched": r.get("keyword_matched", []),
+        "accept_refusal": r.get("accept_refusal", False),
+        "passed": _is_passed(r),
+    } for r in records]
+    (RESULTS_DIR / "ragas_cases.json").write_text(
+        json.dumps({
+            "thresholds": {
+                "faithfulness": MIN_FAITHFULNESS,
+                "relevancy": MIN_RELEVANCY,
+                "allowed_failures": ALLOWED_FAILURES,
+            },
+            "cases": case_rows,
+        }, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
     summary_json = {
         "passed": passed_count,
         "failed": len(records) - passed_count,
