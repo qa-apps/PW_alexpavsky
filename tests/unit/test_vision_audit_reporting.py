@@ -71,6 +71,12 @@ class VisionAuditReportingTests(unittest.TestCase):
         for case_id in ("CHAT-001", "CHAT-002", "VOICE-001", "VOICE-002", "CHALLENGE-001"):
             self.assertIn(case_id, source)
 
+    def test_bosgame_workflow_avoids_broken_marketplace_action_extraction(self):
+        workflow = (ROOT / ".github/workflows/agentic-vision-audit.yml").read_text(encoding="utf-8")
+        self.assertNotIn("uses:", workflow)
+        self.assertIn("http://127.0.0.1:11435", workflow)
+        self.assertIn("Post summary and every test case to Slack", workflow)
+
     def test_html_documents_evidence_and_local_model_provenance(self):
         html = SITE.run_html(sample_report())
         self.assertIn("VISION-001", html)

@@ -10,9 +10,9 @@ from html import escape
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "vision-audit"
-EXISTING = ROOT / "gh-pages-existing"
-SITE = ROOT / "gh-pages-site"
+SOURCE = Path(os.environ.get("VISION_AUDIT_SOURCE", ROOT / "vision-audit"))
+EXISTING = Path(os.environ.get("VISION_AUDIT_EXISTING", ROOT / "gh-pages-existing"))
+SITE = Path(os.environ.get("VISION_AUDIT_SITE", ROOT / "gh-pages-site"))
 RUN_NUMBER = os.environ.get("RUN_NUMBER", "local")
 RUN_ID = os.environ.get("RUN_ID", "")
 COMMIT_SHA = os.environ.get("COMMIT_SHA", "")[:7]
@@ -25,9 +25,7 @@ def h(value: object) -> str:
 
 
 def carry_forward() -> list[dict]:
-    if SITE.exists():
-        shutil.rmtree(SITE)
-    SITE.mkdir(parents=True)
+    SITE.mkdir(parents=True, exist_ok=True)
     (SITE / ".nojekyll").write_text("")
     history: list[dict] = []
     if EXISTING.exists():

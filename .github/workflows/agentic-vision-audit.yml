@@ -38,26 +38,58 @@ jobs:
     if: needs.schedule-gate.outputs.should_run == 'true'
     runs-on: [self-hosted, Linux, X64, bosgame]
     timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      REPO_DIR: ${{ github.workspace }}/daily-audit-source
+      PAGES_DIR: ${{ github.workspace }}/daily-audit-pages
+      SITE_DIR: ${{ github.workspace }}/daily-audit-site
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+      PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
+      OLLAMA_BASE_URL: http://127.0.0.1:11435
+      VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
-
-      - name: Set up Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
-        with:
-          node-version: '22'
-
-      - name: Install browser dependencies
+      - name: Bootstrap source without marketplace actions
+        id: bootstrap
         env:
-          PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
-          npm ci --no-audit --no-fund --ignore-scripts
-          npx playwright install chromium
+          set -euo pipefail
+          AUTH_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if [[ -d "$REPO_DIR/.git" ]]; then
+            git -C "$REPO_DIR" remote set-url origin "$AUTH_URL"
+            git -C "$REPO_DIR" fetch --depth 1 origin "$GITHUB_SHA"
+          else
+            mkdir -p "$REPO_DIR"
+            git clone --filter=blob:none --no-checkout "$AUTH_URL" "$REPO_DIR"
+            git -C "$REPO_DIR" fetch --depth 1 origin "$GITHUB_SHA"
+          fi
+          git -C "$REPO_DIR" checkout --detach "$GITHUB_SHA"
+
+          NODE_BIN_DIR=$(find "$RUNNER_TOOL_CACHE/node" -type d -path '*/x64/bin' 2>/dev/null | sort -V | tail -1)
+          if [[ -z "$NODE_BIN_DIR" || ! -x "$NODE_BIN_DIR/node" ]]; then
+            RUNNER_ROOT=$(dirname "$(dirname "$RUNNER_TEMP")")
+            NODE_BIN_DIR="$RUNNER_ROOT/externals/node24/bin"
+          fi
+          echo "$NODE_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$NODE_BIN_DIR:$PATH"
+          node --version
+
+          cd "$REPO_DIR"
+          if command -v npm >/dev/null 2>&1; then
+            npm install --no-audit --no-fund --ignore-scripts
+            npm exec -- playwright install chromium
+          else
+            RUNNER_ROOT=$(dirname "$(dirname "$RUNNER_TEMP")")
+            NPM_CLI="$RUNNER_ROOT/externals/node24/lib/node_modules/npm/bin/npm-cli.js"
+            node "$NPM_CLI" install --no-audit --no-fund --ignore-scripts
+            node "$NPM_CLI" exec -- playwright install chromium
+          fi
 
       - name: Wait for local Vision model
-        env:
-          OLLAMA_BASE_URL: http://127.0.0.1:11435
-          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+        id: model
+        continue-on-error: true
         shell: bash
         run: |
           for attempt in {1..40}; do
@@ -71,9 +103,7 @@ jobs:
           exit 1
 
       - name: Release other resident models from RAM
-        env:
-          OLLAMA_BASE_URL: http://127.0.0.1:11435
-          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
+        if: steps.model.outcome == 'success'
         shell: bash
         run: |
           while IFS= read -r resident; do
@@ -86,104 +116,56 @@ jobs:
 
       - name: Run required UI, AI Chat, Voice, Challenge, and Vision journeys
         id: audit
+        if: steps.model.outcome == 'success'
         continue-on-error: true
         env:
           BASE_URL: https://www.alexpavsky.com
-          OLLAMA_BASE_URL: http://127.0.0.1:11435
-          VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
-          VISION_AUDIT_OUTPUT_DIR: vision-audit
-          PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
-        run: node .github/scripts/vision_audit_agent.mjs
+          VISION_AUDIT_OUTPUT_DIR: ${{ github.workspace }}/daily-audit-source/vision-audit
+        shell: bash
+        run: |
+          cd "$REPO_DIR"
+          node .github/scripts/vision_audit_agent.mjs
 
-      - name: Checkout existing Daily Audit UI
-        if: always()
+      - name: Build and publish detailed Daily Audit UI
+        id: publish
+        if: always() && steps.bootstrap.outcome == 'success'
         continue-on-error: true
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
-        with:
-          ref: gh-pages
-          path: gh-pages-existing
-
-      - name: Build detailed Daily Audit UI
-        if: always() && hashFiles('vision-audit/vision-audit-report.json') != ''
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_NUMBER: ${{ github.run_number }}
           RUN_ID: ${{ github.run_id }}
           COMMIT_SHA: ${{ github.sha }}
           REPO_SLUG: ${{ github.repository }}
-        run: python3 scripts/build_vision_audit_site.py
-
-      - name: Upload screenshots, video, and decision trail
-        if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
-        with:
-          name: vision-audit-results
-          path: vision-audit/
-          retention-days: 30
-          if-no-files-found: warn
-
-      - name: Upload Daily Audit UI for isolated publisher
-        if: always() && hashFiles('gh-pages-site/vision-audit/**/index.html') != ''
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
-        with:
-          name: vision-audit-pages-${{ github.run_id }}
-          path: gh-pages-site/
-          retention-days: 1
-          if-no-files-found: error
-
-      - name: Fail when the agent confirmed a defect
-        if: steps.audit.outcome == 'failure'
-        run: exit 1
-
-  publish-daily-audit-pages:
-    name: Publish Daily Audit UI
-    if: always() && needs.schedule-gate.outputs.should_run == 'true'
-    needs: [schedule-gate, vision-audit]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download generated Daily Audit UI
-        id: download_pages
-        continue-on-error: true
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
-        with:
-          name: vision-audit-pages-${{ github.run_id }}
-          path: gh-pages-site
-
-      - name: Publish Daily Audit UI
-        if: steps.download_pages.outcome == 'success'
-        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./gh-pages-site
-          force_orphan: false
-          keep_files: true
-          enable_jekyll: false
-          commit_message: "vision audit site: run #${{ github.run_number }}"
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
-
-  notify-daily-audit:
-    name: Publish documented report to Slack
-    if: always() && needs.schedule-gate.outputs.should_run == 'true'
-    needs: [schedule-gate, vision-audit, publish-daily-audit-pages]
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-    steps:
-      - name: Checkout reporting script
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
-
-      - name: Download Daily Audit evidence
-        continue-on-error: true
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
-        with:
-          name: vision-audit-results
-          path: vision-audit
+          VISION_AUDIT_SOURCE: ${{ github.workspace }}/daily-audit-source/vision-audit
+          VISION_AUDIT_EXISTING: ${{ github.workspace }}/daily-audit-pages
+          VISION_AUDIT_SITE: ${{ github.workspace }}/daily-audit-site
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$REPO_DIR/vision-audit/vision-audit-report.json"
+          [[ -f "$REPORT" ]] || { echo "No Vision report to publish."; exit 1; }
+          AUTH_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if [[ -d "$PAGES_DIR/.git" ]]; then
+            git -C "$PAGES_DIR" remote set-url origin "$AUTH_URL"
+            git -C "$PAGES_DIR" pull --ff-only origin gh-pages
+          else
+            git clone --branch gh-pages --single-branch "$AUTH_URL" "$PAGES_DIR"
+          fi
+          cd "$REPO_DIR"
+          python3 scripts/build_vision_audit_site.py
+          cp -a "$SITE_DIR"/. "$PAGES_DIR"/
+          git -C "$PAGES_DIR" config user.name "github-actions[bot]"
+          git -C "$PAGES_DIR" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$PAGES_DIR" add .nojekyll vision-audit
+          if ! git -C "$PAGES_DIR" diff --cached --quiet; then
+            git -C "$PAGES_DIR" commit -m "vision audit site: run #${RUN_NUMBER}"
+            git -C "$PAGES_DIR" push origin gh-pages
+          fi
 
       - name: Post summary and every test case to Slack
+        id: notify
+        if: always() && steps.bootstrap.outcome == 'success'
+        continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -196,6 +178,21 @@ jobs:
             --retry 20 --retry-delay 5 --retry-all-errors --retry-max-time 120 \
             "$VISION_AUDIT_DASHBOARD_URL" >/dev/null || \
             echo "Daily Audit UI is still deploying; Slack links will become available shortly."
+          cd "$REPO_DIR"
           python3 .github/scripts/notify_vision_slack.py \
-            --report vision-audit/vision-audit-report.json \
+            --report "$REPO_DIR/vision-audit/vision-audit-report.json" \
             --channel "${{ secrets.SLACK_UI_CODEX_CHANNEL_ID }}"
+
+      - name: Finalize Daily Audit status
+        if: always()
+        shell: bash
+        run: |
+          failed=0
+          for outcome in \
+            "${{ steps.model.outcome }}" \
+            "${{ steps.audit.outcome }}" \
+            "${{ steps.publish.outcome }}" \
+            "${{ steps.notify.outcome }}"; do
+            [[ "$outcome" == "failure" ]] && failed=1
+          done
+          exit "$failed"
