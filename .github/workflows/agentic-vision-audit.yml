@@ -227,7 +227,7 @@ jobs:
 
       - name: Post summary and every test case to Slack
         id: notify
-        if: always() && steps.bootstrap.outcome == 'success' && steps.report_contract.outcome == 'success'
+        if: always() && steps.bootstrap.outcome == 'success'
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -258,6 +258,6 @@ jobs:
             "${{ steps.report_contract.outcome }}" \
             "${{ steps.publish.outcome }}" \
             "${{ steps.notify.outcome }}"; do
-            [[ "$outcome" == "failure" ]] && failed=1
+            [[ "$outcome" == "success" ]] || failed=1
           done
           exit "$failed"

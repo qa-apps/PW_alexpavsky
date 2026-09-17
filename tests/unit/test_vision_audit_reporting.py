@@ -91,8 +91,21 @@ class VisionAuditReportingTests(unittest.TestCase):
         self.assertIn("Daily Audit report is stale", workflow)
         self.assertIn("vision-audit-start-ns", workflow)
         self.assertIn("Post summary and every test case to Slack", workflow)
+        self.assertIn("if: always() && steps.bootstrap.outcome == 'success'", workflow)
+        self.assertIn('[[ "$outcome" == "success" ]] || failed=1', workflow)
         source = (ROOT / ".github/scripts/vision_audit_agent.mjs").read_text(encoding="utf-8")
         self.assertIn("report.operational_error ||= `Local Vision review failed", source)
+
+    def test_vision_delivery_rejects_empty_channel(self):
+        argv = [
+            "notify_vision_slack.py",
+            "--report", "missing.json",
+            "--channel", "   ",
+            "--require-delivery",
+        ]
+        with mock.patch.dict(os.environ, {"SLACK_BOT_TOKEN": "test"}, clear=True):
+            with mock.patch("sys.argv", argv):
+                self.assertEqual(SLACK.main(), 1)
 
     def test_ragas_completion_requires_current_run_reports_and_eval_steps(self):
         workflow = (ROOT / ".github/workflows/ragas-nightly.yml").read_text(encoding="utf-8")

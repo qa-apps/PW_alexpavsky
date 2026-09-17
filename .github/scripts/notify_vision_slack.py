@@ -160,8 +160,9 @@ def main() -> int:
     args = parser.parse_args()
 
     token = os.environ.get("SLACK_BOT_TOKEN", "").strip()
-    if not token:
-        print("SLACK_BOT_TOKEN is not configured; skipping Slack notification.")
+    channel = args.channel.strip()
+    if not token or not channel:
+        print("SLACK_BOT_TOKEN or channel is not configured; skipping Slack notification.")
         return 1 if args.require_delivery else 0
 
     report_path = Path(args.report)
@@ -169,7 +170,7 @@ def main() -> int:
         run_url = os.environ.get("GITHUB_RUN_URL", "")
         run_link = f"\n<{run_url}|Open GitHub run>" if run_url else ""
         result = slack_post(token, "chat.postMessage", {
-            "channel": args.channel,
+            "channel": channel,
             "text": (
                 ":x: *Daily Agentic Vision Audit - INFRASTRUCTURE FAILURE*\n"
                 "The job stopped before the Vision report was created."
@@ -190,7 +191,7 @@ def main() -> int:
     if not dashboard_url:
         for step in steps:
             link = upload_file(
-                token, args.channel, step.get("screenshot", ""),
+                token, channel, step.get("screenshot", ""),
                 f"Vision audit step {step.get('step')}: {step.get('title') or step.get('url')}",
             )
             if link:
@@ -198,7 +199,7 @@ def main() -> int:
 
     video = report.get("video") or ""
     if not dashboard_url:
-        video_link = upload_file(token, args.channel, video, "Agentic Vision Audit recording")
+        video_link = upload_file(token, channel, video, "Agentic Vision Audit recording")
         if video_link:
             media_links.append(f"<{video_link}|session video>")
 
@@ -232,7 +233,7 @@ def main() -> int:
         f"{' | '.join(link for link in (dashboard_link, run_link) if link)}\n"
         f"Every UI opening and AI input/output pair is documented in this thread."
     )
-    result = slack_post(token, "chat.postMessage", {"channel": args.channel, "text": text})
+    result = slack_post(token, "chat.postMessage", {"channel": channel, "text": text})
     if not result.get("ok"):
         print(f"Slack message failed: {result.get('error')}", file=sys.stderr)
         return 1 if args.require_delivery else 0
@@ -244,7 +245,7 @@ def main() -> int:
     for step in steps:
         case_id = step.get("test_case_id") or f"step {step.get('step')}"
         thread_result = slack_post(token, "chat.postMessage", {
-            "channel": args.channel,
+            "channel": channel,
             "thread_ts": thread_ts,
             "text": f"{case_id}: {step.get('summary') or 'No model summary.'}",
             "blocks": test_case_blocks(step, dashboard_url),
