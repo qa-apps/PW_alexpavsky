@@ -24,6 +24,10 @@ OBS_SLACK = load_module(
     "notify_observability_slack",
     ROOT / ".github/scripts/notify_observability_slack.py",
 )
+BOSGAME_SLACK = load_module(
+    "notify_bosgame_run_slack",
+    ROOT / ".github/scripts/notify_bosgame_run_slack.py",
+)
 LLM_SITE = load_module("build_llm_judge_site", ROOT / "scripts/build_llm_judge_site.py")
 
 
@@ -85,7 +89,10 @@ class VisionAuditReportingTests(unittest.TestCase):
         self.assertIn("http://127.0.0.1:11435", workflow)
         self.assertIn("daily-audit-runs/${{ github.run_id }}", workflow)
         self.assertIn("Daily Audit report is stale", workflow)
+        self.assertIn("vision-audit-start-ns", workflow)
         self.assertIn("Post summary and every test case to Slack", workflow)
+        source = (ROOT / ".github/scripts/vision_audit_agent.mjs").read_text(encoding="utf-8")
+        self.assertIn("report.operational_error ||= `Local Vision review failed", source)
 
     def test_ragas_completion_requires_current_run_reports_and_eval_steps(self):
         workflow = (ROOT / ".github/workflows/ragas-nightly.yml").read_text(encoding="utf-8")
@@ -116,6 +123,23 @@ class VisionAuditReportingTests(unittest.TestCase):
                 side_effect=[{}, RuntimeError("not acknowledged")],
             ):
                 self.assertEqual(OBS_SLACK.main(), 1)
+
+    def test_bosgame_require_delivery_rejects_unacknowledged_post(self):
+        argv = [
+            "notify_bosgame_run_slack.py",
+            "--suite", "unit",
+            "--event", "result",
+            "--format", "none",
+            "--channel", "C123",
+            "--require-delivery",
+        ]
+        with mock.patch.dict(os.environ, {"SLACK_BOT_TOKEN": "test"}, clear=True):
+            with mock.patch("sys.argv", argv), mock.patch.object(
+                BOSGAME_SLACK,
+                "_post",
+                return_value=None,
+            ):
+                self.assertEqual(BOSGAME_SLACK.main(), 1)
 
     def test_llm_quality_rejects_skips_and_stale_verdicts(self):
         workflow = (ROOT / ".github/workflows/llm-quality.yml").read_text(encoding="utf-8")

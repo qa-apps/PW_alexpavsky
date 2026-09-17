@@ -568,6 +568,7 @@ async function main() {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         decision.summary = `Local Vision reviewer error: ${clip(message, 500)}`;
+        report.operational_error ||= `Local Vision review failed for ${journey.id}: ${clip(message, 1000)}`;
         report.deterministic_findings.push({
           kind: 'infrastructure', severity: 'high', title: `${journey.id} local Vision review failed`,
           evidence: message,

@@ -129,7 +129,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p "$AUDIT_OUTPUT_DIR"
-          date +%s > "$RUNNER_TEMP/vision-audit-start"
+          python3 -c 'import os,time; from pathlib import Path; Path(os.environ["RUNNER_TEMP"]).joinpath("vision-audit-start-ns").write_text(str(time.time_ns()))'
           cd "$REPO_DIR"
           node .github/scripts/vision_audit_agent.mjs
 
@@ -147,8 +147,8 @@ jobs:
           report_path = Path(os.environ["REPORT_PATH"])
           if not report_path.is_file():
               raise SystemExit("Daily Audit report is missing")
-          started = int(Path(os.environ["RUNNER_TEMP"]).joinpath("vision-audit-start").read_text())
-          if int(report_path.stat().st_mtime) < started:
+          started = int(Path(os.environ["RUNNER_TEMP"]).joinpath("vision-audit-start-ns").read_text())
+          if report_path.stat().st_mtime_ns < started:
               raise SystemExit("Daily Audit report is stale")
           report = json.loads(report_path.read_text(encoding="utf-8"))
           expected = {
