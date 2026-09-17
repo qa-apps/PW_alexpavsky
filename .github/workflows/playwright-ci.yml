@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
   schedule:
     # Daytime daily run at 1 PM America/New_York. GitHub cron is UTC,
-    # so keep adjacent UTC hours and let the schedule gate handle DST.
+    # so keep both UTC slots; the schedule gate picks the one matching DST.
     - cron: '0 17 * * *'
     - cron: '0 18 * * *'
     - cron: '30 20 * * 1'  # weekly Monday model registry refresh, daytime ET
@@ -40,13 +40,16 @@ jobs:
             exit 0
           fi
 
-          ny_hour="$(TZ=America/New_York date +%H)"
-
-          if [[ "$ny_hour" == "13" ]]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-          fi
+          # GitHub often starts scheduled runs hours late, so decide by which
+          # cron fired, not by the current hour: 1 PM New York is 17:00 UTC
+          # during EDT and 18:00 UTC during EST.
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "0 17 * * *|EDT"|"0 18 * * *|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "Cron '${{ github.event.schedule }}' with New York on $ny_tz -> should_run=$should_run"
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
 
   playwright:
     needs: schedule-gate
