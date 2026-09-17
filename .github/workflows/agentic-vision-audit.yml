@@ -70,7 +70,7 @@ jobs:
           fi
           git -C "$REPO_DIR" checkout --detach "$GITHUB_SHA"
 
-          NODE_BIN_DIR=$(find "$RUNNER_TOOL_CACHE/node" -type d -path '*/x64/bin' 2>/dev/null | sort -V | tail -1)
+          NODE_BIN_DIR=$(find "${RUNNER_TOOL_CACHE:-/nonexistent}/node" -type d -path '*/x64/bin' 2>/dev/null | sort -V | tail -1 || true)
           if [[ -z "$NODE_BIN_DIR" || ! -x "$NODE_BIN_DIR/node" ]]; then
             RUNNER_ROOT=$(dirname "$(dirname "$RUNNER_TEMP")")
             NODE_BIN_DIR="$RUNNER_ROOT/externals/node24/bin"
