@@ -19,8 +19,7 @@ concurrency:
   group: llm-quality-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: write
+permissions: read-all
 
 jobs:
   llm-quality:
@@ -49,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
 
       - name: Resolve daily evaluation date
         id: eval_day
@@ -67,7 +66,7 @@ jobs:
 
       - name: Restore daily completion marker
         id: daily_marker
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .ci-markers/llm-quality.done
           key: bosgame-llm-quality-${{ steps.eval_day.outputs.date }}
@@ -121,7 +120,7 @@ jobs:
 
       - name: Checkout existing gh-pages site (if any)
         if: steps.local_llm.outputs.run == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
           ref: gh-pages
           path: gh-pages-existing
@@ -129,7 +128,7 @@ jobs:
 
       - name: Set up Node.js
         if: steps.local_llm.outputs.run == 'true'
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
         with:
           node-version: 22
 
@@ -160,7 +159,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always() && steps.local_llm.outputs.run == 'true'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: llm-quality-report-${{ github.run_number }}
           path: playwright-report/
@@ -168,7 +167,7 @@ jobs:
 
       - name: Upload judge verdicts
         if: always() && steps.local_llm.outputs.run == 'true'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: judge-verdicts-${{ github.run_number }}
           path: |
@@ -202,19 +201,15 @@ jobs:
           REPO_SLUG: ${{ github.repository }}
         run: python3 scripts/build_llm_judge_site.py
 
-      - name: Publish LLM Judge Pages UI
-        if: always() && steps.local_llm.outputs.run == 'true' && steps.build_ui.outcome == 'success'
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Upload Pages site for isolated publisher
+        id: upload_pages
+        if: always() && steps.local_llm.outputs.run == 'true'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./gh-pages-site
-          force_orphan: false
-          keep_files: true
-          enable_jekyll: false
-          commit_message: "llm judge site: run #${{ github.run_number }}"
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
+          name: llm-quality-pages-${{ github.run_id }}
+          path: gh-pages-site/
+          retention-days: 1
+          if-no-files-found: error
 
       - name: Notify Slack
         if: always() && steps.local_llm.outputs.run == 'true'
@@ -271,7 +266,7 @@ jobs:
 
       - name: Cache daily completion marker
         if: always() && steps.local_llm.outputs.run == 'true' && github.event_name == 'schedule'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .ci-markers/llm-quality.done
           key: bosgame-llm-quality-${{ steps.eval_day.outputs.date }}
@@ -279,3 +274,40 @@ jobs:
       - name: Fail if LLM quality tests failed
         if: steps.local_llm.outputs.run == 'true' && steps.run_tests.outcome == 'failure'
         run: exit 1
+
+      - name: Release background model lease
+        if: always() && github.event_name == 'schedule'
+        run: |
+          curl -fsS -X POST \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
+            http://127.0.0.1:11443/release/background || true
+
+  publish-llm-quality-pages:
+    name: Publish Pages from GitHub-hosted runner
+    if: always()
+    needs: llm-quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download generated Pages site
+        id: download_pages
+        continue-on-error: true
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: llm-quality-pages-${{ github.run_id }}
+          path: gh-pages-site
+
+      - name: Publish Pages site
+        if: steps.download_pages.outcome == 'success'
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./gh-pages-site
+          force_orphan: false
+          keep_files: true
+          enable_jekyll: false
+          commit_message: "llm judge site: run #${{ github.run_number }}"
+          user_name: "github-actions[bot]"
+          user_email: "github-actions[bot]@users.noreply.github.com"
