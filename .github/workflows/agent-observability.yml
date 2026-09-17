@@ -7,6 +7,10 @@ on:
         description: "Optional commit SHA for an isolated cloud merge review"
         required: false
         type: string
+      nanotech_sha:
+        description: "Optional PW_nanotech commit SHA to include in the same review"
+        required: false
+        type: string
   schedule:
     # Daily: run the voice Scenario (reports to LangWatch) and the chat trace
     # check (reads back from Langfuse), then post both statuses to Slack.
@@ -33,8 +37,15 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           REVIEW_SHA: ${{ inputs.review_sha }}
+          NANOTECH_SHA: ${{ inputs.nanotech_sha }}
         run: |
           git fetch origin master --depth=1
+          if [ -n "$NANOTECH_SHA" ]; then
+            git clone --filter=blob:none https://github.com/qa-apps/PW_nanotech.git /tmp/PW_nanotech-review
+            git -C /tmp/PW_nanotech-review fetch origin "$NANOTECH_SHA" --depth=1
+            git -C /tmp/PW_nanotech-review checkout --detach "$NANOTECH_SHA"
+            git -C /tmp/PW_nanotech-review fetch origin main --depth=1
+          fi
           python3 - <<'PY'
           import json
           import os
@@ -43,11 +54,17 @@ jobs:
           import urllib.error
           import urllib.request
 
-          diff = subprocess.check_output(
+          alex_diff = subprocess.check_output(
               ["git", "diff", "--no-ext-diff", f"origin/master...{os.environ['REVIEW_SHA']}"],
               text=True,
           )
-          prompt = """Final merge gate. Review only blocking correctness or security bugs in this GitHub Actions diff, including bash, retry semantics, artifact/report gating, and daily-marker gating. Failed assertion reports are intentionally published, but the completion marker must require successful eval, artifacts, both Slack reports, and Pages. Reply with exactly APPROVE plus at most three brief bullets, or REJECT plus blocking findings.\n\nDIFF:\n""" + diff
+          nano_diff = ""
+          if os.environ.get("NANOTECH_SHA"):
+              nano_diff = subprocess.check_output(
+                  ["git", "-C", "/tmp/PW_nanotech-review", "diff", "--no-ext-diff", f"origin/main...{os.environ['NANOTECH_SHA']}"],
+                  text=True,
+              )
+          prompt = """Final merge gate for two QA repositories. Review only blocking correctness or security bugs, GitHub Actions expression/step-outcome bugs, false-green daily markers, report completeness, Slack delivery, and Pages publication. Quality assertion failures may publish reports, but infrastructure/report/Slack/Pages failures must withhold completion markers. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.\n\nPW_alexpavsky DIFF:\n""" + alex_diff + "\n\nPW_nanotech DIFF:\n" + nano_diff
           models = (
               "z-ai/glm-4.5-air",
               "deepseek/deepseek-v4.1-flash",
