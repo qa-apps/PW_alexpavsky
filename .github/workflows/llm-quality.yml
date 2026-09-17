@@ -146,13 +146,11 @@ jobs:
         if: steps.local_llm.outputs.run == 'true'
         shell: bash
         run: |
-          # A system Chrome executable is not sufficient: Playwright still
-          # requires its matching ffmpeg helper for video/trace capture.
-          npx playwright install chromium
           if command -v google-chrome >/dev/null 2>&1; then
             echo "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
             echo "Using system Google Chrome on the Ubuntu 26.04 Bosgame runner."
           else
+            npx playwright install chromium
             echo "Using the Playwright-managed Chromium binary."
           fi
 
