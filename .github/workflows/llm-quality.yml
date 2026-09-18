@@ -2,7 +2,7 @@ name: LLM Quality (LLM Judge tests)
 
 # Companion to playwright-ci.yml. The "LLM Judge" suite lives here because
 # every test exercises production /api/chat and grades only essential behavior
-# with the local GPT-OSS judge on bosgame. Style and tone are not quality gates.
+# with a local Bosgame judge. Style and tone are not quality gates.
 #
 # This workflow runs the same tests as main in isolation. The test step is
 # temporarily non-blocking so reports and Slack notifications are always
@@ -32,8 +32,11 @@ jobs:
       LLM_CATALOG_URL: http://127.0.0.1:11434
       OLLAMA_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445' || 'http://127.0.0.1:11434' }}
       LOCAL_LLM_BASE_URL: http://127.0.0.1:11434/v1
-      LOCAL_LLM_MODEL: ${{ github.event_name == 'schedule' && 'scheduled/gpt-oss:120b' || 'gpt-oss:120b' }}
-      LOCAL_LLM_UPSTREAM_MODEL: gpt-oss:120b
+      # The 120B judge plus Chrome exhausts the Bosgame runner. This local
+      # 30B vision/reasoning model is already used by the daily vision audit
+      # and keeps the browser-backed quality suite within the memory budget.
+      LOCAL_LLM_MODEL: qwen3-vl-30b-a3b-screen:latest
+      LOCAL_LLM_UPSTREAM_MODEL: qwen3-vl-30b-a3b-screen:latest
       LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
       LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '0' }}
       LOCAL_EMBEDDING_MODEL: qwen3-embedding:4b
@@ -73,7 +76,7 @@ jobs:
           path: .ci-markers/llm-quality.done
           key: bosgame-llm-quality-${{ steps.eval_day.outputs.date }}
 
-      - name: Check local GPT-OSS availability
+      - name: Check local judge availability
         id: local_llm
         if: steps.daily_marker.outputs.cache-hit != 'true'
         shell: bash
@@ -170,7 +173,7 @@ jobs:
         id: run_tests
         # "LLM Judge" = the dedicated judge suite; "Content quality" = the
         # @upstream article-quality-judge specs, migrated here so their judge
-        # runs on local gpt-oss instead of free-tier providers.
+        # runs on the local Bosgame judge instead of free-tier providers.
         run: npx playwright test --grep "LLM Judge|Content quality" --workers=1 --reporter=list,json
         env:
           CI: true
@@ -283,7 +286,7 @@ jobs:
           echo "## LLM Quality Run #${{ github.run_number }}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Tests in this workflow probe the production AI chatbot via" >> "$GITHUB_STEP_SUMMARY"
-          echo "the production chatbot and grade essential behavior with local GPT-OSS." >> "$GITHUB_STEP_SUMMARY"
+          echo "the production chatbot and grade essential behavior with local model \`$LOCAL_LLM_MODEL\`." >> "$GITHUB_STEP_SUMMARY"
           echo "Style and tone are intentionally outside this smoke gate." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**Step status:** ${{ steps.run_tests.outcome }}" >> "$GITHUB_STEP_SUMMARY"
