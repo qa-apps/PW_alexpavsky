@@ -126,7 +126,7 @@ jobs:
             -X POST \
             -H "Authorization: Bearer $LOCAL_LLM_API_KEY" \
             -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
-            http://127.0.0.1:11445/release >/dev/null || true
+            http://127.0.0.1:11443/release/background >/dev/null || true
 
       - name: Upload report as artifact
         if: always()
