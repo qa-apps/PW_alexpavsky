@@ -124,11 +124,18 @@ jobs:
               return "\n".join(parts).strip()
 
           reviewer_groups = (
-              (("gpt-5.6-sol", "responses", {
-                  "input": prompt,
-                  "max_output_tokens": 10000,
-                  "reasoning": {"effort": "medium"},
-              }),),
+              (
+                  ("gpt-5.6-luna", "responses", {
+                      "input": prompt,
+                      "max_output_tokens": 10000,
+                      "reasoning": {"effort": "medium"},
+                  }),
+                  ("grok-4.6", "responses", {
+                      "input": prompt,
+                      "max_output_tokens": 10000,
+                      "reasoning": {"effort": "medium"},
+                  }),
+              ),
               (
                   ("mimo-v2.5", "chat/completions", {
                       "messages": [
