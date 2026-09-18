@@ -11,7 +11,7 @@ import os
 import sys
 import urllib.request
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 
 def fetch(url: str) -> bytes:
@@ -34,6 +34,21 @@ def slack(token: str, method: str, payload: dict) -> dict:
         return json.loads(response.read().decode("utf-8"))
 
 
+def slack_form(token: str, method: str, payload: dict) -> dict:
+    """Call Slack methods that still require form-encoded parameters."""
+    request = urllib.request.Request(
+        f"https://slack.com/api/{method}",
+        data=urlencode(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
 def clip(value: object, limit: int) -> str:
     text = str(value or "").strip()
     return text if len(text) <= limit else text[: limit - 16].rstrip() + "\n...truncated..."
@@ -42,7 +57,11 @@ def clip(value: object, limit: int) -> str:
 def upload_image(token: str, channel: str, thread_ts: str, url: str, title: str, comment: str) -> bool:
     body = fetch(url)
     filename = Path(urlparse(url).path).name or "i-copilot-case.png"
-    prepared = slack(token, "files.getUploadURLExternal", {"filename": filename, "length": len(body)})
+    prepared = slack_form(
+        token,
+        "files.getUploadURLExternal",
+        {"filename": filename, "length": len(body)},
+    )
     if not prepared.get("ok"):
         print(f"Slack upload preparation failed: {prepared.get('error')}", file=sys.stderr)
         return False
@@ -82,6 +101,57 @@ def case_text(item: dict) -> str:
         f"score `{float(judge.get('score') or 0):.2f}` · "
         f"{clip(judge.get('reason'), 700)}"
     )
+
+
+def case_blocks(item: dict, image_url: str) -> list[dict]:
+    judge = item.get("judge") or {}
+    verdict = "PASS" if judge.get("passed") else "FAIL"
+    return [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": f"{verdict} - {clip(item.get('title'), 120)}",
+            },
+        },
+        {
+            "type": "image",
+            "image_url": image_url,
+            "alt_text": f"I-Copilot test screenshot: {clip(item.get('title'), 120)}",
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f"*Spoken prompt:* `{clip(item.get('spoken'), 320)}`\n"
+                    f"*Conversation context:* {clip(item.get('conversation'), 600)}\n"
+                    f"*Model:* `{clip(item.get('provider'), 80)}/{clip(item.get('model'), 120)}` · "
+                    f"TTFT `{item.get('first_token_ms')} ms` · total `{item.get('total_ms')} ms` · "
+                    f"cost `${float(item.get('estimated_cost_usd') or 0):.6f}`"
+                ),
+            },
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*I-Copilot answer:*\n```{clip(item.get('answer'), 1500)}```",
+            },
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                    f"*LLM judge:* `{clip(judge.get('provider') or 'local', 80)}/"
+                    f"{clip(judge.get('model') or 'gpt-oss:120b', 120)}` · "
+                    f"score `{float(judge.get('score') or 0):.2f}` · "
+                    f"{clip(judge.get('reason'), 700)}"
+                ),
+            },
+        },
+    ]
 
 
 def main() -> int:
@@ -137,16 +207,20 @@ def main() -> int:
         }, ensure_ascii=False))
         comment = case_text(item)
         image_url = str(item.get("image_url") or "")
-        case_delivered = bool(image_url) and upload_image(
+        image_uploaded = bool(image_url) and upload_image(
             token, args.channel, parent["ts"], image_url,
             f"I-Copilot - {item.get('title')}", comment,
         )
-        if not case_delivered:
+        case_delivered = image_uploaded
+        if not image_uploaded and image_url:
             fallback = slack(token, "chat.postMessage", {
                 "channel": args.channel,
                 "thread_ts": parent["ts"],
-                "text": f"{comment}\n*Screenshot:* {image_url or 'missing'}",
+                "text": comment,
+                "blocks": case_blocks(item, image_url),
             })
+            if not fallback.get("ok"):
+                print(f"Slack fallback message failed: {fallback.get('error')}", file=sys.stderr)
             case_delivered = bool(fallback.get("ok"))
         delivered = delivered and case_delivered
     return 0 if delivered and passed == len(results) else 1
