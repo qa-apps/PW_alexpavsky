@@ -177,6 +177,9 @@ class VisionAuditReportingTests(unittest.TestCase):
 
     def test_llm_quality_rejects_skips_and_stale_verdicts(self):
         workflow = (ROOT / ".github/workflows/llm-quality.yml").read_text(encoding="utf-8")
+        self.assertIn("LLM_CATALOG_URL: http://127.0.0.1:11445", workflow)
+        self.assertNotIn("LLM_CATALOG_URL: http://127.0.0.1:11446", workflow)
+        self.assertIn("retrying in 10s", workflow)
         self.assertIn("llm-quality-start-ns", workflow)
         self.assertIn('statuses = {"expected", "unexpected", "flaky"}', workflow)
         self.assertIn("No current-run judge verdict files were created", workflow)
