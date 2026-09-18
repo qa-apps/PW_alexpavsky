@@ -32,6 +32,14 @@ RESULTS_DIR = Path(__file__).parent / "results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
 
+def local_llm_headers(model: str, api_key: str) -> dict[str, str]:
+    return {
+        "Authorization": f"Bearer {api_key}",
+        "X-LLM-Job-ID": os.environ.get("GITHUB_RUN_ID", "local-giskard-eval"),
+        "X-LLM-Model": model,
+    }
+
+
 def log(msg: str) -> None:
     print(msg, flush=True)
 
@@ -85,7 +93,9 @@ class PermissiveCorrectnessMetric:
     def __call__(self, question_sample, answer) -> dict:
         response = requests.post(
             f"{self.provider['base_url']}/chat/completions",
-            headers={"Authorization": f"Bearer {self.provider['api_key']}"},
+            headers=local_llm_headers(
+                self.provider["model"], self.provider["api_key"]
+            ),
             json={
                 "model": self.provider["model"],
                 "temperature": 0,

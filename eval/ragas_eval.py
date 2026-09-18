@@ -289,7 +289,7 @@ def main() -> int:
 
     # Build the local judge. The wrapper shape is retained for compatibility
     # with Ragas, but the configured provider list contains bosgame only.
-    from rotating_llm import RotatingJudgeLLM
+    from rotating_llm import RotatingJudgeLLM, lifecycle_headers
     judge_llm = RotatingJudgeLLM(
         providers=providers,
         temperature=0,
@@ -310,7 +310,10 @@ def main() -> int:
         def _embed(self, texts: list[str]) -> list[list[float]]:
             response = requests.post(
                 f"{embedding_root}/api/embed",
-                headers={"Authorization": f"Bearer {providers[0]['api_key']}"},
+                headers={
+                    "Authorization": f"Bearer {providers[0]['api_key']}",
+                    **lifecycle_headers(embedding_model),
+                },
                 json={"model": embedding_model, "input": texts, "keep_alive": -1},
                 timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")),
             )

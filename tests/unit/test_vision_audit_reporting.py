@@ -109,6 +109,10 @@ class VisionAuditReportingTests(unittest.TestCase):
 
     def test_ragas_completion_requires_current_run_reports_and_eval_steps(self):
         workflow = (ROOT / ".github/workflows/ragas-nightly.yml").read_text(encoding="utf-8")
+        self.assertIn("LLM_CATALOG_URL: http://127.0.0.1:11446", workflow)
+        self.assertIn("OLLAMA_BASE_URL: http://127.0.0.1:11445", workflow)
+        self.assertIn("LOCAL_LLM_BASE_URL: http://127.0.0.1:11445/v1", workflow)
+        self.assertNotIn("LOCAL_LLM_BASE_URL: http://127.0.0.1:11434/v1", workflow)
         self.assertIn("ragas-giskard-start-ns", workflow)
         self.assertIn("Stale report from an earlier run", workflow)
         self.assertIn("RAGAS_EVAL: ${{ steps.ragas_eval.outcome }}", workflow)
@@ -122,6 +126,10 @@ class VisionAuditReportingTests(unittest.TestCase):
             "    try:",
             scan,
         )
+        rotating = (ROOT / "eval/rotating_llm.py").read_text(encoding="utf-8")
+        self.assertIn('"X-LLM-Job-ID"', rotating)
+        self.assertIn('"X-LLM-Model"', rotating)
+        self.assertIn("default_headers=lifecycle_headers", rotating)
 
     def test_slack_delivery_cannot_pass_without_a_token(self):
         argv = ["notify_slack.py", "--channel", "C123", "--pipeline", "unit", "--require-delivery"]

@@ -26,6 +26,14 @@ from pydantic import ConfigDict, Field
 log = logging.getLogger("rotating-llm")
 
 
+def lifecycle_headers(model: str) -> dict[str, str]:
+    """Identify this local eval to Bosgame's background model scheduler."""
+    return {
+        "X-LLM-Job-ID": os.environ.get("GITHUB_RUN_ID", "local-rag-eval"),
+        "X-LLM-Model": model,
+    }
+
+
 # Ollama exposes an OpenAI-compatible endpoint. CI runs on bosgame itself, so
 # localhost is both private and independent of external provider quotas.
 def build_provider_list() -> list[dict[str, str]]:
@@ -83,6 +91,7 @@ class RotatingJudgeLLM(BaseChatModel):
             model=provider["model"],
             base_url=provider["base_url"],
             api_key=provider["api_key"],
+            default_headers=lifecycle_headers(provider["model"]),
             temperature=self.temperature,
             timeout=self.timeout,
             max_retries=self.max_retries,
@@ -186,6 +195,7 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
     openai_client = openai.OpenAI(
         base_url=provider["base_url"],
         api_key=provider["api_key"],
+        default_headers=lifecycle_headers(provider["model"]),
         timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")),
         max_retries=8,
     )
@@ -200,7 +210,10 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
         def embed(self, texts):
             response = requests.post(
                 f"{embedding_root}/api/embed",
-                headers={"Authorization": f"Bearer {provider['api_key']}"},
+                headers={
+                    "Authorization": f"Bearer {provider['api_key']}",
+                    **lifecycle_headers(embedding_model),
+                },
                 json={"model": embedding_model, "input": list(texts), "keep_alive": -1},
                 timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")),
             )
