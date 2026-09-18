@@ -177,6 +177,7 @@ jobs:
         run: npx playwright test --grep "LLM Judge|Content quality" --workers=1 --reporter=list,json
         env:
           CI: true
+          QA_BYPASS_TOKEN: ${{ secrets.QA_BYPASS_TOKEN }}
           PLAYWRIGHT_JSON_OUTPUT_NAME: test-results/results.json
           PROBES_PER_FEED: '4'
 

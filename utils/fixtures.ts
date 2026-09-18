@@ -8,6 +8,7 @@ import { CommonPage } from '../pages/CommonPage';
 import { LiveRailPage } from '../pages/LiveRailPage';
 
 export type AppFixtures = {
+  qaChatBypass: void;
   commonPage: CommonPage;
   homePage: HomePage;
   labPage: LabPage;
@@ -18,6 +19,25 @@ export type AppFixtures = {
 };
 
 export const test = base.extend<AppFixtures>({
+  qaChatBypass: [async ({ page }, use) => {
+    const token = process.env.QA_BYPASS_TOKEN?.trim();
+    if (token) {
+      await page.route('**/api/chat', async (route) => {
+        const url = new URL(route.request().url());
+        if (url.pathname === '/api/chat' && /^(?:www\.)?alexpavsky\.com$/i.test(url.hostname)) {
+          await route.continue({
+            headers: {
+              ...route.request().headers(),
+              'x-qa-token': token,
+            },
+          });
+          return;
+        }
+        await route.continue();
+      });
+    }
+    await use();
+  }, { auto: true }],
   commonPage: async ({ page }, use) => {
     const commonPage = new CommonPage(page);
     await use(commonPage);
