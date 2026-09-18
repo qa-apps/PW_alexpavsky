@@ -217,6 +217,7 @@ jobs:
           MIN_RELEVANCY: '0.35'
           ALLOWED_FAILURES: '3'
           REQUEST_DELAY_SEC: '2.0'
+          RAGAS_METRIC_RETRIES: '2'
         run: |
           python eval/ragas_eval.py
 
