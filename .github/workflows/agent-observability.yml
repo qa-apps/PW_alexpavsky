@@ -7,6 +7,16 @@ on:
         description: "Optional commit SHA for an isolated cloud merge review"
         required: false
         type: string
+      review_repo:
+        description: "Repository containing review_sha"
+        required: false
+        default: "qa-apps/PW_alexpavsky"
+        type: string
+      base_ref:
+        description: "Base branch for the exact diff"
+        required: false
+        default: "master"
+        type: string
       nanotech_sha:
         description: "Optional PW_nanotech commit SHA to include in the same review"
         required: false
@@ -52,6 +62,7 @@ jobs:
       - name: Checkout review commit
         uses: actions/checkout@v5
         with:
+          repository: ${{ inputs.review_repo || github.repository }}
           ref: ${{ inputs.review_sha }}
           fetch-depth: 0
 
@@ -59,9 +70,11 @@ jobs:
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           REVIEW_SHA: ${{ inputs.review_sha }}
+          REVIEW_REPO: ${{ inputs.review_repo || github.repository }}
+          BASE_REF: ${{ inputs.base_ref || 'master' }}
           NANOTECH_SHA: ${{ inputs.nanotech_sha }}
         run: |
-          git fetch origin master --depth=1
+          git fetch origin "$BASE_REF" --depth=1
           if [ -n "$NANOTECH_SHA" ]; then
             git clone --filter=blob:none https://github.com/qa-apps/PW_nanotech.git /tmp/PW_nanotech-review
             git -C /tmp/PW_nanotech-review fetch origin "$NANOTECH_SHA"
@@ -78,7 +91,7 @@ jobs:
           import urllib.request
 
           alex_diff = subprocess.check_output(
-              ["git", "diff", "--no-ext-diff", f"origin/master...{os.environ['REVIEW_SHA']}"],
+              ["git", "diff", "--no-ext-diff", f"origin/{os.environ['BASE_REF']}...{os.environ['REVIEW_SHA']}"],
               text=True,
           )
           nano_diff = ""
@@ -87,24 +100,11 @@ jobs:
                   ["git", "-C", "/tmp/PW_nanotech-review", "diff", "--no-ext-diff", f"origin/main...{os.environ['NANOTECH_SHA']}"],
                   text=True,
               )
-          prompt = """Final agent-fix merge gate for two QA repositories. Review only blocking correctness or security bugs, GitHub Actions expression/step-outcome bugs, false-green daily markers, report completeness, Slack delivery, and Pages publication. All evaluation workloads must use local BossGame LLMs; OpenCode is used only by agent-fix and this final agent-fix merge gate. Quality assertion failures may publish reports, but infrastructure/report/Slack/Pages failures must withhold completion markers.
+          prompt = f"""Final agent-fix merge gate for {os.environ['REVIEW_REPO']}.
+          Review only blocking correctness, security, deployment, or test-coverage bugs in the exact diff below. Do not suggest unrelated refactors. OpenCode is being used only for this final review, not for evaluation workloads. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.
 
-          Verified invariants in the exact commits below:
-          - the isolated Pages publisher jobs use `if: always()`;
-          - notify_slack.py exits non-zero when SLACK_BOT_TOKEN is absent, with a regression test;
-          - Ragas/Giskard requires current-run report mtimes and non-skipped eval outcomes;
-          - DeepEval sets RUN_LLM_EVALS=1 both at job level and on the pytest commands.
-          - LLM Judge and DeepEval freshness checks use nanosecond timestamps; LLM Judge rejects skipped tests and stale verdict files;
-          - notify_observability_slack.py returns non-zero for an unacknowledged chat.postMessage when --require-delivery is set.
-          - both six-test DeepEval modules call deepeval.assert_test, so their single pytest invocation produces the required 12 testCases;
-          - notify_bosgame_run_slack.py checks every chat.postMessage acknowledgement and returns 1 under --require-delivery when any post fails.
-          - notify_deepeval_slack.py explicitly returns non-zero for token-backed Slack API errors under --require-delivery, with a regression test.
-          - Ragas, Giskard, and DeepEval now bind a failed step to an explicit complete quality verdict; infrastructure failures cannot satisfy the report contract.
-          - LLM Judge binds the Playwright outcome to unexpected cases, and Promptfoo makes its eval step operational-only while a separate step owns assertion quality.
-          Do not report one of those as absent unless the supplied diff directly contradicts it. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.
-
-          PW_alexpavsky DIFF:
-          """ + alex_diff + "\n\nPW_nanotech DIFF:\n" + nano_diff
+          TARGET DIFF:
+          """ + alex_diff + "\n\nOPTIONAL SECOND REPOSITORY DIFF:\n" + nano_diff
 
           headers = {
               "Authorization": f"Bearer {os.environ['OPENCODE_API_KEY']}",
