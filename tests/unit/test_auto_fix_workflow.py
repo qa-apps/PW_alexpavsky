@@ -6,6 +6,18 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class AutoFixWorkflowTests(unittest.TestCase):
+    def test_playwright_does_not_receive_cloud_provider_keys(self):
+        workflow = (ROOT / ".github/workflows/playwright-ci.yml").read_text()
+        for secret in (
+            "GROQ_API_KEY",
+            "GEMINI_API_KEY",
+            "HF_TOKEN",
+            "CEREBRAS_API_KEY",
+            "SAMBANOVA_API_KEY",
+            "MISTRAL_API_KEY",
+        ):
+            self.assertNotIn(secret, workflow)
+
     def test_agent_fix_uses_only_opencode_with_a_long_reasoning_timeout(self):
         workflow = (ROOT / ".github/workflows/auto-fix.yml").read_text()
         agent = (ROOT / ".github/scripts/auto_fix_agent.py").read_text()
