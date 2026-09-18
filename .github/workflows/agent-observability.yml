@@ -1,4 +1,6 @@
 name: Agent Observability Dashboards
+run-name: >-
+  ${{ inputs.review_sha != '' && format('OpenCode merge review {0}', inputs.review_sha) || 'Agent observability dashboards' }}
 
 on:
   workflow_dispatch:
@@ -19,6 +21,14 @@ on:
         type: string
       nanotech_sha:
         description: "Optional PW_nanotech commit SHA to include in the same review"
+        required: false
+        type: string
+      auto_merge_pr:
+        description: "Optional agent-fix PR number to merge after all gates pass"
+        required: false
+        type: string
+      rerun_workflow:
+        description: "Optional workflow file to rerun after the guarded merge"
         required: false
         type: string
   schedule:
@@ -57,7 +67,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.review_sha != ''
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      actions: write
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout review commit
         uses: actions/checkout@v5
@@ -232,8 +244,59 @@ jobs:
               sys.exit(1)
           PY
 
-      - name: Route rejected cloud review to human review
-        if: always() && steps.cloud_review.outcome == 'failure'
+      - name: Require deterministic PR checks and merge exact commit
+        id: pr_gate
+        if: steps.cloud_review.outcome == 'success' && inputs.auto_merge_pr != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEW_REPO: ${{ inputs.review_repo || github.repository }}
+          REVIEW_SHA: ${{ inputs.review_sha }}
+          PR_NUMBER: ${{ inputs.auto_merge_pr }}
+          RERUN_WORKFLOW: ${{ inputs.rerun_workflow }}
+        run: |
+          set -euo pipefail
+          current_sha=$(gh pr view "$PR_NUMBER" --repo "$REVIEW_REPO" --json headRefOid --jq .headRefOid)
+          if [ "$current_sha" != "$REVIEW_SHA" ]; then
+            echo "::error::PR head changed after review: expected $REVIEW_SHA, found $current_sha"
+            exit 1
+          fi
+
+          deadline=$((SECONDS + 3600))
+          while true; do
+            checks=$(gh api "repos/$REVIEW_REPO/commits/$REVIEW_SHA/check-runs?per_page=100")
+            playwright_status=$(jq -r '[.check_runs[] | select(.name == "playwright")] | sort_by(.started_at) | last | .status // "missing"' <<<"$checks")
+            playwright_conclusion=$(jq -r '[.check_runs[] | select(.name == "playwright")] | sort_by(.started_at) | last | .conclusion // ""' <<<"$checks")
+            if [ "$playwright_status" = "completed" ]; then
+              [ "$playwright_conclusion" = "success" ] || {
+                echo "::error::Deterministic Playwright check concluded $playwright_conclusion"
+                exit 1
+              }
+              break
+            fi
+            [ "$SECONDS" -lt "$deadline" ] || {
+              echo "::error::Timed out waiting for the deterministic Playwright check"
+              exit 1
+            }
+            echo "Waiting for Playwright check (status=$playwright_status)..."
+            sleep 20
+          done
+
+          gh pr merge "$PR_NUMBER" --repo "$REVIEW_REPO" --merge --match-head-commit "$REVIEW_SHA"
+          merge_sha=$(gh pr view "$PR_NUMBER" --repo "$REVIEW_REPO" --json mergeCommit --jq .mergeCommit.oid)
+          echo "Merged PR #$PR_NUMBER as $merge_sha after deterministic tests and two OpenCode approvals."
+
+          if [ -n "$RERUN_WORKFLOW" ] && [ "$RERUN_WORKFLOW" != "playwright-ci.yml" ]; then
+            gh workflow run "$RERUN_WORKFLOW" --repo "$REVIEW_REPO" --ref master
+            echo "Dispatched post-merge rerun: $RERUN_WORKFLOW"
+          else
+            echo "The master push automatically reruns Playwright."
+          fi
+
+      - name: Route rejected gate to human review
+        if: >-
+          always() &&
+          (steps.cloud_review.outcome == 'failure' || steps.pr_gate.outcome == 'failure')
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           HUMAN_REVIEW_CHANNEL_ID: ${{ secrets.HUMAN_REVIEW_CHANNEL_ID }}
@@ -249,9 +312,10 @@ jobs:
           token = os.environ["SLACK_BOT_TOKEN"]
           channel = os.environ["HUMAN_REVIEW_CHANNEL_ID"]
           text = (
-              "Human review required: one or more independent OpenCode reviewers "
-              f"rejected {os.environ['REVIEW_REPO']}@{os.environ['REVIEW_SHA'][:12]}. "
-              f"No merge was performed. Review details: {os.environ['RUN_URL']}"
+              "Human review required: the two-model OpenCode review or the "
+              f"deterministic test gate rejected {os.environ['REVIEW_REPO']}@"
+              f"{os.environ['REVIEW_SHA'][:12]}. No merge was performed. "
+              f"Review details: {os.environ['RUN_URL']}"
           )
           request = urllib.request.Request(
               "https://slack.com/api/chat.postMessage",
@@ -270,7 +334,9 @@ jobs:
           PY
 
       - name: Enforce two-model approval
-        if: always() && steps.cloud_review.outcome != 'success'
+        if: >-
+          always() &&
+          (steps.cloud_review.outcome != 'success' || steps.pr_gate.outcome == 'failure')
         run: exit 1
 
   agent-checks:
