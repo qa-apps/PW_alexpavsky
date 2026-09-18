@@ -192,6 +192,7 @@ class VisionAuditReportingTests(unittest.TestCase):
             "llm-quality.yml",
             "promptfoo-basic.yml",
             "ragas-nightly.yml",
+            "weekly-qa-report.yml",
         ):
             workflow = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
             self.assertIn("LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}", workflow)
@@ -201,6 +202,14 @@ class VisionAuditReportingTests(unittest.TestCase):
     def test_runtime_workflows_do_not_reference_openrouter(self):
         for path in (ROOT / ".github/workflows").glob("*.yml"):
             self.assertNotIn("OPENROUTER", path.read_text(encoding="utf-8"), path.name)
+
+    def test_weekly_report_uses_only_the_local_llm(self):
+        workflow = (ROOT / ".github/workflows/weekly-qa-report.yml").read_text(encoding="utf-8")
+        script = (ROOT / ".github/scripts/weekly_report.py").read_text(encoding="utf-8")
+        combined = workflow + script
+        self.assertIn("http://127.0.0.1:11445/v1", combined)
+        self.assertNotIn("GROQ_API_KEY", combined)
+        self.assertNotIn("CEREBRAS_API_KEY", combined)
 
     def test_llm_judge_site_keeps_only_latest_retry_per_test(self):
         records = [

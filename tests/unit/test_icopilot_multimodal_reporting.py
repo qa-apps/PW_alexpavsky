@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import unittest
 from pathlib import Path
 
 
@@ -16,27 +17,27 @@ def _load_module():
     return module
 
 
-def test_case_message_documents_prompt_answer_model_and_judge():
-    notify = _load_module()
-    text = notify.case_text({
-        "title": "Confusing context",
-        "spoken": "What would you do here?",
-        "conversation": "The screen contains a code task.",
-        "provider": "gemini",
-        "model": "gemini-test",
-        "answer": "Fix the assignment operator.",
-        "first_token_ms": 120,
-        "total_ms": 450,
-        "estimated_cost_usd": 0.001,
-        "judge": {"passed": True, "score": 1, "reason": "Used screen and speech."},
-    })
+class ICopilotMultimodalReportingTests(unittest.TestCase):
+    def test_case_message_documents_prompt_answer_model_and_judge(self):
+        notify = _load_module()
+        text = notify.case_text({
+            "title": "Confusing context",
+            "spoken": "What would you do here?",
+            "conversation": "The screen contains a code task.",
+            "provider": "gemini",
+            "model": "gemini-test",
+            "answer": "Fix the assignment operator.",
+            "first_token_ms": 120,
+            "total_ms": 450,
+            "estimated_cost_usd": 0.001,
+            "judge": {"passed": True, "score": 1, "reason": "Used screen and speech."},
+        })
 
-    for expected in ("Spoken prompt", "Conversation context", "gemini/gemini-test", "I-Copilot answer", "GPT-OSS judge"):
-        assert expected in text
+        for expected in ("Spoken prompt", "Conversation context", "gemini/gemini-test", "I-Copilot answer", "GPT-OSS judge"):
+            self.assertIn(expected, text)
 
-
-def test_workflow_is_dst_safe_and_does_not_require_the_macbook():
-    workflow = (ROOT / ".github/workflows/ico-pilot-multimodal.yml").read_text(encoding="utf-8")
-    assert "0 13 * * *|EDT" in workflow
-    assert "0 14 * * *|EST" in workflow
-    assert "runs-on: ubuntu-latest" in workflow
+    def test_workflow_is_dst_safe_and_does_not_require_the_macbook(self):
+        workflow = (ROOT / ".github/workflows/ico-pilot-multimodal.yml").read_text(encoding="utf-8")
+        self.assertIn("0 13 * * *|EDT", workflow)
+        self.assertIn("0 14 * * *|EST", workflow)
+        self.assertIn("runs-on: ubuntu-latest", workflow)

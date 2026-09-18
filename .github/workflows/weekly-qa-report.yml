@@ -2,7 +2,9 @@ name: Weekly QA Report
 
 on:
   schedule:
-    - cron: '15 20 * * 0'  # Sunday 16:15 America/New_York during EDT
+    # Sunday 06:50 America/New_York, after the daily RAG evaluation.
+    - cron: '50 10 * * 0'
+    - cron: '50 11 * * 0'
   workflow_dispatch:        # Run manually from GitHub Actions UI
 
 concurrency:
@@ -14,9 +16,31 @@ permissions:
   contents: read
 
 jobs:
-  generate-report:
+  schedule-gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "50 10 * * 0|EDT"|"50 11 * * 0|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
+
+  generate-report:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
+    runs-on: [self-hosted, Linux, X64, bosgame]
+    timeout-minutes: 390
 
     steps:
       - name: Checkout repo
@@ -63,15 +87,46 @@ jobs:
       - name: Install dependencies
         run: pip install httpx python-dateutil
 
+      - name: Wait for local GPT-OSS
+        env:
+          LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
+        run: |
+          : "${LOCAL_LLM_API_KEY:?LOCAL_LLM_API_KEY secret is required}"
+          deadline=$((SECONDS + 21600))
+          until curl --connect-timeout 5 --max-time 15 --fail --silent --show-error \
+            -H "Authorization: Bearer $LOCAL_LLM_API_KEY" \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
+            -H "X-LLM-Model: gpt-oss:120b" \
+            http://127.0.0.1:11445/v1/models >/dev/null; do
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "Local GPT-OSS did not become available within six hours"
+              exit 1
+            fi
+            sleep 10
+          done
+
       - name: Generate weekly report and send to Slack + site
         env:
-          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
-          CEREBRAS_API_KEY:    ${{ secrets.CEREBRAS_API_KEY }}
+          LOCAL_LLM_BASE_URL:  http://127.0.0.1:11445/v1
+          LOCAL_LLM_API_KEY:   ${{ secrets.LOCAL_LLM_API_KEY }}
+          LOCAL_LLM_MODEL:     scheduled/gpt-oss:120b
+          LOCAL_LLM_JOB_ID:    ${{ github.run_id }}
           SLACK_WEBHOOK_URL:   ${{ secrets.SLACK_WEBHOOK_URL }}
           SITE_REPORTS_URL:    https://alexpavsky.com/api/agent-reports
           MAINTENANCE_KEY:     ${{ secrets.MAINTENANCE_KEY }}
           GITHUB_RUN_URL:      ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: python .github/scripts/weekly_report.py
+
+      - name: Release background model lease
+        if: always()
+        env:
+          LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
+        run: |
+          curl --connect-timeout 5 --max-time 15 --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $LOCAL_LLM_API_KEY" \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
+            http://127.0.0.1:11445/release >/dev/null || true
 
       - name: Upload report as artifact
         if: always()

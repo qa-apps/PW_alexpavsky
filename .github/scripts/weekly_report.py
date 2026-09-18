@@ -2,8 +2,8 @@
 """
 weekly_report.py — Weekly QA Report generator for alexpavsky.com.
 
-Runs in GitHub Actions every Sunday. Uses the configured Groq/Cerebras
-report-writing fallback. Evaluation workflows use the local BossGame LLM.
+Runs in GitHub Actions every Sunday. Report writing uses the local BossGame
+GPT-OSS model through the background lifecycle gateway.
 
 Delivers reports to:
   1. Slack  (SLACK_WEBHOOK_URL)
@@ -13,7 +13,6 @@ Delivers reports to:
 import json
 import os
 import re
-import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -22,8 +21,10 @@ import httpx
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-GROQ_KEY       = os.environ.get("GROQ_API_KEY", "")
-CEREBRAS_KEY   = os.environ.get("CEREBRAS_API_KEY", "")
+LOCAL_LLM_URL  = os.environ.get("LOCAL_LLM_BASE_URL", "http://127.0.0.1:11445/v1").rstrip("/")
+LOCAL_LLM_KEY  = os.environ.get("LOCAL_LLM_API_KEY", "")
+LOCAL_LLM_MODEL = os.environ.get("LOCAL_LLM_MODEL", "gpt-oss:120b")
+LOCAL_LLM_JOB_ID = os.environ.get("LOCAL_LLM_JOB_ID", "weekly-qa-report")
 SLACK_URL      = os.environ.get("SLACK_WEBHOOK_URL", "")
 SITE_URL       = os.environ.get("SITE_REPORTS_URL", "")
 MAINT_KEY      = os.environ.get("MAINTENANCE_KEY", "")
@@ -34,38 +35,29 @@ TEST_RESULTS   = Path("test-results")
 REPORT_DATE    = datetime.now(tz=timezone.utc)
 WEEK_START     = REPORT_DATE - timedelta(days=7)
 
-LLM_PROVIDERS = [
-    ("groq",     GROQ_KEY,       "https://api.groq.com/openai/v1",      "llama-3.3-70b-versatile"),
-    ("cerebras", CEREBRAS_KEY,   "https://api.cerebras.ai/v1",          "llama-3.3-70b"),
-]
-
 # ---------------------------------------------------------------------------
-# LLM call with rotation (same pattern as rag/main.py)
+# Local LLM call
 # ---------------------------------------------------------------------------
 def call_llm(prompt: str, system: str = "") -> str:
+    if not LOCAL_LLM_KEY:
+        raise RuntimeError("LOCAL_LLM_API_KEY is required")
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
     messages.append({"role": "user", "content": prompt})
 
-    for name, key, base_url, model in LLM_PROVIDERS:
-        if not key:
-            continue
-        try:
-            r = httpx.post(
-                f"{base_url}/chat/completions",
-                json={"model": model, "messages": messages, "max_tokens": 1500},
-                headers={"Authorization": f"Bearer {key}",
-                         "HTTP-Referer": "https://alexpavsky.com"},
-                timeout=30,
-            )
-            if r.status_code == 200:
-                return r.json()["choices"][0]["message"]["content"].strip()
-            print(f"  [{name}] HTTP {r.status_code} — trying next", file=sys.stderr)
-        except Exception as e:
-            print(f"  [{name}] {e} — trying next", file=sys.stderr)
-
-    return "LLM unavailable — all providers failed"
+    r = httpx.post(
+        f"{LOCAL_LLM_URL}/chat/completions",
+        json={"model": LOCAL_LLM_MODEL, "messages": messages, "max_tokens": 1500},
+        headers={
+            "Authorization": f"Bearer {LOCAL_LLM_KEY}",
+            "X-LLM-Job-ID": LOCAL_LLM_JOB_ID,
+            "X-LLM-Model": "gpt-oss:120b",
+        },
+        timeout=180,
+    )
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"].strip()
 
 # ---------------------------------------------------------------------------
 # Data collection
@@ -247,7 +239,7 @@ def main():
     print(f"Verdict files:  {len(verdicts['triage'])} triage, {len(verdicts['weekly'])} weekly")
     if counts["total"] == 0:
         raise SystemExit("No Playwright result counts found; refusing to publish a green zero-test weekly report")
-    print("Generating report via open-source LLM rotation...")
+    print(f"Generating report with local {LOCAL_LLM_MODEL}...")
 
     report_md = generate_report(verdicts, counts)
     print(f"\n--- Report preview (first 300 chars) ---\n{report_md[:300]}\n---\n")
