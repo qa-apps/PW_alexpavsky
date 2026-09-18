@@ -5,15 +5,39 @@ on:
   schedule:
     # Daily: run the voice Scenario (reports to LangWatch) and the chat trace
     # check (reads back from Langfuse), then post both statuses to Slack.
-    - cron: "10 20 * * *"
+    # 8:15 AM America/New_York, after the heavier overnight evals.
+    - cron: "15 12 * * *"
+    - cron: "15 13 * * *"
 
 concurrency:
   group: agent-observability-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "15 12 * * *|EDT"|"15 13 * * *|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
+
   agent-checks:
     name: Voice Scenario (LangWatch) + chat traces (Langfuse)
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
     runs-on: [self-hosted, Linux, X64, bosgame]
     timeout-minutes: 30
     env:
@@ -102,9 +126,16 @@ jobs:
           LANGFUSE_HOST: ${{ vars.LANGFUSE_HOST || 'https://us.cloud.langfuse.com' }}
         run: npx vitest run tests/observability
 
+      - name: Release background model lease
+        if: always() && github.event_name == 'schedule'
+        run: |
+          curl -fsS -X POST \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
+            http://127.0.0.1:11443/release/background || true
+
   slack-observability:
     needs: agent-checks
-    if: always()
+    if: always() && needs.agent-checks.result != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 8
 

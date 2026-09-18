@@ -88,7 +88,9 @@ class VisionAuditReportingTests(unittest.TestCase):
     def test_bosgame_workflow_avoids_broken_marketplace_action_extraction(self):
         workflow = (ROOT / ".github/workflows/agentic-vision-audit.yml").read_text(encoding="utf-8")
         self.assertNotIn("uses:", workflow)
-        self.assertIn("http://127.0.0.1:11435", workflow)
+        self.assertIn("http://127.0.0.1:11445", workflow)
+        self.assertIn("X-LLM-Job-ID", workflow)
+        self.assertIn("X-LLM-Model", workflow)
         self.assertIn("daily-audit-runs/${{ github.run_id }}", workflow)
         self.assertIn("Daily Audit report is stale", workflow)
         self.assertIn("vision-audit-start-ns", workflow)

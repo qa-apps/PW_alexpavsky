@@ -15,6 +15,8 @@ const outputDir = path.resolve(process.env.VISION_AUDIT_OUTPUT_DIR || 'vision-au
 const screenshotDir = path.join(outputDir, 'screenshots');
 const videoDir = path.join(outputDir, 'videos');
 const timeoutMs = Number(process.env.VISION_MODEL_TIMEOUT_MS || 240000);
+const localLlmApiKey = process.env.LOCAL_LLM_API_KEY || '';
+const localLlmJobId = process.env.LOCAL_LLM_JOB_ID || process.env.GITHUB_RUN_ID || 'vision-audit';
 const localLlmHosts = new Set(['127.0.0.1', 'localhost', '::1', 'host.docker.internal']);
 const ollamaUrl = new URL(ollamaBaseUrl);
 
@@ -105,7 +107,12 @@ ${JSON.stringify(context, null, 2)}`;
   try {
     const response = await fetch(`${ollamaBaseUrl}/api/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localLlmApiKey}`,
+        'X-LLM-Job-ID': localLlmJobId,
+        'X-LLM-Model': model,
+      },
       body: JSON.stringify({
         model,
         stream: false,

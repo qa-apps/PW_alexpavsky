@@ -11,9 +11,10 @@ name: LLM Quality (LLM Judge tests)
 on:
   workflow_dispatch:
   schedule:
-    # Check hourly. The daily marker below runs the suite once per New York day;
-    # queued runs resume automatically when the bosgame runner comes online.
-    - cron: '30 * * * *'
+    # 3:45 AM America/New_York. The gate below selects the correct DST slot;
+    # the self-hosted job remains queued if Bosgame is temporarily busy.
+    - cron: '45 7 * * *'
+    - cron: '45 8 * * *'
 
 concurrency:
   group: llm-quality-${{ github.ref }}
@@ -22,16 +23,38 @@ concurrency:
 permissions: read-all
 
 jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "45 7 * * *|EDT"|"45 8 * * *|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
+
   llm-quality:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
     runs-on: [self-hosted, Linux, X64, bosgame]
     timeout-minutes: 480
     outputs:
       eval_date: ${{ steps.eval_day.outputs.date }}
       completion_ready: ${{ steps.completion_gate.outputs.ready }}
     env:
-      LLM_CATALOG_URL: http://127.0.0.1:11435
-      OLLAMA_BASE_URL: http://127.0.0.1:11435
-      LOCAL_LLM_BASE_URL: http://127.0.0.1:11435/v1
+      LLM_CATALOG_URL: http://127.0.0.1:11446
+      OLLAMA_BASE_URL: http://127.0.0.1:11445
+      LOCAL_LLM_BASE_URL: http://127.0.0.1:11445/v1
       # The 120B judge plus Chrome exhausts the Bosgame runner. This local
       # 30B vision/reasoning model is already used by the daily vision audit
       # and keeps the browser-backed quality suite within the memory budget.
@@ -401,7 +424,7 @@ jobs:
 
   publish-llm-quality-pages:
     name: Publish Pages from GitHub-hosted runner
-    if: always()
+    if: always() && needs.llm-quality.result != 'skipped'
     needs: llm-quality
     runs-on: ubuntu-latest
     permissions:

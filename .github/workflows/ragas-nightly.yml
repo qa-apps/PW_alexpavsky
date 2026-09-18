@@ -22,9 +22,10 @@ on:
         type: boolean
         default: false
 
-  # Check hourly; run once per New York day when bosgame is available.
+  # 5:30 AM America/New_York. The gate below selects the correct DST slot.
   schedule:
-    - cron: '45 * * * *'
+    - cron: '30 9 * * *'
+    - cron: '30 10 * * *'
 
 concurrency:
   group: ragas-nightly-${{ github.ref }}
@@ -33,7 +34,29 @@ concurrency:
 permissions: read-all
 
 jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "30 9 * * *|EDT"|"30 10 * * *|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
+
   evaluate:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
     runs-on: [self-hosted, Linux, X64, bosgame]
     timeout-minutes: 480
     outputs:
@@ -506,7 +529,7 @@ jobs:
 
   publish-eval-pages:
     name: Publish Pages from GitHub-hosted runner
-    if: always()
+    if: always() && needs.evaluate.result != 'skipped'
     needs: evaluate
     runs-on: ubuntu-latest
     permissions:
