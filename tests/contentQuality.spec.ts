@@ -211,7 +211,10 @@ test.describe('Content quality @upstream', () => {
 
     for (let i = 0; i < total; i++) {
       const card = homePage.youtubeVideoCards.nth(i);
-      await card.scrollIntoViewIfNeeded();
+      // The carousel is continuously animated, so Playwright's actionability
+      // check never sees a stable element. Native scrolling does not require
+      // the card to stop moving and is sufficient for the image-load probe.
+      await card.evaluate((element) => element.scrollIntoView({ block: 'center' }));
 
       const img = card.locator('img').first();
       // Poll up to 8s for image to actually load — i.ytimg.com fetch can
