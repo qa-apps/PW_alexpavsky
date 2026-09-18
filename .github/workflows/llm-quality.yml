@@ -43,6 +43,10 @@ jobs:
       LOCAL_LLM_REASONING_EFFORT: low
       LLM_TEST_TIMEOUT_MS: '300000'
       LLM_JUDGE_PASSING_SCORE: '3'
+      # Playwright 1.58 does not yet identify Ubuntu 26 as a supported download
+      # target. Its Ubuntu 24 ffmpeg bundle is portable to this runner; Chrome
+      # itself still comes from the system package below.
+      PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
 
     steps:
       - name: Checkout
