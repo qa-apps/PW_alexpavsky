@@ -29,9 +29,9 @@ jobs:
       eval_date: ${{ steps.eval_day.outputs.date }}
       completion_ready: ${{ steps.completion_gate.outputs.ready }}
     env:
-      LLM_CATALOG_URL: http://127.0.0.1:11434
-      OLLAMA_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445' || 'http://127.0.0.1:11434' }}
-      LOCAL_LLM_BASE_URL: http://127.0.0.1:11434/v1
+      LLM_CATALOG_URL: http://127.0.0.1:11435
+      OLLAMA_BASE_URL: http://127.0.0.1:11435
+      LOCAL_LLM_BASE_URL: http://127.0.0.1:11435/v1
       # The 120B judge plus Chrome exhausts the Bosgame runner. This local
       # 30B vision/reasoning model is already used by the daily vision audit
       # and keeps the browser-backed quality suite within the memory budget.
