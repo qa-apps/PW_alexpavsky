@@ -1,0 +1,53 @@
+name: I-Copilot Multimodal Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    # The hosted eval starts at 02:40 and may wait behind a Bosgame model.
+    # Publish its detailed Slack report at 09:00 America/New_York.
+    - cron: '0 13 * * *'
+    - cron: '0 14 * * *'
+
+concurrency:
+  group: ico-pilot-multimodal-report
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "0 13 * * *|EDT"|"0 14 * * *|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
+
+  report:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Post every multimodal case to Slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          python3 .github/scripts/notify_icopilot_multimodal_slack.py \
+            --channel "${{ vars.SLACK_ICO_PILOT_CHANNEL_ID || 'C0C1FRGJB1Q' }}"
