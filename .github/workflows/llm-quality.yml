@@ -174,7 +174,7 @@ jobs:
         # "LLM Judge" = the dedicated judge suite; "Content quality" = the
         # @upstream article-quality-judge specs, migrated here so their judge
         # runs on the local Bosgame judge instead of free-tier providers.
-        run: npx playwright test --grep "LLM Judge|Content quality" --workers=1 --reporter=list,json
+        run: npx playwright test --grep "LLM Judge|Content quality" --workers=1 --reporter=list,json,html
         env:
           CI: true
           QA_BYPASS_TOKEN: ${{ secrets.QA_BYPASS_TOKEN }}
