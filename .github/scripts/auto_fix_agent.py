@@ -64,7 +64,7 @@ HUMAN_REVIEW_CHANNEL = (os.environ.get("HUMAN_REVIEW_CHANNEL_ID", "")
 # their root cause in the RAG app, the knowledge base, or the eval dataset —
 # none of which the agent is allowed to edit. For these we investigate, post a
 # detailed report, and open a tracking issue instead of a PR.
-REPORT_ONLY_KEYWORDS = ("ragas", "rag eval", "eval nightly", "giskard")
+REPORT_ONLY_KEYWORDS = ("ragas", "rag eval", "eval nightly", "giskard", "i-copilot")
 
 MAX_LOG_CHARS  = 18000
 MAX_FILE_CHARS = 12000

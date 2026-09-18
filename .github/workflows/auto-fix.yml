@@ -6,6 +6,7 @@ on:
       - "Playwright CI (deterministic tests)"
       - "LLM Quality (LLM Judge tests)"
       - "LLM Eval Nightly (Ragas + Giskard)"
+      - "I-Copilot Multimodal Report"
     types: [completed]
 
 jobs:

@@ -30,10 +30,23 @@ class ICopilotMultimodalReportingTests(unittest.TestCase):
             "first_token_ms": 120,
             "total_ms": 450,
             "estimated_cost_usd": 0.001,
-            "judge": {"passed": True, "score": 1, "reason": "Used screen and speech."},
+            "judge": {
+                "provider": "deepseek",
+                "model": "deepseek-chat",
+                "passed": True,
+                "score": 1,
+                "reason": "Used screen and speech.",
+            },
         })
 
-        for expected in ("Spoken prompt", "Conversation context", "gemini/gemini-test", "I-Copilot answer", "GPT-OSS judge"):
+        for expected in (
+            "Spoken prompt",
+            "Conversation context",
+            "gemini/gemini-test",
+            "I-Copilot answer",
+            "LLM judge",
+            "deepseek/deepseek-chat",
+        ):
             self.assertIn(expected, text)
 
     def test_workflow_is_dst_safe_and_does_not_require_the_macbook(self):
@@ -41,3 +54,10 @@ class ICopilotMultimodalReportingTests(unittest.TestCase):
         self.assertIn("0 13 * * *|EDT", workflow)
         self.assertIn("0 14 * * *|EST", workflow)
         self.assertIn("runs-on: ubuntu-latest", workflow)
+
+    def test_failed_case_makes_the_report_workflow_fail_after_delivery(self):
+        script = (ROOT / ".github/scripts/notify_icopilot_multimodal_slack.py").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/auto-fix.yml").read_text(encoding="utf-8")
+
+        self.assertIn("delivered and passed == len(results)", script)
+        self.assertIn('"I-Copilot Multimodal Report"', workflow)

@@ -77,7 +77,9 @@ def case_text(item: dict) -> str:
         f"TTFT `{item.get('first_token_ms')} ms` · total `{item.get('total_ms')} ms` · "
         f"cost `${float(item.get('estimated_cost_usd') or 0):.6f}`\n"
         f"*I-Copilot answer:*\n```{clip(item.get('answer'), 1500)}```\n"
-        f"*GPT-OSS judge:* score `{float(judge.get('score') or 0):.2f}` · "
+        f"*LLM judge:* `{clip(judge.get('provider') or 'local', 80)}/"
+        f"{clip(judge.get('model') or 'gpt-oss:120b', 120)}` · "
+        f"score `{float(judge.get('score') or 0):.2f}` · "
         f"{clip(judge.get('reason'), 700)}"
     )
 
@@ -109,11 +111,15 @@ def main() -> int:
     except Exception:
         pass
     passed = int(summary.get("passed") or 0)
+    judge_provider = summary.get("judge_provider") or "local"
+    judge_model = summary.get("judge_model") or "gpt-oss:120b"
+    judge_tokens = int(summary.get("judge_total_tokens") or 0)
     parent = slack(token, "chat.postMessage", {
         "channel": args.channel,
         "text": (
             f"{'✅' if passed == 3 else '🔴'} *I-Copilot nightly screen + speech eval: {passed}/3 passed*\n"
-            f"Answers use the configured paid production model ladder. Judge: local `{summary.get('judge_model')}` on Bosgame.\n"
+            f"Answers use the configured paid production model ladder. Judge: "
+            f"`{judge_provider}/{judge_model}` · `{judge_tokens}` tokens.\n"
             f"Estimated model cost: `${float(summary.get('estimated_cost_usd') or 0):.6f}`. "
             "Each reply below includes the screenshot, spoken prompt, model answer, latency, and judge explanation."
         ),
@@ -123,6 +129,12 @@ def main() -> int:
 
     delivered = True
     for item in results:
+        print(json.dumps({
+            "case_id": item.get("case_id"),
+            "status": "PASS" if (item.get("judge") or {}).get("passed") else "FAIL",
+            "answer": item.get("answer"),
+            "judge": item.get("judge"),
+        }, ensure_ascii=False))
         comment = case_text(item)
         image_url = str(item.get("image_url") or "")
         case_delivered = bool(image_url) and upload_image(
@@ -137,7 +149,7 @@ def main() -> int:
             })
             case_delivered = bool(fallback.get("ok"))
         delivered = delivered and case_delivered
-    return 0 if delivered else 1
+    return 0 if delivered and passed == len(results) else 1
 
 
 if __name__ == "__main__":
