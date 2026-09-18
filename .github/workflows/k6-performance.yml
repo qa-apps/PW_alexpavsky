@@ -18,8 +18,9 @@ on:
         type: boolean
         default: false
   schedule:
-    # Daily daytime lightweight k6 signal at 15:15 America/New_York during EDT.
-    - cron: "15 19 * * *"
+    # 3:20 AM America/New_York. Both UTC slots cover DST.
+    - cron: "20 7 * * *"
+    - cron: "20 8 * * *"
 
 concurrency:
   group: k6-performance-${{ github.ref }}
@@ -29,7 +30,29 @@ permissions:
   contents: write
 
 jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "20 7 * * *|EDT"|"20 8 * * *|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
+
   k6:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

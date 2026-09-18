@@ -8,9 +8,11 @@ Workflow:
   2. Find which test files are failing
   3. Call LLM (rotating through all configured providers) with logs + files
   4. Apply the suggested file patches
-  5. Push a fix branch and open a PR for human review (labelled `bug`)
+  5. Push a fix branch and open a PR (labelled `bug`)
+  6. Dispatch the exact PR commit to the two-model OpenCode merge gate
 
-The agent never merges — it only opens a PR for human review.
+The agent never merges directly. The separate merge gate requires deterministic
+tests plus two independent OpenCode approvals; any rejection goes to human review.
 
 LLM rotation lives in .github/scripts/llm_client.py — same provider list
 as eval/rotating_llm.py. When one provider returns 401/403/429 the next
@@ -55,15 +57,18 @@ SLACK_CHANNEL = (os.environ.get("PR_REVIEW_CHANNEL_ID", "")
 # Fall back to the PR-review/bug channel so a report is never silently lost.
 AGENT_REPORTS_CHANNEL = (os.environ.get("AGENT_REPORTS_CHANNEL_ID", "")
                          or SLACK_CHANNEL)
+HUMAN_REVIEW_CHANNEL = (os.environ.get("HUMAN_REVIEW_CHANNEL_ID", "")
+                        or AGENT_REPORTS_CHANNEL)
 
 # Pipelines where we must NOT auto-patch code. RAG / eval-quality failures have
 # their root cause in the RAG app, the knowledge base, or the eval dataset —
 # none of which the agent is allowed to edit. For these we investigate, post a
 # detailed report, and open a tracking issue instead of a PR.
-REPORT_ONLY_KEYWORDS = ("ragas", "rag eval", "eval nightly", "giskard")
+REPORT_ONLY_KEYWORDS = ("ragas", "rag eval", "eval nightly", "giskard", "i-copilot")
 
 MAX_LOG_CHARS  = 18000
 MAX_FILE_CHARS = 12000
+AGENT_LLM_TIMEOUT = int(os.environ.get("AGENT_FIX_LLM_TIMEOUT_SEC", "480"))
 
 
 def is_report_only(pipeline: str) -> bool:
@@ -324,7 +329,7 @@ def call_llm(logs: str, files: str) -> tuple[list[dict], str]:
         tools=TOOLS,
         max_tokens=4096,
         temperature=0.1,
-        timeout=90,
+        timeout=AGENT_LLM_TIMEOUT,
     )
 
     provider = result.get("provider", "")
@@ -388,7 +393,7 @@ Produce the JSON incident report described in the system prompt."""
             system=REPORT_SYSTEM_PROMPT,
             max_tokens=1024,
             temperature=0.2,
-            timeout=90,
+            timeout=AGENT_LLM_TIMEOUT,
         )
     except Exception as e:
         print(f"  ⚠ investigate() LLM error: {e}", file=sys.stderr)
@@ -488,12 +493,11 @@ def slack_post(channel: str, text: str, label: str = "Slack") -> bool:
 
 
 def slack_notify(pr_url: str, fixes: list[dict]) -> None:
-    """Short Slack ping to the PR-review channel that a PR needs review.
-    GitHub never emails about PRs the bot's own account authored, so this is
-    how the human actually finds out."""
+    """Short Slack ping when an automated fix PR is created."""
     changed = ", ".join(sorted({f["file_path"] for f in fixes})) or "test files"
-    text = (f":robot_face: *Auto-fix PR ready for review* — {PIPELINE}\n"
-            f"Files: {changed}\n{pr_url}")
+    text = (f":robot_face: *Auto-fix PR sent to automated merge gates* — {PIPELINE}\n"
+            f"Files: {changed}\n{pr_url}\n"
+            "Merge requires deterministic tests and two independent OpenCode approvals.")
     slack_post(SLACK_CHANNEL, text, label="Slack PR notify")
 
 
@@ -648,6 +652,42 @@ def create_pr(fixes: list[dict]) -> str:
     return pr_url
 
 
+def dispatch_merge_gate(pr_url: str) -> bool:
+    """Send the exact fix commit to the independent review-and-merge gate."""
+    if not pr_url:
+        return False
+
+    pr_number = pr_url.rstrip("/").rsplit("/", 1)[-1]
+    review_sha = git("rev-parse", "HEAD").strip()
+    rerun_workflow = {
+        "LLM Quality (LLM Judge tests)": "llm-quality.yml",
+        "Playwright CI (deterministic tests)": "playwright-ci.yml",
+    }.get(PIPELINE, "")
+    command = [
+        "gh", "workflow", "run", "agent-observability.yml",
+        "--repo", REPO,
+        "--ref", "master",
+        "-f", f"review_sha={review_sha}",
+        "-f", f"review_repo={REPO}",
+        "-f", "base_ref=master",
+        "-f", f"auto_merge_pr={pr_number}",
+        "-f", f"rerun_workflow={rerun_workflow}",
+    ]
+    dispatched = subprocess.run(command, capture_output=True, text=True)
+    if dispatched.returncode != 0:
+        print(f"  ⚠ merge-gate dispatch failed: {dispatched.stderr.strip()}",
+              file=sys.stderr)
+        slack_post(
+            HUMAN_REVIEW_CHANNEL,
+            (f":warning: *Human review required — merge gate did not start*\n"
+             f"Pipeline: {PIPELINE}\nPR: {pr_url}\nFailed run: {RUN_URL}"),
+            label="Human review",
+        )
+        return False
+    print(f"  ✅ two-model merge gate dispatched for {review_sha[:12]}")
+    return True
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -763,7 +803,13 @@ def main() -> None:
                          + applied_lines).strip()
 
     if pr_url:
-        resolution = f"Auto-fix PR opened for your review (do not auto-merge): {pr_url}"
+        gate_dispatched = dispatch_merge_gate(pr_url)
+        if gate_dispatched:
+            resolution = (f"Auto-fix PR opened and sent to deterministic tests plus "
+                          f"two independent OpenCode reviewers: {pr_url}")
+        else:
+            resolution = (f"Auto-fix PR opened, but the automated merge gate could "
+                          f"not start — needs human review: {pr_url}")
     elif applied and not has_changes:
         resolution = "Proposed edits produced no net change — needs human review."
     else:

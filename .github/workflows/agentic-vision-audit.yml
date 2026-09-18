@@ -3,9 +3,10 @@ name: AlexPavsky Daily Audit
 on:
   workflow_dispatch:
   schedule:
-    # 3 PM America/New_York. The gate handles daylight-saving time.
-    - cron: '0 19 * * *'
-    - cron: '0 20 * * *'
+    # 9:15 AM America/New_York, after the overnight text-model queue. The
+    # MacBook is not involved; only the Bosgame runner and local Vision model.
+    - cron: '15 13 * * *'
+    - cron: '15 14 * * *'
 
 concurrency:
   group: agentic-vision-audit-${{ github.ref }}
@@ -27,11 +28,12 @@ jobs:
             echo "should_run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if [[ "$(TZ=America/New_York date +%H)" == "15" ]]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-          fi
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "15 13 * * *|EDT"|"15 14 * * *|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
 
   vision-audit:
     needs: schedule-gate
@@ -48,7 +50,11 @@ jobs:
       AUDIT_DEPS_DIR: ${{ github.workspace }}/.daily-audit-deps/playwright-1.58.2
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
       PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: ubuntu24.04-x64
-      OLLAMA_BASE_URL: http://127.0.0.1:11435
+      # Every Vision request goes through the background lifecycle endpoint so
+      # the audit waits for interactive work instead of replacing its model.
+      OLLAMA_BASE_URL: http://127.0.0.1:11445
+      LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
+      LOCAL_LLM_JOB_ID: ${{ github.run_id }}
       VISION_MODEL: qwen3-vl-30b-a3b-screen:latest
     steps:
       - name: Bootstrap source without marketplace actions
@@ -97,7 +103,11 @@ jobs:
         shell: bash
         run: |
           for attempt in {1..40}; do
-            if curl --fail --silent --max-time 10 "$OLLAMA_BASE_URL/api/tags" | \
+            if curl --fail --silent --max-time 10 \
+              -H "Authorization: Bearer $LOCAL_LLM_API_KEY" \
+              -H "X-LLM-Job-ID: $LOCAL_LLM_JOB_ID" \
+              -H "X-LLM-Model: $VISION_MODEL" \
+              "$OLLAMA_BASE_URL/api/tags" | \
               python3 -c 'import json,sys; wanted=sys.argv[1]; data=json.load(sys.stdin); raise SystemExit(0 if any(m.get("name") == wanted for m in data.get("models", [])) else 1)' "$VISION_MODEL"; then
               exit 0
             fi
@@ -105,18 +115,6 @@ jobs:
           done
           echo "Vision model was not available after 10 minutes."
           exit 1
-
-      - name: Release other resident models from RAM
-        if: steps.model.outcome == 'success'
-        shell: bash
-        run: |
-          while IFS= read -r resident; do
-            [[ -z "$resident" || "$resident" == "$VISION_MODEL" ]] && continue
-            echo "Releasing resident model from RAM: $resident"
-            curl --fail --silent --max-time 60 "$OLLAMA_BASE_URL/api/generate" \
-              -d "$(jq -n --arg model "$resident" '{model:$model,keep_alive:0}')" \
-              >/dev/null
-          done < <(curl --fail --silent --max-time 15 "$OLLAMA_BASE_URL/api/ps" | jq -r '.models[].name // empty')
 
       - name: Run required UI, AI Chat, Voice, Challenge, and Vision journeys
         id: audit
@@ -261,3 +259,10 @@ jobs:
             [[ "$outcome" == "success" ]] || failed=1
           done
           exit "$failed"
+
+      - name: Release background model lease
+        if: always()
+        run: |
+          curl -fsS -X POST \
+            -H "X-LLM-Job-ID: $LOCAL_LLM_JOB_ID" \
+            http://127.0.0.1:11443/release/background || true

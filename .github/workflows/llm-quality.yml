@@ -11,9 +11,10 @@ name: LLM Quality (LLM Judge tests)
 on:
   workflow_dispatch:
   schedule:
-    # Check hourly. The daily marker below runs the suite once per New York day;
-    # queued runs resume automatically when the bosgame runner comes online.
-    - cron: '30 * * * *'
+    # 3:45 AM America/New_York. The gate below selects the correct DST slot;
+    # the self-hosted job remains queued if Bosgame is temporarily busy.
+    - cron: '45 7 * * *'
+    - cron: '45 8 * * *'
 
 concurrency:
   group: llm-quality-${{ github.ref }}
@@ -22,23 +23,45 @@ concurrency:
 permissions: read-all
 
 jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "45 7 * * *|EDT"|"45 8 * * *|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
+
   llm-quality:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true'
     runs-on: [self-hosted, Linux, X64, bosgame]
     timeout-minutes: 480
     outputs:
       eval_date: ${{ steps.eval_day.outputs.date }}
       completion_ready: ${{ steps.completion_gate.outputs.ready }}
     env:
-      LLM_CATALOG_URL: http://127.0.0.1:11435
-      OLLAMA_BASE_URL: http://127.0.0.1:11435
-      LOCAL_LLM_BASE_URL: http://127.0.0.1:11435/v1
+      LLM_CATALOG_URL: http://127.0.0.1:11445
+      OLLAMA_BASE_URL: http://127.0.0.1:11445
+      LOCAL_LLM_BASE_URL: http://127.0.0.1:11445/v1
       # The 120B judge plus Chrome exhausts the Bosgame runner. This local
       # 30B vision/reasoning model is already used by the daily vision audit
       # and keeps the browser-backed quality suite within the memory budget.
       LOCAL_LLM_MODEL: qwen3-vl-30b-a3b-screen:latest
       LOCAL_LLM_UPSTREAM_MODEL: qwen3-vl-30b-a3b-screen:latest
       LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
-      LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '0' }}
+      LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '3600' }}
       LOCAL_EMBEDDING_MODEL: qwen3-embedding:4b
       LOCAL_LLM_TIMEOUT_SEC: '180'
       LOCAL_LLM_TIMEOUT_MS: '180000'
@@ -84,9 +107,23 @@ jobs:
           # Since 2026-09-14 the gateway answers 401 without a key; send the runner-provided one.
           : "${LOCAL_LLM_API_KEY:?LOCAL_LLM_API_KEY secret is required}"
           AUTH="Authorization: Bearer ${LOCAL_LLM_API_KEY}"
-          # The catalog lists the upstream id; the scheduled alias may be routed without being listed.
-          if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error -H "$AUTH" "$LLM_CATALOG_URL/v1/models") && \
-             python3 -c 'import json,sys; wanted=[w for w in sys.argv[1:] if w]; ids=[m.get("id") for m in json.load(sys.stdin).get("data", [])]; ok=any(w in ids for w in wanted); ok or print(f"::warning::None of {wanted} is listed by the model catalog; available: {ids}"); raise SystemExit(0 if ok else 1)' "$LOCAL_LLM_MODEL" "$LOCAL_LLM_UPSTREAM_MODEL" <<<"$models"; then
+          ready=false
+          deadline=$((SECONDS + LOCAL_LLM_PRIORITY_MAX_WAIT_SEC))
+          while true; do
+            if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error \
+                -H "$AUTH" -H "X-LLM-Job-ID: $GITHUB_RUN_ID" -H "X-LLM-Model: $LOCAL_LLM_UPSTREAM_MODEL" \
+                "$LLM_CATALOG_URL/v1/models") && \
+               python3 -c 'import json,sys; wanted=[w for w in sys.argv[1:] if w]; ids=[m.get("id") for m in json.load(sys.stdin).get("data", [])]; ok=any(w in ids for w in wanted); ok or print(f"::warning::None of {wanted} is listed by the background gateway; available: {ids}"); raise SystemExit(0 if ok else 1)' "$LOCAL_LLM_MODEL" "$LOCAL_LLM_UPSTREAM_MODEL" <<<"$models"; then
+              ready=true
+              break
+            fi
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              break
+            fi
+            echo "Local model gateway is busy or transitioning; retrying in 10s."
+            sleep 10
+          done
+          if [ "$ready" = true ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
             echo "Local model $LOCAL_LLM_MODEL is ready."
           else
@@ -401,7 +438,7 @@ jobs:
 
   publish-llm-quality-pages:
     name: Publish Pages from GitHub-hosted runner
-    if: always()
+    if: always() && needs.llm-quality.result != 'skipped'
     needs: llm-quality
     runs-on: ubuntu-latest
     permissions:

@@ -1,19 +1,348 @@
 name: Agent Observability Dashboards
+run-name: >-
+  ${{ inputs.review_sha != '' && format('OpenCode merge review {0}', inputs.review_sha) || 'Agent observability dashboards' }}
 
 on:
   workflow_dispatch:
+    inputs:
+      review_sha:
+        description: "Optional commit SHA for an isolated cloud merge review"
+        required: false
+        type: string
+      review_repo:
+        description: "Repository containing review_sha"
+        required: false
+        default: "qa-apps/PW_alexpavsky"
+        type: string
+      base_ref:
+        description: "Base branch for the exact diff"
+        required: false
+        default: "master"
+        type: string
+      nanotech_sha:
+        description: "Optional PW_nanotech commit SHA to include in the same review"
+        required: false
+        type: string
+      auto_merge_pr:
+        description: "Optional agent-fix PR number to merge after all gates pass"
+        required: false
+        type: string
+      rerun_workflow:
+        description: "Optional workflow file to rerun after the guarded merge"
+        required: false
+        type: string
   schedule:
     # Daily: run the voice Scenario (reports to LangWatch) and the chat trace
     # check (reads back from Langfuse), then post both statuses to Slack.
-    - cron: "10 20 * * *"
+    # 8:15 AM America/New_York, after the heavier overnight evals.
+    - cron: "15 12 * * *"
+    - cron: "15 13 * * *"
 
 concurrency:
   group: agent-observability-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+    steps:
+      - name: Evaluate scheduled run window
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ny_tz="$(TZ=America/New_York date +%Z)"
+          case "${{ github.event.schedule }}|$ny_tz" in
+            "15 12 * * *|EDT"|"15 13 * * *|EST") should_run=true ;;
+            *) should_run=false ;;
+          esac
+          echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
+
+  cloud-merge-review:
+    if: github.event_name == 'workflow_dispatch' && inputs.review_sha != ''
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout review commit
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ inputs.review_repo || github.repository }}
+          ref: ${{ inputs.review_sha }}
+          fetch-depth: 0
+
+      - name: Review exact diff with the OpenCode subscription
+        id: cloud_review
+        continue-on-error: true
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          REVIEW_SHA: ${{ inputs.review_sha }}
+          REVIEW_REPO: ${{ inputs.review_repo || github.repository }}
+          BASE_REF: ${{ inputs.base_ref || 'master' }}
+          NANOTECH_SHA: ${{ inputs.nanotech_sha }}
+        run: |
+          # Keep the base history deep enough for a merge-base even when the
+          # reviewed branch was cut before recent merges into the base branch.
+          git fetch origin "$BASE_REF"
+          if [ -n "$NANOTECH_SHA" ]; then
+            git clone --filter=blob:none https://github.com/qa-apps/PW_nanotech.git /tmp/PW_nanotech-review
+            git -C /tmp/PW_nanotech-review fetch origin "$NANOTECH_SHA"
+            git -C /tmp/PW_nanotech-review checkout --detach "$NANOTECH_SHA"
+            git -C /tmp/PW_nanotech-review fetch origin main
+          fi
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          import subprocess
+          import sys
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          alex_diff = subprocess.check_output(
+              ["git", "diff", "--no-ext-diff", f"origin/{os.environ['BASE_REF']}...{os.environ['REVIEW_SHA']}"],
+              text=True,
+          )
+          nano_diff = ""
+          if os.environ.get("NANOTECH_SHA"):
+              nano_diff = subprocess.check_output(
+                  ["git", "-C", "/tmp/PW_nanotech-review", "diff", "--no-ext-diff", f"origin/main...{os.environ['NANOTECH_SHA']}"],
+                  text=True,
+              )
+          prompt = f"""Final agent-fix merge gate for {os.environ['REVIEW_REPO']}.
+          Review only blocking correctness, security, deployment, or test-coverage bugs in the exact diff below. Do not suggest unrelated refactors. OpenCode is being used only for this final review, not for evaluation workloads. Reply with exactly APPROVE plus at most four brief bullets, or REJECT plus blocking findings.
+
+          TARGET DIFF:
+          """ + alex_diff + "\n\nOPTIONAL SECOND REPOSITORY DIFF:\n" + nano_diff
+
+          headers = {
+              "Authorization": f"Bearer {os.environ['OPENCODE_API_KEY']}",
+              "Content-Type": "application/json",
+              "User-Agent": "PW-alexpavsky-merge-review/1.0",
+          }
+
+          def request_json(endpoint, model, payload):
+              request_headers = dict(headers)
+              if endpoint == "messages":
+                  request_headers["anthropic-version"] = "2023-06-01"
+                  request_headers["x-api-key"] = os.environ["OPENCODE_API_KEY"]
+              request_headers["x-opencode-session"] = (
+                  f"pw-merge-review-{os.environ.get('GITHUB_RUN_ID', 'manual')}-{model}"
+              )
+              request = urllib.request.Request(
+                  f"https://opencode.ai/zen/go/v1/{endpoint}",
+                  data=json.dumps({"model": model, **payload}).encode(),
+                  headers=request_headers,
+                  method="POST",
+              )
+              with urllib.request.urlopen(request, timeout=480) as response:
+                  return json.load(response)
+
+          def response_text(body):
+              if isinstance(body.get("output_text"), str):
+                  return body["output_text"].strip()
+              parts = []
+              for item in body.get("output", []) or []:
+                  for content in item.get("content", []) or []:
+                      text = content.get("text")
+                      if isinstance(text, str):
+                          parts.append(text)
+              return "\n".join(parts).strip()
+
+          reviewer_groups = (
+              (
+                  ("gpt-5.6-luna", "responses", {
+                      "input": prompt,
+                      "max_output_tokens": 10000,
+                      "reasoning": {"effort": "medium"},
+                  }),
+                  ("grok-4.6", "responses", {
+                      "input": prompt,
+                      "max_output_tokens": 10000,
+                      "reasoning": {"effort": "medium"},
+                  }),
+              ),
+              (
+                  ("mimo-v2.5", "chat/completions", {
+                      "messages": [
+                          {
+                              "role": "system",
+                              "content": "Your first token must be APPROVE or REJECT. Do not print chain-of-thought. After that token, give at most four concise findings.",
+                          },
+                          {"role": "user", "content": prompt},
+                      ],
+                      "temperature": 0.2,
+                      "max_tokens": 12000,
+                  }),
+                  ("minimax-m3", "messages", {
+                      "system": "Your first token must be APPROVE or REJECT. Do not print chain-of-thought. After that token, give at most four concise findings.",
+                      "messages": [{"role": "user", "content": prompt}],
+                      "max_tokens": 4000,
+                  }),
+                  ("longcat-2.0", "chat/completions", {
+                      "messages": [
+                          {
+                              "role": "system",
+                              "content": "Your first token must be APPROVE or REJECT. Do not print chain-of-thought. After that token, give at most four concise findings.",
+                          },
+                          {"role": "user", "content": prompt},
+                      ],
+                      "temperature": 0.2,
+                      "max_tokens": 6000,
+                  }),
+                  ("muse-spark-1.3-contributor", "responses", {
+                      "input": prompt,
+                      "max_output_tokens": 6000,
+                  }),
+              ),
+          )
+          approvals = []
+          report_lines = []
+          for candidates in reviewer_groups:
+              group_approval = None
+              for model, endpoint, payload in candidates:
+                  try:
+                      body = request_json(endpoint, model, payload)
+                      if endpoint == "responses":
+                          verdict = response_text(body)
+                      elif endpoint == "messages":
+                          verdict = "\n".join(
+                              block.get("text", "") for block in body.get("content", [])
+                              if block.get("type") == "text"
+                          ).strip()
+                      else:
+                          message = body["choices"][0]["message"]
+                          verdict = (message.get("content") or message.get("reasoning") or "").strip()
+                      print(f"MODEL={body.get('model', model)}")
+                      print(f"USAGE={json.dumps(body.get('usage', {}), sort_keys=True)}")
+                      print(verdict)
+                      report_lines.extend((
+                          f"MODEL={body.get('model', model)}",
+                          f"USAGE={json.dumps(body.get('usage', {}), sort_keys=True)}",
+                          verdict,
+                          "",
+                      ))
+                      decisions = re.findall(r"(?m)^(APPROVE|REJECT)(?:\s|:|$)", verdict)
+                      if not decisions:
+                          raise ValueError("reviewer returned no explicit verdict")
+                      group_approval = decisions[-1] == "APPROVE"
+                      break
+                  except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, KeyError, ValueError) as exc:
+                      print(f"::warning::{model} reviewer unavailable: {exc}")
+              approvals.append(group_approval is True)
+          Path("cloud-review.txt").write_text("\n".join(report_lines), encoding="utf-8")
+          if len(approvals) != len(reviewer_groups) or not all(approvals):
+              print("::error::Both independent OpenCode models must approve the exact commits")
+              sys.exit(1)
+          PY
+
+      - name: Require deterministic PR checks and merge exact commit
+        id: pr_gate
+        if: steps.cloud_review.outcome == 'success' && inputs.auto_merge_pr != ''
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEW_REPO: ${{ inputs.review_repo || github.repository }}
+          REVIEW_SHA: ${{ inputs.review_sha }}
+          PR_NUMBER: ${{ inputs.auto_merge_pr }}
+          RERUN_WORKFLOW: ${{ inputs.rerun_workflow }}
+        run: |
+          set -euo pipefail
+          current_sha=$(gh pr view "$PR_NUMBER" --repo "$REVIEW_REPO" --json headRefOid --jq .headRefOid)
+          if [ "$current_sha" != "$REVIEW_SHA" ]; then
+            echo "::error::PR head changed after review: expected $REVIEW_SHA, found $current_sha"
+            exit 1
+          fi
+
+          deadline=$((SECONDS + 3600))
+          while true; do
+            checks=$(gh api "repos/$REVIEW_REPO/commits/$REVIEW_SHA/check-runs?per_page=100")
+            playwright_status=$(jq -r '[.check_runs[] | select(.name == "playwright")] | sort_by(.started_at) | last | .status // "missing"' <<<"$checks")
+            playwright_conclusion=$(jq -r '[.check_runs[] | select(.name == "playwright")] | sort_by(.started_at) | last | .conclusion // ""' <<<"$checks")
+            if [ "$playwright_status" = "completed" ]; then
+              [ "$playwright_conclusion" = "success" ] || {
+                echo "::error::Deterministic Playwright check concluded $playwright_conclusion"
+                exit 1
+              }
+              break
+            fi
+            [ "$SECONDS" -lt "$deadline" ] || {
+              echo "::error::Timed out waiting for the deterministic Playwright check"
+              exit 1
+            }
+            echo "Waiting for Playwright check (status=$playwright_status)..."
+            sleep 20
+          done
+
+          gh pr merge "$PR_NUMBER" --repo "$REVIEW_REPO" --merge --match-head-commit "$REVIEW_SHA"
+          merge_sha=$(gh pr view "$PR_NUMBER" --repo "$REVIEW_REPO" --json mergeCommit --jq .mergeCommit.oid)
+          echo "Merged PR #$PR_NUMBER as $merge_sha after deterministic tests and two OpenCode approvals."
+
+          if [ -n "$RERUN_WORKFLOW" ] && [ "$RERUN_WORKFLOW" != "playwright-ci.yml" ]; then
+            gh workflow run "$RERUN_WORKFLOW" --repo "$REVIEW_REPO" --ref master
+            echo "Dispatched post-merge rerun: $RERUN_WORKFLOW"
+          else
+            echo "The master push automatically reruns Playwright."
+          fi
+
+      - name: Route rejected gate to human review
+        if: >-
+          always() &&
+          (steps.cloud_review.outcome == 'failure' || steps.pr_gate.outcome == 'failure')
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          HUMAN_REVIEW_CHANNEL_ID: ${{ secrets.HUMAN_REVIEW_CHANNEL_ID }}
+          REVIEW_REPO: ${{ inputs.review_repo || github.repository }}
+          REVIEW_SHA: ${{ inputs.review_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          token = os.environ["SLACK_BOT_TOKEN"]
+          channel = os.environ["HUMAN_REVIEW_CHANNEL_ID"]
+          text = (
+              "Human review required: the two-model OpenCode review or the "
+              f"deterministic test gate rejected {os.environ['REVIEW_REPO']}@"
+              f"{os.environ['REVIEW_SHA'][:12]}. No merge was performed. "
+              f"Review details: {os.environ['RUN_URL']}"
+          )
+          request = urllib.request.Request(
+              "https://slack.com/api/chat.postMessage",
+              data=json.dumps({"channel": channel, "text": text, "unfurl_links": False}).encode(),
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Content-Type": "application/json; charset=utf-8",
+              },
+              method="POST",
+          )
+          with urllib.request.urlopen(request, timeout=30) as response:
+              body = json.load(response)
+          if not body.get("ok"):
+              raise SystemExit(f"Slack human-review delivery failed: {body.get('error', 'unknown_error')}")
+          print("Human-review notification delivered")
+          PY
+
+      - name: Enforce two-model approval
+        if: >-
+          always() &&
+          (steps.cloud_review.outcome != 'success' || steps.pr_gate.outcome == 'failure')
+        run: exit 1
+
   agent-checks:
     name: Voice Scenario (LangWatch) + chat traces (Langfuse)
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should_run == 'true' && (github.event_name != 'workflow_dispatch' || inputs.review_sha == '')
     runs-on: [self-hosted, Linux, X64, bosgame]
     timeout-minutes: 30
     env:
@@ -102,9 +431,16 @@ jobs:
           LANGFUSE_HOST: ${{ vars.LANGFUSE_HOST || 'https://us.cloud.langfuse.com' }}
         run: npx vitest run tests/observability
 
+      - name: Release background model lease
+        if: always() && github.event_name == 'schedule'
+        run: |
+          curl -fsS -X POST \
+            -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
+            http://127.0.0.1:11443/release/background || true
+
   slack-observability:
     needs: agent-checks
-    if: always()
+    if: always() && needs.agent-checks.result != 'skipped' && (github.event_name != 'workflow_dispatch' || inputs.review_sha == '')
     runs-on: ubuntu-latest
     timeout-minutes: 8
 

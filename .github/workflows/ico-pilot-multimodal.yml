@@ -1,20 +1,15 @@
-name: I-Copilot Diagnostics
-
-# The full workflow diagnostic (server, MacBook audio, iPad mirror, iPhone
-# camera, voice ping with headphone/speaker audio) runs on the i-Copilot
-# server every day at 1:00 PM America/New_York (systemd timer), while the
-# MacBook and mobile devices may be online,
-# and publishes latest.json. This workflow posts that result to #ico-pilot.
+name: I-Copilot Multimodal Report
 
 on:
   workflow_dispatch:
   schedule:
-    # Post the daytime hardware report at 1:20 PM America/New_York.
-    - cron: "20 17 * * *"
-    - cron: "20 18 * * *"
+    # The hosted eval starts at 02:40 and may wait behind a Bosgame model.
+    # Publish its detailed Slack report at 09:00 America/New_York.
+    - cron: '0 13 * * *'
+    - cron: '0 14 * * *'
 
 concurrency:
-  group: ico-pilot-diagnostics
+  group: ico-pilot-multimodal-report
   cancel-in-progress: false
 
 permissions:
@@ -36,24 +31,23 @@ jobs:
           fi
           ny_tz="$(TZ=America/New_York date +%Z)"
           case "${{ github.event.schedule }}|$ny_tz" in
-            "20 17 * * *|EDT"|"20 18 * * *|EST") should_run=true ;;
+            "0 13 * * *|EDT"|"0 14 * * *|EST") should_run=true ;;
             *) should_run=false ;;
           esac
           echo "should_run=$should_run" >> "$GITHUB_OUTPUT"
 
-  post:
+  report:
     needs: schedule-gate
     if: needs.schedule-gate.outputs.should_run == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Post diagnostic to #ico-pilot
+      - name: Post every multimodal case to Slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          python3 .github/scripts/notify_icopilot_diagnostic_slack.py \
+          python3 .github/scripts/notify_icopilot_multimodal_slack.py \
             --channel "${{ vars.SLACK_ICO_PILOT_CHANNEL_ID || 'C0C1FRGJB1Q' }}"
