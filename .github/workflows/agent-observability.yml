@@ -67,6 +67,8 @@ jobs:
           fetch-depth: 0
 
       - name: Review exact diff with the OpenCode subscription
+        id: cloud_review
+        continue-on-error: true
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           REVIEW_SHA: ${{ inputs.review_sha }}
@@ -89,6 +91,7 @@ jobs:
           import sys
           import urllib.error
           import urllib.request
+          from pathlib import Path
 
           alex_diff = subprocess.check_output(
               ["git", "diff", "--no-ext-diff", f"origin/{os.environ['BASE_REF']}...{os.environ['REVIEW_SHA']}"],
@@ -181,6 +184,7 @@ jobs:
               ),
           )
           approvals = []
+          report_lines = []
           for candidates in reviewer_groups:
               group_approval = None
               for model, endpoint, payload in candidates:
@@ -199,6 +203,12 @@ jobs:
                       print(f"MODEL={body.get('model', model)}")
                       print(f"USAGE={json.dumps(body.get('usage', {}), sort_keys=True)}")
                       print(verdict)
+                      report_lines.extend((
+                          f"MODEL={body.get('model', model)}",
+                          f"USAGE={json.dumps(body.get('usage', {}), sort_keys=True)}",
+                          verdict,
+                          "",
+                      ))
                       decisions = re.findall(r"(?m)^(APPROVE|REJECT)(?:\s|:|$)", verdict)
                       if not decisions:
                           raise ValueError("reviewer returned no explicit verdict")
@@ -207,10 +217,52 @@ jobs:
                   except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, KeyError, ValueError) as exc:
                       print(f"::warning::{model} reviewer unavailable: {exc}")
               approvals.append(group_approval is True)
+          Path("cloud-review.txt").write_text("\n".join(report_lines), encoding="utf-8")
           if len(approvals) != len(reviewer_groups) or not all(approvals):
               print("::error::Both independent OpenCode models must approve the exact commits")
               sys.exit(1)
           PY
+
+      - name: Route rejected cloud review to human review
+        if: always() && steps.cloud_review.outcome == 'failure'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          HUMAN_REVIEW_CHANNEL_ID: ${{ secrets.HUMAN_REVIEW_CHANNEL_ID }}
+          REVIEW_REPO: ${{ inputs.review_repo || github.repository }}
+          REVIEW_SHA: ${{ inputs.review_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          token = os.environ["SLACK_BOT_TOKEN"]
+          channel = os.environ["HUMAN_REVIEW_CHANNEL_ID"]
+          text = (
+              "Human review required: one or more independent OpenCode reviewers "
+              f"rejected {os.environ['REVIEW_REPO']}@{os.environ['REVIEW_SHA'][:12]}. "
+              f"No merge was performed. Review details: {os.environ['RUN_URL']}"
+          )
+          request = urllib.request.Request(
+              "https://slack.com/api/chat.postMessage",
+              data=json.dumps({"channel": channel, "text": text, "unfurl_links": False}).encode(),
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Content-Type": "application/json; charset=utf-8",
+              },
+              method="POST",
+          )
+          with urllib.request.urlopen(request, timeout=30) as response:
+              body = json.load(response)
+          if not body.get("ok"):
+              raise SystemExit(f"Slack human-review delivery failed: {body.get('error', 'unknown_error')}")
+          print("Human-review notification delivered")
+          PY
+
+      - name: Enforce two-model approval
+        if: always() && steps.cloud_review.outcome != 'success'
+        run: exit 1
 
   agent-checks:
     name: Voice Scenario (LangWatch) + chat traces (Langfuse)
