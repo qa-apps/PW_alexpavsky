@@ -87,12 +87,14 @@ class RotatingJudgeLLM(BaseChatModel):
 
     def _make_client(self, provider: dict[str, str]) -> ChatOpenAI:
         """Construct a fresh ChatOpenAI client for a provider."""
+        max_tokens = max(1, int(os.environ.get("LOCAL_LLM_MAX_TOKENS", "2048")))
         return ChatOpenAI(
             model=provider["model"],
             base_url=provider["base_url"],
             api_key=provider["api_key"],
             default_headers=lifecycle_headers(provider["model"]),
             temperature=self.temperature,
+            max_tokens=max_tokens,
             timeout=self.timeout,
             max_retries=self.max_retries,
         )
