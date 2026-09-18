@@ -118,7 +118,7 @@ class PermissiveCorrectnessMetric:
                     },
                 ],
             },
-            timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+            timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")),
         )
         response.raise_for_status()
         payload = response.json()

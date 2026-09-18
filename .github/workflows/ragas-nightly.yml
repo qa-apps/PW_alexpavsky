@@ -48,10 +48,13 @@ jobs:
       LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
       # Manual runs need a recovery window too: a previous eval may still be
       # releasing or switching the local model when this workflow starts.
-      LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '900' }}
+      LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '3600' }}
       LOCAL_EMBEDDING_MODEL: qwen3-embedding:4b
-      LOCAL_LLM_TIMEOUT_SEC: '180'
-      LOCAL_LLM_TIMEOUT_MS: '180000'
+      # GPT-OSS 120B can need more than three minutes for Giskard's large
+      # topic-generation and detector prompts. Keep this local-only path
+      # patient instead of treating a still-running inference as a failure.
+      LOCAL_LLM_TIMEOUT_SEC: '600'
+      LOCAL_LLM_TIMEOUT_MS: '600000'
       LOCAL_LLM_MAX_TOKENS: '2048'
       LOCAL_LLM_REASONING_EFFORT: low
 

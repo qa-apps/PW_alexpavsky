@@ -62,7 +62,7 @@ class RotatingJudgeLLM(BaseChatModel):
 
     providers: list[dict[str, str]] = Field(default_factory=list)
     temperature: float = 0.0
-    timeout: int = int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180"))
+    timeout: int = int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600"))
     max_retries: int = 1
     _last_used_idx: int = 0
 
@@ -119,9 +119,13 @@ class RotatingJudgeLLM(BaseChatModel):
                 except Exception as e:
                     text = str(e).lower()
                     interrupted = any(pattern in text for pattern in PRIORITY_INTERRUPTION_PATTERNS)
-                    if interrupted and time.monotonic() < deadline:
-                        log.info("Interactive work owns the GPU; pausing scheduled judge for 5 seconds")
-                        time.sleep(min(5.0, max(0.0, deadline - time.monotonic())))
+                    local_busy = n == 1 and self._should_rotate(e)
+                    if (interrupted or local_busy) and time.monotonic() < deadline:
+                        log.info(
+                            "Local judge is busy or still finishing an earlier request; "
+                            "retrying in 10 seconds"
+                        )
+                        time.sleep(min(10.0, max(0.0, deadline - time.monotonic())))
                         continue
                     err_msg = f"{provider['name']}/{provider['model']}: {type(e).__name__}: {str(e)[:140]}"
                     errors.append(err_msg)
@@ -170,7 +174,7 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
     embedding_root = os.environ.get("OLLAMA_BASE_URL", "").rstrip("/") or ollama_root
     os.environ["OLLAMA_API_BASE"] = ollama_root
     os.environ["OLLAMA_BASE_URL"] = ollama_root
-    os.environ["LITELLM_REQUEST_TIMEOUT"] = os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")
+    os.environ["LITELLM_REQUEST_TIMEOUT"] = os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")
 
     litellm_ids = [m for m in (_litellm_model_id(p) for p in providers) if m]
     if not litellm_ids:
@@ -182,8 +186,8 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
     openai_client = openai.OpenAI(
         base_url=provider["base_url"],
         api_key=provider["api_key"],
-        timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
-        max_retries=1,
+        timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")),
+        max_retries=8,
     )
     giskard.llm.set_default_client(
         OpenAIClient(model=provider["model"], client=openai_client, json_mode=True)
@@ -198,7 +202,7 @@ def configure_giskard(providers: list[dict[str, str]], log_fn=print) -> str:
                 f"{embedding_root}/api/embed",
                 headers={"Authorization": f"Bearer {provider['api_key']}"},
                 json={"model": embedding_model, "input": list(texts), "keep_alive": -1},
-                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")),
             )
             response.raise_for_status()
             return np.asarray(response.json()["embeddings"], dtype=np.float32)
