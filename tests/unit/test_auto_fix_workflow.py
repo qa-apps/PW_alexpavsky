@@ -14,6 +14,8 @@ class AutoFixWorkflowTests(unittest.TestCase):
         self.assertIn('AGENT_FIX_LLM_TIMEOUT_SEC: "480"', workflow)
         self.assertIn("issues: write", workflow)
         self.assertIn("actions: write", workflow)
+        self.assertIn('[ "$head_branch" = "master" ]', workflow)
+        self.assertIn("ref: ${{ github.event.workflow_run.head_sha }}", workflow)
         self.assertNotIn("OPENROUTER", workflow.upper())
         self.assertIn("timeout=AGENT_LLM_TIMEOUT", agent)
 
@@ -23,6 +25,7 @@ class AutoFixWorkflowTests(unittest.TestCase):
 
         self.assertIn("def dispatch_merge_gate", agent)
         self.assertIn('review_sha = git("rev-parse", "HEAD")', agent)
+        self.assertIn("HUMAN_REVIEW_CHANNEL", agent)
         self.assertIn('"gpt-5.6-luna", "responses"', review)
         self.assertIn('"mimo-v2.5", "chat/completions"', review)
         self.assertIn("Both independent OpenCode models must approve", review)

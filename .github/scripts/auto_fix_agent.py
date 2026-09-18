@@ -57,6 +57,8 @@ SLACK_CHANNEL = (os.environ.get("PR_REVIEW_CHANNEL_ID", "")
 # Fall back to the PR-review/bug channel so a report is never silently lost.
 AGENT_REPORTS_CHANNEL = (os.environ.get("AGENT_REPORTS_CHANNEL_ID", "")
                          or SLACK_CHANNEL)
+HUMAN_REVIEW_CHANNEL = (os.environ.get("HUMAN_REVIEW_CHANNEL_ID", "")
+                        or AGENT_REPORTS_CHANNEL)
 
 # Pipelines where we must NOT auto-patch code. RAG / eval-quality failures have
 # their root cause in the RAG app, the knowledge base, or the eval dataset —
@@ -675,6 +677,12 @@ def dispatch_merge_gate(pr_url: str) -> bool:
     if dispatched.returncode != 0:
         print(f"  ⚠ merge-gate dispatch failed: {dispatched.stderr.strip()}",
               file=sys.stderr)
+        slack_post(
+            HUMAN_REVIEW_CHANNEL,
+            (f":warning: *Human review required — merge gate did not start*\n"
+             f"Pipeline: {PIPELINE}\nPR: {pr_url}\nFailed run: {RUN_URL}"),
+            label="Human review",
+        )
         return False
     print(f"  ✅ two-model merge gate dispatched for {review_sha[:12]}")
     return True
