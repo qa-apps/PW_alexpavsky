@@ -346,8 +346,8 @@ jobs:
     runs-on: [self-hosted, Linux, X64, bosgame]
     timeout-minutes: 30
     env:
-      LOCAL_LLM_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445/v1' || 'http://127.0.0.1:11434/v1' }}
-      LOCAL_LLM_MODEL: ${{ github.event_name == 'schedule' && 'scheduled/gpt-oss:120b' || 'gpt-oss:120b' }}
+      LOCAL_LLM_BASE_URL: http://127.0.0.1:11445/v1
+      LOCAL_LLM_MODEL: gpt-oss:120b
       LOCAL_LLM_UPSTREAM_MODEL: gpt-oss:120b
       LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
     outputs:
@@ -371,7 +371,7 @@ jobs:
 
       - name: Wait for local evaluator
         env:
-          LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '900' }}
+          LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '3600' }}
         run: |
           deadline=$((SECONDS + LOCAL_LLM_PRIORITY_MAX_WAIT_SEC))
           while true; do
@@ -432,7 +432,7 @@ jobs:
         run: npx vitest run tests/observability
 
       - name: Release background model lease
-        if: always() && github.event_name == 'schedule'
+        if: always()
         run: |
           curl -fsS -X POST \
             -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
