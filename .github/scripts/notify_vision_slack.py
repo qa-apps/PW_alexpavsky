@@ -29,7 +29,13 @@ def slack_post(token: str, method: str, payload: dict) -> dict:
         return json.loads(response.read())
 
 
-def upload_file(token: str, channel: str, file_path: str, title: str) -> str:
+def upload_file(
+    token: str,
+    channel: str,
+    file_path: str,
+    title: str,
+    thread_ts: str = "",
+) -> str:
     path = Path(file_path)
     if not path.is_file() or path.stat().st_size > MAX_UPLOAD_BYTES:
         return ""
@@ -47,10 +53,13 @@ def upload_file(token: str, channel: str, file_path: str, title: str) -> str:
     )
     with urllib.request.urlopen(upload, timeout=60):
         pass
-    completed = slack_post(token, "files.completeUploadExternal", {
+    completion = {
         "files": [{"id": prepared["file_id"], "title": title}],
         "channel_id": channel,
-    })
+    }
+    if thread_ts:
+        completion["thread_ts"] = thread_ts
+    completed = slack_post(token, "files.completeUploadExternal", completion)
     if not completed.get("ok"):
         print(f"Slack upload completion failed: {completed.get('error')}", file=sys.stderr)
         return ""
@@ -187,21 +196,7 @@ def main() -> int:
     marker = ":white_check_mark:" if status == "passed" else ":x:"
     steps = report.get("steps") or []
     dashboard_url = os.environ.get("VISION_AUDIT_DASHBOARD_URL", "").strip()
-    media_links = []
-    if not dashboard_url:
-        for step in steps:
-            link = upload_file(
-                token, channel, step.get("screenshot", ""),
-                f"Vision audit step {step.get('step')}: {step.get('title') or step.get('url')}",
-            )
-            if link:
-                media_links.append(f"<{link}|step {step.get('step')} screenshot>")
-
     video = report.get("video") or ""
-    if not dashboard_url:
-        video_link = upload_file(token, channel, video, "Agentic Vision Audit recording")
-        if video_link:
-            media_links.append(f"<{video_link}|session video>")
 
     run_url = os.environ.get("GITHUB_RUN_URL", "")
     usage = report.get("model_usage") or {}
@@ -229,7 +224,8 @@ def main() -> int:
         f"*Candidate observations:* {len(report.get('candidate_findings') or [])} "
         f"(only calibrated findings can fail CI)\n"
         f"*Findings:*\n" + "\n".join(finding_lines(report)) + "\n"
-        f"*Evidence:* {' | '.join(media_links) if media_links else 'screenshots, video, and raw JSON are in the full report'}\n"
+        "*Evidence:* every screenshot and the session video are attached in this thread; "
+        "raw JSON is available in the full report.\n"
         f"{' | '.join(link for link in (dashboard_link, run_link) if link)}\n"
         f"Every UI opening and AI input/output pair is documented in this thread."
     )
@@ -244,6 +240,16 @@ def main() -> int:
     delivered = True
     for step in steps:
         case_id = step.get("test_case_id") or f"step {step.get('step')}"
+        screenshot_link = upload_file(
+            token,
+            channel,
+            step.get("screenshot", ""),
+            f"{case_id}: {step.get('test_case_name') or step.get('title') or step.get('url')}",
+            thread_ts,
+        )
+        if not screenshot_link:
+            delivered = False
+            print(f"Slack screenshot upload failed for {case_id}", file=sys.stderr)
         thread_result = slack_post(token, "chat.postMessage", {
             "channel": channel,
             "thread_ts": thread_ts,
@@ -256,6 +262,17 @@ def main() -> int:
                 f"Slack test-case message failed for {case_id}: {thread_result.get('error')}",
                 file=sys.stderr,
             )
+
+    video_link = upload_file(
+        token,
+        channel,
+        video,
+        "Agentic Vision Audit recording",
+        thread_ts,
+    )
+    if not video_link:
+        delivered = False
+        print("Slack session-video upload failed", file=sys.stderr)
     return 0 if delivered or not args.require_delivery else 1
 
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -231,6 +233,57 @@ class VisionAuditReportingTests(unittest.TestCase):
         self.assertIn("It verifies that critical functionality is available.", rendered)
         self.assertIn("scroll:down", rendered)
         self.assertIn("runs/510/screenshots/step-01.png", rendered)
+
+    def test_slack_upload_completion_targets_the_audit_thread(self):
+        with tempfile.NamedTemporaryFile(suffix=".png") as screenshot:
+            screenshot.write(b"png")
+            screenshot.flush()
+            with mock.patch.object(
+                SLACK,
+                "slack_post",
+                side_effect=[
+                    {"ok": True, "upload_url": "https://upload.slack.test", "file_id": "F1"},
+                    {"ok": True, "files": [{"permalink": "https://slack.test/F1"}]},
+                ],
+            ) as slack_post, mock.patch.object(SLACK.urllib.request, "urlopen"):
+                link = SLACK.upload_file(
+                    "token", "C123", screenshot.name, "VISION-001", "1717.0001"
+                )
+
+        self.assertEqual(link, "https://slack.test/F1")
+        completion = slack_post.call_args_list[1].args[2]
+        self.assertEqual(completion["channel_id"], "C123")
+        self.assertEqual(completion["thread_ts"], "1717.0001")
+
+    def test_dashboard_run_still_uploads_screenshot_and_video_to_slack(self):
+        report = sample_report()
+        report["video"] = "/runner/vision-audit/session.webm"
+        with tempfile.TemporaryDirectory() as directory:
+            report_path = Path(directory) / "report.json"
+            report_path.write_text(json.dumps(report), encoding="utf-8")
+            argv = [
+                "notify_vision_slack.py",
+                "--report", str(report_path),
+                "--channel", "C123",
+                "--require-delivery",
+            ]
+            with mock.patch.dict(os.environ, {
+                "SLACK_BOT_TOKEN": "test",
+                "VISION_AUDIT_DASHBOARD_URL": "https://example.test/audit/",
+            }, clear=True), mock.patch("sys.argv", argv), mock.patch.object(
+                SLACK,
+                "slack_post",
+                side_effect=[{"ok": True, "ts": "1717.0001"}, {"ok": True}],
+            ), mock.patch.object(
+                SLACK,
+                "upload_file",
+                side_effect=["https://slack.test/screenshot", "https://slack.test/video"],
+            ) as upload:
+                self.assertEqual(SLACK.main(), 0)
+
+        self.assertEqual(upload.call_count, 2)
+        self.assertEqual(upload.call_args_list[0].args[-1], "1717.0001")
+        self.assertEqual(upload.call_args_list[1].args[-1], "1717.0001")
 
 
 if __name__ == "__main__":
