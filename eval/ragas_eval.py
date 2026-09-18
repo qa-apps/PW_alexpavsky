@@ -289,11 +289,11 @@ def main() -> int:
 
     # Build the local judge. The wrapper shape is retained for compatibility
     # with Ragas, but the configured provider list contains bosgame only.
-    from rotating_llm import RotatingJudgeLLM
+    from rotating_llm import RotatingJudgeLLM, lifecycle_headers
     judge_llm = RotatingJudgeLLM(
         providers=providers,
         temperature=0,
-        timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+        timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")),
     )
     primary_name = providers[0]["name"]
     primary_model = providers[0]["model"]
@@ -310,9 +310,12 @@ def main() -> int:
         def _embed(self, texts: list[str]) -> list[list[float]]:
             response = requests.post(
                 f"{embedding_root}/api/embed",
-                headers={"Authorization": f"Bearer {providers[0]['api_key']}"},
+                headers={
+                    "Authorization": f"Bearer {providers[0]['api_key']}",
+                    **lifecycle_headers(embedding_model),
+                },
                 json={"model": embedding_model, "input": texts, "keep_alive": -1},
-                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
+                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")),
             )
             response.raise_for_status()
             return response.json()["embeddings"]
@@ -347,8 +350,8 @@ def main() -> int:
             llm=ragas_llm,
             embeddings=ragas_embeds,
             run_config=RunConfig(
-                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "180")),
-                max_retries=1,
+                timeout=int(os.environ.get("LOCAL_LLM_TIMEOUT_SEC", "600")),
+                max_retries=2,
                 max_workers=1,
             ),
             raise_exceptions=False,
