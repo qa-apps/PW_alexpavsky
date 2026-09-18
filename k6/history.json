@@ -334,5 +334,15 @@
     "max_p95_ms": 387,
     "commit": "92ef44e",
     "run_id": "35280519960"
+  },
+  {
+    "run_number": "123",
+    "timestamp": "2026-09-18T05:02:04+00:00",
+    "profiles": 5,
+    "requests": 69797,
+    "failed_calls": 0,
+    "max_p95_ms": 471,
+    "commit": "254d20f",
+    "run_id": "35308586416"
   }
 ]
