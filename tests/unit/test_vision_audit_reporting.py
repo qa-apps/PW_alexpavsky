@@ -109,7 +109,8 @@ class VisionAuditReportingTests(unittest.TestCase):
 
     def test_ragas_completion_requires_current_run_reports_and_eval_steps(self):
         workflow = (ROOT / ".github/workflows/ragas-nightly.yml").read_text(encoding="utf-8")
-        self.assertIn("LLM_CATALOG_URL: http://127.0.0.1:11446", workflow)
+        self.assertIn("LLM_CATALOG_URL: http://127.0.0.1:11445", workflow)
+        self.assertNotIn("LLM_CATALOG_URL: http://127.0.0.1:11446", workflow)
         self.assertIn("OLLAMA_BASE_URL: http://127.0.0.1:11445", workflow)
         self.assertIn("LOCAL_LLM_BASE_URL: http://127.0.0.1:11445/v1", workflow)
         self.assertNotIn("LOCAL_LLM_BASE_URL: http://127.0.0.1:11434/v1", workflow)
