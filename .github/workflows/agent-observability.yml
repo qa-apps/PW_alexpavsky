@@ -76,7 +76,9 @@ jobs:
           BASE_REF: ${{ inputs.base_ref || 'master' }}
           NANOTECH_SHA: ${{ inputs.nanotech_sha }}
         run: |
-          git fetch origin "$BASE_REF" --depth=1
+          # Keep the base history deep enough for a merge-base even when the
+          # reviewed branch was cut before recent merges into the base branch.
+          git fetch origin "$BASE_REF"
           if [ -n "$NANOTECH_SHA" ]; then
             git clone --filter=blob:none https://github.com/qa-apps/PW_nanotech.git /tmp/PW_nanotech-review
             git -C /tmp/PW_nanotech-review fetch origin "$NANOTECH_SHA"
