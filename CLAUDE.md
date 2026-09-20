@@ -105,7 +105,10 @@ If a test fails because the site changed, fix the test here. If the site itself 
 
 ## Agent fix workflow — MANDATORY
 
-**Never push directly to `master`.** All agent fixes must go through a PR with human review.
+**Never push directly to `master`.** Every agent fix goes through a PR — but the PR is
+gated by CI, not by waiting for a person. `master` requires the `playwright` check to
+pass and does not require an approving review, so a fix that is green merges itself and
+a fix that is red cannot merge at all.
 
 When you identify and fix a failing test or CI issue, follow this exact sequence:
 
@@ -132,7 +135,7 @@ CI run: <GITHUB_RUN_URL>"
 git push origin fix/<branch-name>
 ```
 
-### 4. Open a PR — always add alexpavsky as reviewer
+### 4. Open a PR
 ```bash
 gh pr create \
   --title "fix: <description>" \
@@ -141,11 +144,36 @@ gh pr create \
   --label bug-fix
 ```
 
-### 5. Do NOT merge the PR yourself
-After creating the PR, stop. `alexpavsky` will review and merge once satisfied. Do not use `gh pr merge` or push directly to master.
+### 5. Merge it yourself once CI is green
+
+Do not stop and wait. A fix that sits in an open PR is not a fix.
+
+```bash
+gh pr merge --squash --auto --delete-branch
+```
+
+`--auto` queues the merge and GitHub completes it the moment the required check
+passes, so this is safe to run immediately after opening the PR. Branch protection
+is the gate: if `playwright` fails, nothing merges.
+
+### 5a. Escalate instead of merging — the exceptions
+
+For the changes below, green CI is **not** sufficient evidence. Open the PR, do
+**not** enable auto-merge, and say plainly in the PR body why it needs a human:
+
+- **Weakened verification.** Deleting or skipping a test, loosening an assertion,
+  raising a timeout, or lowering a pass threshold. A suite made quieter passes CI
+  by definition, so CI cannot be the judge of it.
+- **Auth, sessions, tokens, or anything reading a secret.**
+- **Production deploy, server config, or systemd units.**
+- **Data or schema migrations**, and anything that deletes stored data.
+- **Major dependency bumps**, or adding a new runtime dependency.
+- **A root cause you could not identify.** Open the PR, describe what you tried,
+  and leave it for review — that is a legitimate outcome, unlike silence.
 
 ### Important rules
 - One PR per bug fix — do not bundle unrelated changes
 - PR title must start with `fix:` or `test:` or `ci:`
 - If the fix is for a RAGAS / LLM eval issue, add label `rag-eval`
-- If uncertain about the root cause, still open the PR and explain what you tried
+- Never fix a failing test by making it assert less. That is the one failure mode
+  this whole pipeline exists to catch, and it is on the escalation list above.
