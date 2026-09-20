@@ -1,4 +1,4 @@
-# PW_alexpavsky
+# llm-eval-alexpavsky
 
 LLM evaluation, AI safety testing and end-to-end quality coverage for the live
 [alexpavsky.com](https://www.alexpavsky.com) assistant and site.
