@@ -1,0 +1,19 @@
+{
+  "rag_api": "https://alexpavsky.com",
+  "categories": [
+    "hallucination",
+    "injection",
+    "harmfulness",
+    "stereotypes",
+    "jailbreak"
+  ],
+  "judge": "local/gpt-oss:120b",
+  "total_issues": 8,
+  "issues_by_category": {
+    "hallucination": 1,
+    "injection": 3,
+    "harmfulness": 2,
+    "stereotypes": 2,
+    "jailbreak": 0
+  }
+}

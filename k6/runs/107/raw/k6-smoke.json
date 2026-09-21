@@ -1,0 +1,264 @@
+{
+    "metrics": {
+        "http_req_failed": {
+            "fails": 9,
+            "passes": 13,
+            "thresholds": {
+                "rate<0.01": true
+            },
+            "value": 0.5909090909090909
+        },
+        "http_req_connecting": {
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 125.95627990999988,
+            "max": 159.438329,
+            "avg": 7.247196772727273,
+            "min": 0
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 1
+        },
+        "http_req_sending": {
+            "p(95)": 0.3254064499999998,
+            "p(99)": 0.5696965199999997,
+            "max": 0.631455,
+            "avg": 0.09981649999999999,
+            "min": 0.03793,
+            "med": 0.060341500000000006,
+            "p(90)": 0.09731290000000001
+        },
+        "data_received": {
+            "count": 540679,
+            "rate": 35909.071928443715
+        },
+        "http_req_waiting": {
+            "avg": 192.9883130909091,
+            "min": 157.133718,
+            "med": 157.39691399999998,
+            "p(90)": 314.12132579999997,
+            "p(95)": 314.1325405,
+            "p(99)": 314.17920085,
+            "max": 314.191468
+        },
+        "http_req_tls_handshaking": {
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 128.72078457999987,
+            "max": 162.937702,
+            "avg": 7.406259181818182
+        },
+        "checks": {
+            "passes": 27,
+            "fails": 39,
+            "thresholds": {
+                "rate>0.99": true
+            },
+            "value": 0.4090909090909091
+        },
+        "http_req_receiving": {
+            "p(95)": 306.0250624499999,
+            "p(99)": 314.14654987,
+            "max": 314.228041,
+            "avg": 64.34530159090907,
+            "min": 0.036339,
+            "med": 0.068499,
+            "p(90)": 157.5379686
+        },
+        "vus_max": {
+            "value": 1,
+            "min": 1,
+            "max": 1
+        },
+        "http_req_duration": {
+            "min": 157.286496,
+            "med": 157.6167025,
+            "p(90)": 471.57193179999996,
+            "p(95)": 471.6356544,
+            "p(99)": 471.72569088,
+            "max": 471.748806,
+            "avg": 257.4334311818182,
+            "thresholds": {
+                "avg<1000": false,
+                "p(95)<1500": false
+            }
+        },
+        "http_req_duration{expected_response:true}": {
+            "med": 471.362344,
+            "p(90)": 471.6607484,
+            "p(95)": 471.7047772,
+            "p(99)": 471.74000024000003,
+            "max": 471.748806,
+            "avg": 401.6778225555556,
+            "min": 157.382394
+        },
+        "data_sent": {
+            "count": 4733,
+            "rate": 314.3411107835224
+        },
+        "iteration_duration": {
+            "p(90)": 1472.7608208,
+            "p(95)": 1472.83137995,
+            "p(99)": 1772.1964734699998,
+            "max": 1851.773809,
+            "avg": 684.3430301363636,
+            "min": 157.538465,
+            "med": 157.99061849999998
+        },
+        "http_req_blocked": {
+            "med": 0.000532,
+            "p(90)": 0.0006344,
+            "p(95)": 0.00067685,
+            "p(99)": 299.5961267599997,
+            "max": 379.235423,
+            "avg": 17.23847331818181,
+            "min": 0.000325
+        },
+        "group_duration": {
+            "med": 157.836315,
+            "p(90)": 471.9848503,
+            "p(95)": 472.0697001,
+            "p(99)": 771.2434118399997,
+            "max": 850.769424,
+            "avg": 274.9198470909091,
+            "min": 157.482779
+        },
+        "http_reqs": {
+            "rate": 1.461124960329071,
+            "count": 22
+        },
+        "iterations": {
+            "rate": 1.461124960329071,
+            "count": 22
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "home": {
+                "name": "home",
+                "path": "::home",
+                "id": "f55eb66156c7d05104505c362878691e",
+                "groups": {},
+                "checks": {
+                        "home: status is 200": {
+                            "fails": 0,
+                            "name": "home: status is 200",
+                            "path": "::home::home: status is 200",
+                            "id": "e9c43e7923a4cc032a653f5524dbf6a2",
+                            "passes": 7
+                        },
+                        "home: content type matches": {
+                            "id": "9729bb1577a5b226c4833d1969117da8",
+                            "passes": 7,
+                            "fails": 0,
+                            "name": "home: content type matches",
+                            "path": "::home::home: content type matches"
+                        },
+                        "home: body contract matches": {
+                            "path": "::home::home: body contract matches",
+                            "id": "9dcddd316962a7dfae4e6580dd191f31",
+                            "passes": 7,
+                            "fails": 0,
+                            "name": "home: body contract matches"
+                        }
+                    }
+            },
+            "feed": {
+                "name": "feed",
+                "path": "::feed",
+                "id": "f5131562703965eec9372832ee7658cd",
+                "groups": {},
+                "checks": {
+                        "feed: status is 200": {
+                            "name": "feed: status is 200",
+                            "path": "::feed::feed: status is 200",
+                            "id": "2ab24e66a0c5c8420b1812054f2791af",
+                            "passes": 0,
+                            "fails": 6
+                        },
+                        "feed: content type matches": {
+                            "id": "79124c327db7d97cd7a06c38c89f0873",
+                            "passes": 0,
+                            "fails": 6,
+                            "name": "feed: content type matches",
+                            "path": "::feed::feed: content type matches"
+                        },
+                        "feed: body contract matches": {
+                            "name": "feed: body contract matches",
+                            "path": "::feed::feed: body contract matches",
+                            "id": "6445c9b3fb3b6ae91d9411f6a6438ed9",
+                            "passes": 0,
+                            "fails": 6
+                        }
+                    }
+            },
+            "health": {
+                "name": "health",
+                "path": "::health",
+                "id": "612cc1c9a7c3d7996d1eb6414fb9c69d",
+                "groups": {},
+                "checks": {
+                        "health: status is 200": {
+                            "path": "::health::health: status is 200",
+                            "id": "73a9551039be8a65dac2e012c24dda73",
+                            "passes": 0,
+                            "fails": 7,
+                            "name": "health: status is 200"
+                        },
+                        "health: content type matches": {
+                            "id": "418c0837feff2d06e2b43ad17c4cf88e",
+                            "passes": 0,
+                            "fails": 7,
+                            "name": "health: content type matches",
+                            "path": "::health::health: content type matches"
+                        },
+                        "health: body contract matches": {
+                            "passes": 0,
+                            "fails": 7,
+                            "name": "health: body contract matches",
+                            "path": "::health::health: body contract matches",
+                            "id": "a8630443fed9752c4d216fbf82f1910b"
+                        }
+                    }
+            },
+            "robots": {
+                "name": "robots",
+                "path": "::robots",
+                "id": "5d0ffafa54b347b391db4082fee60494",
+                "groups": {},
+                "checks": {
+                        "robots: status is 200": {
+                            "name": "robots: status is 200",
+                            "path": "::robots::robots: status is 200",
+                            "id": "2303986024177489f05a8ca5fe64aab6",
+                            "passes": 2,
+                            "fails": 0
+                        },
+                        "robots: content type matches": {
+                            "name": "robots: content type matches",
+                            "path": "::robots::robots: content type matches",
+                            "id": "48a47a620d3d760dc9618eed526cdcd4",
+                            "passes": 2,
+                            "fails": 0
+                        },
+                        "robots: body contract matches": {
+                            "name": "robots: body contract matches",
+                            "path": "::robots::robots: body contract matches",
+                            "id": "504d67ba185e1b9d0eff5b42fd8cf716",
+                            "passes": 2,
+                            "fails": 0
+                        }
+                    }
+            }
+        },
+        "checks": {}
+    }
+}

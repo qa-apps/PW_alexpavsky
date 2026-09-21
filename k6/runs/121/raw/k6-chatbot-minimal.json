@@ -1,0 +1,167 @@
+{
+    "metrics": {
+        "http_req_tls_handshaking": {
+            "avg": 181.952671,
+            "min": 181.952671,
+            "med": 181.952671,
+            "p(90)": 181.952671,
+            "p(95)": 181.952671,
+            "p(99)": 181.952671,
+            "max": 181.952671
+        },
+        "data_sent": {
+            "count": 1924,
+            "rate": 1140.3065835274035
+        },
+        "http_reqs": {
+            "count": 1,
+            "rate": 0.5926749394633075
+        },
+        "chatbot_ok": {
+            "passes": 1,
+            "fails": 0,
+            "thresholds": {
+                "rate>0.80": false
+            },
+            "value": 1
+        },
+        "checks": {
+            "passes": 3,
+            "fails": 0,
+            "thresholds": {
+                "rate>0.80": false
+            },
+            "value": 1
+        },
+        "http_req_receiving": {
+            "p(90)": 0.066924,
+            "p(95)": 0.066924,
+            "p(99)": 0.066924,
+            "max": 0.066924,
+            "avg": 0.066924,
+            "min": 0.066924,
+            "med": 0.066924
+        },
+        "iteration_duration": {
+            "avg": 1686.814145,
+            "min": 1686.814145,
+            "med": 1686.814145,
+            "p(90)": 1686.814145,
+            "p(95)": 1686.814145,
+            "p(99)": 1686.814145,
+            "max": 1686.814145
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(95)": 312.856249,
+            "p(99)": 312.856249,
+            "max": 312.856249,
+            "avg": 312.856249,
+            "min": 312.856249,
+            "med": 312.856249,
+            "p(90)": 312.856249
+        },
+        "http_req_blocked": {
+            "max": 373.383613,
+            "avg": 373.383613,
+            "min": 373.383613,
+            "med": 373.383613,
+            "p(90)": 373.383613,
+            "p(95)": 373.383613,
+            "p(99)": 373.383613
+        },
+        "vus": {
+            "value": 1,
+            "min": 1,
+            "max": 1
+        },
+        "vus_max": {
+            "min": 1,
+            "max": 1,
+            "value": 1
+        },
+        "iterations": {
+            "count": 1,
+            "rate": 0.5926749394633075
+        },
+        "http_req_sending": {
+            "avg": 0.169265,
+            "min": 0.169265,
+            "med": 0.169265,
+            "p(90)": 0.169265,
+            "p(95)": 0.169265,
+            "p(99)": 0.169265,
+            "max": 0.169265
+        },
+        "data_received": {
+            "count": 4856,
+            "rate": 2878.0295060338212
+        },
+        "http_req_waiting": {
+            "max": 312.62006,
+            "avg": 312.62006,
+            "min": 312.62006,
+            "med": 312.62006,
+            "p(90)": 312.62006,
+            "p(95)": 312.62006,
+            "p(99)": 312.62006
+        },
+        "http_req_duration": {
+            "avg": 312.856249,
+            "min": 312.856249,
+            "med": 312.856249,
+            "p(90)": 312.856249,
+            "p(95)": 312.856249,
+            "p(99)": 312.856249,
+            "max": 312.856249,
+            "thresholds": {
+                "p(95)<30000": false
+            }
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 1,
+            "thresholds": {
+                "rate<0.20": false
+            },
+            "value": 0
+        },
+        "http_req_connecting": {
+            "p(99)": 176.388943,
+            "max": 176.388943,
+            "avg": 176.388943,
+            "min": 176.388943,
+            "med": 176.388943,
+            "p(90)": 176.388943,
+            "p(95)": 176.388943
+        }
+    },
+    "root_group": {
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "chatbot: no server crash": {
+                    "name": "chatbot: no server crash",
+                    "path": "::chatbot: no server crash",
+                    "id": "795c6689f59189f5d2e226c43f58d03c",
+                    "passes": 1,
+                    "fails": 0
+                },
+                "chatbot: body is not empty": {
+                    "path": "::chatbot: body is not empty",
+                    "id": "4174109281dd4571f19a087abbd8b4cc",
+                    "passes": 1,
+                    "fails": 0,
+                    "name": "chatbot: body is not empty"
+                },
+                "chatbot: expected content type": {
+                    "name": "chatbot: expected content type",
+                    "path": "::chatbot: expected content type",
+                    "id": "f8f298059948a250f2dea418c1a159b2",
+                    "passes": 1,
+                    "fails": 0
+                }
+            },
+        "name": ""
+    }
+}

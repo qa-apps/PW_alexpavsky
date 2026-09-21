@@ -1,0 +1,1309 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - button "Close" [ref=e4] [cursor=pointer]:
+      - generic [ref=e5]: 
+    - generic [ref=e8]:
+      - generic [ref=e9]: Cypress Blog
+      - 'heading "Cypress Ambassador Spotlight: Maksym Donets" [level=2] [ref=e10]'
+      - generic [ref=e11]:
+        - generic [ref=e12]: QA & Testing
+        - generic [ref=e13]:
+          - generic [ref=e14]: 
+          - text: 3d ago
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - text: "Source:"
+        - link "https://www.cypress.io/blog/cypress-ambassador-spotlight-maksym-donets" [ref=e18] [cursor=pointer]:
+          - /url: https://www.cypress.io/blog/cypress-ambassador-spotlight-maksym-donets
+      - 'heading "Cypress Ambassador Spotlight: Maksym Donets" [level=1] [ref=e19]'
+      - generic [ref=e23]:
+        - paragraph [ref=e25]:
+          - link "Blog" [ref=e27] [cursor=pointer]:
+            - /url: https://www.cypress.io/blog/
+          - 'link "Community: Ambassadors" [ref=e29] [cursor=pointer]':
+            - /url: https://www.cypress.io/blog/tag/ambassadors
+        - 'heading "Cypress Ambassador Spotlight: Maksym Donets" [level=1] [ref=e30]'
+        - generic [ref=e31]:
+          - paragraph [ref=e32]: September 10, 2026
+          - paragraph [ref=e33]: •
+          - paragraph [ref=e34]: By Jessica Capuano Mora
+        - generic [ref=e35]:
+          - paragraph [ref=e36]:
+            - text: Welcome back to another edition of our Ambassador Spotlight series, where we shine a light on the Cypress community members who make testing better for everyone through the blogs they write, the talks they give, and the day-to-day help they offer to fellow developers. Curious about the program? You can learn more about it
+            - link "here" [ref=e37] [cursor=pointer]:
+              - /url: https://www.cypress.io/ambassadors?utm_source=blog&utm_campaign=ambassador-spotlight
+            - text: .
+          - paragraph [ref=e38]: This time, we're catching up with Maksym Donets, an Automation QA Engineer with a straightforward philosophy on testing and an even more straightforward philosophy on life outside of it. Read on to find out what keeps him motivated, which Cypress feature he can't live without, and his advice for beginners.
+          - heading "What motivates you to be a Cypress Ambassador?" [level=2] [ref=e39]
+          - paragraph [ref=e40]: Learning and sharing.
+          - heading "How do you currently help others that are either using Cypress or interested in using Cypress?" [level=2] [ref=e41]
+          - paragraph [ref=e42]: I help my devs debugging failed pipeline using Cypress Cloud.
+          - heading "What is your favorite Cypress feature?" [level=2] [ref=e43]
+          - paragraph [ref=e44]:
+            - strong [ref=e45]: cy.session()
+            - text: is my favorite Cypress feature, because it simplifies session handling, such as managing logins and switching between users, which makes tests easier to write and improves execution speed.
+          - heading "What is your favorite \"Cypress Best Practice\" and why?" [level=2] [ref=e46]
+          - paragraph [ref=e47]:
+            - text: I like using
+            - strong [ref=e48]: cy.session()
+            - text: combined with
+            - strong [ref=e49]: cy.request()
+            - text: ", because it helps run tests faster."
+          - heading "Outside of work, what are your favorite things to do (hobbies, passions, etc.)?" [level=2] [ref=e50]
+          - paragraph [ref=e51]: I like to do Crossfit.
+          - heading "What is one professional milestone you are proud of?" [level=2] [ref=e52]
+          - paragraph [ref=e53]: Catching almost all bugs with E2E.
+          - heading "For new users - what is the best way to \"get started\" with Cypress?" [level=2] [ref=e54]
+          - paragraph [ref=e55]: Google how to install Cypress! That's all you need.
+          - heading "What is your favorite quote or saying?" [level=2] [ref=e56]
+          - paragraph [ref=e57]: Never say “Never say never.”
+    - generic [ref=e58]:
+      - generic [ref=e59]:
+        - button " Reader" [ref=e60] [cursor=pointer]:
+          - generic [ref=e61]: 
+          - text: Reader
+        - button " Full page" [ref=e62] [cursor=pointer]:
+          - generic [ref=e63]: 
+          - text: Full page
+      - link " Read full article" [ref=e64] [cursor=pointer]:
+        - /url: https://www.cypress.io/blog/cypress-ambassador-spotlight-maksym-donets/
+        - generic [ref=e65]: 
+        - text: Read full article
+      - button " Copy link" [ref=e66] [cursor=pointer]:
+        - generic [ref=e67]: 
+        - text: Copy link
+  - navigation [ref=e68]:
+    - generic [ref=e69]:
+      - link " alexpavlovsky" [ref=e70] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e72]: 
+        - generic [ref=e73]: alexpavlovsky
+      - generic [ref=e74]:
+        - link "Feed" [ref=e75] [cursor=pointer]:
+          - /url: "#feed"
+        - link "Explore" [ref=e76] [cursor=pointer]:
+          - /url: "#explore"
+        - link "Tools" [ref=e77] [cursor=pointer]:
+          - /url: "#tools"
+        - link "Challenge" [ref=e78] [cursor=pointer]:
+          - /url: "#challenge"
+        - link "Digest" [ref=e79] [cursor=pointer]:
+          - /url: "#digest"
+        - link " Break it" [ref=e80] [cursor=pointer]:
+          - /url: "#challenge"
+          - generic [ref=e81]: 
+          - text: Break it
+      - generic [ref=e82]:
+        - button "Toggle theme" [ref=e83] [cursor=pointer]:
+          - generic [ref=e84]: 
+        - button "Login" [ref=e85] [cursor=pointer]:
+          - generic [ref=e86]: 
+          - generic [ref=e87]: Login
+        - text:     
+  - text: 
+  - banner [ref=e88]:
+    - generic [ref=e89]:
+      - generic [ref=e90]:
+        - generic [ref=e91]: AI Integration & Quality Management
+        - heading "AI Testing & Integration. Building Trust." [level=1] [ref=e93]:
+          - text: AI Testing & Integration.
+          - text: Building Trust.
+        - paragraph [ref=e94]: Personal tech hub - exploring LLM testing, red teaming, automation, and everything where AI meets quality.
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e97]: "18"
+            - text: Articles today
+          - generic [ref=e99]:
+            - generic [ref=e100]: "7"
+            - text: RSS sources
+          - generic [ref=e102]:
+            - generic [ref=e103]: 24/7
+            - text: Auto-updated
+        - generic [ref=e104]:
+          - link " Live Feed" [ref=e105] [cursor=pointer]:
+            - /url: "#feed"
+            - generic [ref=e106]: 
+            - text: Live Feed
+          - link " AI Lab" [ref=e107] [cursor=pointer]:
+            - /url: "#lab"
+            - generic [ref=e108]: 
+            - text: AI Lab
+      - generic [ref=e110]:
+        - generic [ref=e111]:
+          - generic [ref=e116]: deepeval_suite.py
+          - generic [ref=e117]:
+            - generic [ref=e118]: $ deepeval test run --verbose
+            - generic [ref=e119]: ↳ Evaluating RAG pipeline...
+            - generic [ref=e120]:
+              - text: ✓ Faithfulness
+              - generic [ref=e121]: "score: 0.96"
+            - generic [ref=e122]:
+              - text: ✓ Answer Relevancy
+              - generic [ref=e123]: "score: 0.94"
+            - generic [ref=e124]:
+              - text: ✓ Contextual Recall
+              - generic [ref=e125]: "score: 0.91"
+            - generic [ref=e126]:
+              - text: ✓ Hallucination
+              - generic [ref=e127]: "score: 0.02 (low ✓)"
+            - generic [ref=e128]:
+              - text: ✓ Toxicity
+              - generic [ref=e129]: "score: 0.00"
+            - generic [ref=e130]:
+              - text: ✓ Bias
+              - generic [ref=e131]: "score: 0.01"
+            - generic [ref=e132]: ✓ 6/6 metrics passed · All thresholds met
+            - generic [ref=e133]: $ _
+        - generic [ref=e134]:
+          - generic [ref=e135]:
+            - generic [ref=e136]: AI Test Result
+            - generic [ref=e137]: PASS
+          - generic [ref=e138]:
+            - generic [ref=e139]:
+              - img [ref=e140]
+              - generic [ref=e143]:
+                - generic [ref=e144]: "82"
+                - generic [ref=e145]: Safety
+            - generic [ref=e146]:
+              - generic [ref=e147]:
+                - generic [ref=e148]: 
+                - generic [ref=e149]: Prompt Injection
+                - generic [ref=e150]: Passed
+              - generic [ref=e151]:
+                - generic [ref=e152]: 
+                - generic [ref=e153]: RAG Grounding
+                - generic [ref=e154]: Passed
+              - generic [ref=e155]:
+                - generic [ref=e156]: 
+                - generic [ref=e157]: Hallucination
+                - generic [ref=e158]: Warning
+              - generic [ref=e159]:
+                - generic [ref=e160]: 
+                - generic [ref=e161]: Toxicity
+                - generic [ref=e162]: Passed
+          - img [ref=e163]
+    - generic [ref=e167]:
+      - generic [ref=e168]:
+        - button " Adversarial Simulation Stress-test your AI with realistic attack scenarios. Explore →" [ref=e169] [cursor=pointer]:
+          - generic [ref=e171]: 
+          - generic [ref=e172]:
+            - generic [ref=e173]: Adversarial Simulation
+            - generic [ref=e174]: Stress-test your AI with realistic attack scenarios.
+          - generic [ref=e175]: Explore →
+        - button " Injection Risk Scanner Check if prompts are vulnerable to hidden injections. Scan →" [ref=e176] [cursor=pointer]:
+          - generic [ref=e178]: 
+          - generic [ref=e179]:
+            - generic [ref=e180]: Injection Risk Scanner
+            - generic [ref=e181]: Check if prompts are vulnerable to hidden injections.
+          - generic [ref=e182]: Scan →
+        - button " Grounding & Retrieval QA See if RAG answers stay connected to source docs. Verify →" [ref=e183] [cursor=pointer]:
+          - generic [ref=e185]: 
+          - generic [ref=e186]:
+            - generic [ref=e187]: Grounding & Retrieval QA
+            - generic [ref=e188]: See if RAG answers stay connected to source docs.
+          - generic [ref=e189]: Verify →
+        - button " Reliability & Fact Check Flag hallucinations and unsupported AI claims. Check →" [ref=e190] [cursor=pointer]:
+          - generic [ref=e192]: 
+          - generic [ref=e193]:
+            - generic [ref=e194]: Reliability & Fact Check
+            - generic [ref=e195]: Flag hallucinations and unsupported AI claims.
+          - generic [ref=e196]: Check →
+      - paragraph [ref=e197]:
+        - text: Explore detailed tools in the
+        - link "AI Lab" [ref=e198] [cursor=pointer]:
+          - /url: "#lab"
+        - text: below ↓
+  - generic [ref=e201]:
+    - generic [ref=e202]: LIVE
+    - button "Scroll left" [ref=e203] [cursor=pointer]:
+      - generic [ref=e204]: 
+    - generic [ref=e206]:
+      - 'link " Dev.to: I built BoardEject: an open-source Apple Freeform Excalidraw converter" [ref=e207] [cursor=pointer]':
+        - /url: https://dev.to/royalpinto007/i-built-boardeject-an-open-source-apple-freeform-excalidraw-converter-36ka
+        - generic [ref=e208]: 
+        - strong [ref=e209]: "Dev.to:"
+        - text: "I built BoardEject: an open-source Apple Freeform Excalidraw converter"
+      - 'link " Dev.to: Claude Certified Developer - Foundations certification Overview" [ref=e210] [cursor=pointer]':
+        - /url: https://dev.to/yashnigam/claude-certified-developer-foundations-certification-overview-4n07
+        - generic [ref=e211]: 
+        - strong [ref=e212]: "Dev.to:"
+        - text: Claude Certified Developer - Foundations certification Overview
+      - 'link " Dev.to: Context aware Spring AI chat microservice" [ref=e213] [cursor=pointer]':
+        - /url: https://dev.to/marinenimd/context-aware-spring-ai-chat-microservice-ake
+        - generic [ref=e214]: 
+        - strong [ref=e215]: "Dev.to:"
+        - text: Context aware Spring AI chat microservice
+      - 'link " Dev.to: How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center)" [ref=e216] [cursor=pointer]':
+        - /url: https://dev.to/nexoper/how-i-built-a-bilingual-rag-powered-ai-calling-chat-agent-with-a-full-admin-ops-center-573o
+        - generic [ref=e217]: 
+        - strong [ref=e218]: "Dev.to:"
+        - text: How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center)
+      - 'link " Dev.to: Measure the Tool-Loop Tax Before You Ship Work Off the Laptop" [ref=e219] [cursor=pointer]':
+        - /url: https://dev.to/codepro_9661/measure-the-tool-loop-tax-before-you-ship-work-off-the-laptop-4m9k
+        - generic [ref=e220]: 
+        - strong [ref=e221]: "Dev.to:"
+        - text: Measure the Tool-Loop Tax Before You Ship Work Off the Laptop
+      - 'link " Dev.to: Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer)" [ref=e222] [cursor=pointer]':
+        - /url: https://dev.to/joemetry/three-design-to-code-rules-most-developers-ignore-that-will-make-you-a-better-engineer-4o4p
+        - generic [ref=e223]: 
+        - strong [ref=e224]: "Dev.to:"
+        - text: Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer)
+      - 'link " Dev.to: A Turing Machine in Minecraft" [ref=e225] [cursor=pointer]':
+        - /url: https://dev.to/oleg_merkulov/a-turing-machine-in-minecraft-2120
+        - generic [ref=e226]: 
+        - strong [ref=e227]: "Dev.to:"
+        - text: A Turing Machine in Minecraft
+      - 'link " Dev.to: How to Actually Set Up Stripe''s Billing Meters in 2026 (Most Tutorials Are Wrong)" [ref=e228] [cursor=pointer]':
+        - /url: https://dev.to/kttttttherealest/how-to-actually-set-up-stripes-billing-meters-in-2026-most-tutorials-are-wrong-3knn
+        - generic [ref=e229]: 
+        - strong [ref=e230]: "Dev.to:"
+        - text: How to Actually Set Up Stripe's Billing Meters in 2026 (Most Tutorials Are Wrong)
+      - 'link " Dev.to: A RAG chatbot on your company knowledge base: what it is and when it pays off" [ref=e231] [cursor=pointer]':
+        - /url: https://dev.to/ilinmaks/a-rag-chatbot-on-your-company-knowledge-base-what-it-is-and-when-it-pays-off-h34
+        - generic [ref=e232]: 
+        - strong [ref=e233]: "Dev.to:"
+        - text: "A RAG chatbot on your company knowledge base: what it is and when it pays off"
+      - 'link " Dev.to: The Budget Card Workshop" [ref=e234] [cursor=pointer]':
+        - /url: https://dev.to/applab_8831/the-budget-card-workshop-3d6m
+        - generic [ref=e235]: 
+        - strong [ref=e236]: "Dev.to:"
+        - text: The Budget Card Workshop
+      - 'link " Hacker News Best: I''m being cyberattacked by Tesla, Inc" [ref=e237] [cursor=pointer]':
+        - /url: https://dreamstation.systems/personal/tesla.html
+        - generic [ref=e238]: 
+        - strong [ref=e239]: "Hacker News Best:"
+        - text: I'm being cyberattacked by Tesla, Inc
+      - 'link " Hacker News Best: Why is Google still serving dodgy ads?" [ref=e240] [cursor=pointer]':
+        - /url: https://www.atomic14.com/2026/09/13/why-is-google-still-serving-dodgy-ads
+        - generic [ref=e241]: 
+        - strong [ref=e242]: "Hacker News Best:"
+        - text: Why is Google still serving dodgy ads?
+      - 'link " Hacker News Best: Garry Tan wants US open-weight AI labs to ''distill'' frontier models, too" [ref=e243] [cursor=pointer]':
+        - /url: https://techcrunch.com/2026/09/11/y-combinators-garry-tan-wants-u-s-open-weight-ai-labs-to-distill-frontier-models-too/
+        - generic [ref=e244]: 
+        - strong [ref=e245]: "Hacker News Best:"
+        - text: Garry Tan wants US open-weight AI labs to 'distill' frontier models, too
+      - 'link " Hacker News Best: Data collected by cars and sold to third parties" [ref=e246] [cursor=pointer]':
+        - /url: https://www.theverge.com/column/994172/your-car-is-selling-your-data
+        - generic [ref=e247]: 
+        - strong [ref=e248]: "Hacker News Best:"
+        - text: Data collected by cars and sold to third parties
+      - 'link " Hacker News Best: Flock worker calls police on reporter filming public camera installation" [ref=e249] [cursor=pointer]':
+        - /url: https://www.investigatetv.com/2026/09/08/flock-worker-calls-police-investigatetv-reporter-filming-public-camera-installation/
+        - generic [ref=e250]: 
+        - strong [ref=e251]: "Hacker News Best:"
+        - text: Flock worker calls police on reporter filming public camera installation
+      - 'link " Hacker News Best: Revolut confirms customer data breach through fake government requests" [ref=e252] [cursor=pointer]':
+        - /url: https://techcrunch.com/2026/09/12/revolut-confirms-customer-data-breach-through-fake-government-requests/
+        - generic [ref=e253]: 
+        - strong [ref=e254]: "Hacker News Best:"
+        - text: Revolut confirms customer data breach through fake government requests
+      - 'link " Hacker News Best: Homebrew 7.0.0" [ref=e255] [cursor=pointer]':
+        - /url: https://brew.sh/2026/09/13/homebrew-7.0.0/
+        - generic [ref=e256]: 
+        - strong [ref=e257]: "Hacker News Best:"
+        - text: Homebrew 7.0.0
+      - 'link " Hacker News Best: JetKVM Mini" [ref=e258] [cursor=pointer]':
+        - /url: https://jetkvm.com/blog/introducing-jetkvm-mini
+        - generic [ref=e259]: 
+        - strong [ref=e260]: "Hacker News Best:"
+        - text: JetKVM Mini
+      - 'link " Hacker News Best: Aligned to whom?" [ref=e261] [cursor=pointer]':
+        - /url: https://hyperbo.la/w/aligned-to-whom/
+        - generic [ref=e262]: 
+        - strong [ref=e263]: "Hacker News Best:"
+        - text: Aligned to whom?
+      - 'link " Hacker News Best: The Interim Computer Museum" [ref=e264] [cursor=pointer]':
+        - /url: https://icm.museum/
+        - generic [ref=e265]: 
+        - strong [ref=e266]: "Hacker News Best:"
+        - text: The Interim Computer Museum
+      - 'link " Dev.to: I built BoardEject: an open-source Apple Freeform Excalidraw converter" [ref=e267] [cursor=pointer]':
+        - /url: https://dev.to/royalpinto007/i-built-boardeject-an-open-source-apple-freeform-excalidraw-converter-36ka
+        - generic [ref=e268]: 
+        - strong [ref=e269]: "Dev.to:"
+        - text: "I built BoardEject: an open-source Apple Freeform Excalidraw converter"
+      - 'link " Dev.to: Claude Certified Developer - Foundations certification Overview" [ref=e270] [cursor=pointer]':
+        - /url: https://dev.to/yashnigam/claude-certified-developer-foundations-certification-overview-4n07
+        - generic [ref=e271]: 
+        - strong [ref=e272]: "Dev.to:"
+        - text: Claude Certified Developer - Foundations certification Overview
+      - 'link " Dev.to: Context aware Spring AI chat microservice" [ref=e273] [cursor=pointer]':
+        - /url: https://dev.to/marinenimd/context-aware-spring-ai-chat-microservice-ake
+        - generic [ref=e274]: 
+        - strong [ref=e275]: "Dev.to:"
+        - text: Context aware Spring AI chat microservice
+      - 'link " Dev.to: How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center)" [ref=e276] [cursor=pointer]':
+        - /url: https://dev.to/nexoper/how-i-built-a-bilingual-rag-powered-ai-calling-chat-agent-with-a-full-admin-ops-center-573o
+        - generic [ref=e277]: 
+        - strong [ref=e278]: "Dev.to:"
+        - text: How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center)
+      - 'link " Dev.to: Measure the Tool-Loop Tax Before You Ship Work Off the Laptop" [ref=e279] [cursor=pointer]':
+        - /url: https://dev.to/codepro_9661/measure-the-tool-loop-tax-before-you-ship-work-off-the-laptop-4m9k
+        - generic [ref=e280]: 
+        - strong [ref=e281]: "Dev.to:"
+        - text: Measure the Tool-Loop Tax Before You Ship Work Off the Laptop
+      - 'link " Dev.to: Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer)" [ref=e282] [cursor=pointer]':
+        - /url: https://dev.to/joemetry/three-design-to-code-rules-most-developers-ignore-that-will-make-you-a-better-engineer-4o4p
+        - generic [ref=e283]: 
+        - strong [ref=e284]: "Dev.to:"
+        - text: Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer)
+      - 'link " Dev.to: A Turing Machine in Minecraft" [ref=e285] [cursor=pointer]':
+        - /url: https://dev.to/oleg_merkulov/a-turing-machine-in-minecraft-2120
+        - generic [ref=e286]: 
+        - strong [ref=e287]: "Dev.to:"
+        - text: A Turing Machine in Minecraft
+      - 'link " Dev.to: How to Actually Set Up Stripe''s Billing Meters in 2026 (Most Tutorials Are Wrong)" [ref=e288] [cursor=pointer]':
+        - /url: https://dev.to/kttttttherealest/how-to-actually-set-up-stripes-billing-meters-in-2026-most-tutorials-are-wrong-3knn
+        - generic [ref=e289]: 
+        - strong [ref=e290]: "Dev.to:"
+        - text: How to Actually Set Up Stripe's Billing Meters in 2026 (Most Tutorials Are Wrong)
+      - 'link " Dev.to: A RAG chatbot on your company knowledge base: what it is and when it pays off" [ref=e291] [cursor=pointer]':
+        - /url: https://dev.to/ilinmaks/a-rag-chatbot-on-your-company-knowledge-base-what-it-is-and-when-it-pays-off-h34
+        - generic [ref=e292]: 
+        - strong [ref=e293]: "Dev.to:"
+        - text: "A RAG chatbot on your company knowledge base: what it is and when it pays off"
+      - 'link " Dev.to: The Budget Card Workshop" [ref=e294] [cursor=pointer]':
+        - /url: https://dev.to/applab_8831/the-budget-card-workshop-3d6m
+        - generic [ref=e295]: 
+        - strong [ref=e296]: "Dev.to:"
+        - text: The Budget Card Workshop
+      - 'link " Hacker News Best: I''m being cyberattacked by Tesla, Inc" [ref=e297] [cursor=pointer]':
+        - /url: https://dreamstation.systems/personal/tesla.html
+        - generic [ref=e298]: 
+        - strong [ref=e299]: "Hacker News Best:"
+        - text: I'm being cyberattacked by Tesla, Inc
+      - 'link " Hacker News Best: Why is Google still serving dodgy ads?" [ref=e300] [cursor=pointer]':
+        - /url: https://www.atomic14.com/2026/09/13/why-is-google-still-serving-dodgy-ads
+        - generic [ref=e301]: 
+        - strong [ref=e302]: "Hacker News Best:"
+        - text: Why is Google still serving dodgy ads?
+      - 'link " Hacker News Best: Garry Tan wants US open-weight AI labs to ''distill'' frontier models, too" [ref=e303] [cursor=pointer]':
+        - /url: https://techcrunch.com/2026/09/11/y-combinators-garry-tan-wants-u-s-open-weight-ai-labs-to-distill-frontier-models-too/
+        - generic [ref=e304]: 
+        - strong [ref=e305]: "Hacker News Best:"
+        - text: Garry Tan wants US open-weight AI labs to 'distill' frontier models, too
+      - 'link " Hacker News Best: Data collected by cars and sold to third parties" [ref=e306] [cursor=pointer]':
+        - /url: https://www.theverge.com/column/994172/your-car-is-selling-your-data
+        - generic [ref=e307]: 
+        - strong [ref=e308]: "Hacker News Best:"
+        - text: Data collected by cars and sold to third parties
+      - 'link " Hacker News Best: Flock worker calls police on reporter filming public camera installation" [ref=e309] [cursor=pointer]':
+        - /url: https://www.investigatetv.com/2026/09/08/flock-worker-calls-police-investigatetv-reporter-filming-public-camera-installation/
+        - generic [ref=e310]: 
+        - strong [ref=e311]: "Hacker News Best:"
+        - text: Flock worker calls police on reporter filming public camera installation
+      - 'link " Hacker News Best: Revolut confirms customer data breach through fake government requests" [ref=e312] [cursor=pointer]':
+        - /url: https://techcrunch.com/2026/09/12/revolut-confirms-customer-data-breach-through-fake-government-requests/
+        - generic [ref=e313]: 
+        - strong [ref=e314]: "Hacker News Best:"
+        - text: Revolut confirms customer data breach through fake government requests
+      - 'link " Hacker News Best: Homebrew 7.0.0" [ref=e315] [cursor=pointer]':
+        - /url: https://brew.sh/2026/09/13/homebrew-7.0.0/
+        - generic [ref=e316]: 
+        - strong [ref=e317]: "Hacker News Best:"
+        - text: Homebrew 7.0.0
+      - 'link " Hacker News Best: JetKVM Mini" [ref=e318] [cursor=pointer]':
+        - /url: https://jetkvm.com/blog/introducing-jetkvm-mini
+        - generic [ref=e319]: 
+        - strong [ref=e320]: "Hacker News Best:"
+        - text: JetKVM Mini
+      - 'link " Hacker News Best: Aligned to whom?" [ref=e321] [cursor=pointer]':
+        - /url: https://hyperbo.la/w/aligned-to-whom/
+        - generic [ref=e322]: 
+        - strong [ref=e323]: "Hacker News Best:"
+        - text: Aligned to whom?
+      - 'link " Hacker News Best: The Interim Computer Museum" [ref=e324] [cursor=pointer]':
+        - /url: https://icm.museum/
+        - generic [ref=e325]: 
+        - strong [ref=e326]: "Hacker News Best:"
+        - text: The Interim Computer Museum
+    - button "Scroll right" [ref=e327] [cursor=pointer]:
+      - generic [ref=e328]: 
+  - generic [ref=e330]:
+    - generic [ref=e331]:
+      - generic [ref=e332]:
+        - generic [ref=e333]: 
+        - text: Trending AI & Tech Videos
+      - generic [ref=e334]:
+        - button "Previous" [ref=e335] [cursor=pointer]:
+          - generic [ref=e336]: 
+        - button "Next" [ref=e337] [cursor=pointer]:
+          - generic [ref=e338]: 
+    - generic [ref=e339]:
+      - button "Previous" [ref=e340] [cursor=pointer]:
+        - generic [ref=e341]: 
+      - button "Next" [ref=e342] [cursor=pointer]:
+        - generic [ref=e343]: 
+      - generic [ref=e345]:
+        - link " Fireship I read every major CS paper of the last 100 years" [ref=e346] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=ML3q7Ok4hJg
+          - generic [ref=e347]:
+            - generic:
+              - generic: 
+          - generic [ref=e348]:
+            - generic [ref=e349]: Fireship
+            - generic [ref=e350]: I read every major CS paper of the last 100 years
+        - link " Andrej Karpathy How I use LLMs" [ref=e351] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=EWvNQjAaOHw
+          - generic [ref=e352]:
+            - generic:
+              - generic: 
+          - generic [ref=e353]:
+            - generic [ref=e354]: Andrej Karpathy
+            - generic [ref=e355]: How I use LLMs
+        - link " 3Blue1Brown Measuring the entropy of English" [ref=e356] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=-7etvZSBxlk
+          - generic [ref=e357]:
+            - generic:
+              - generic: 
+          - generic [ref=e358]:
+            - generic [ref=e359]: 3Blue1Brown
+            - generic [ref=e360]: Measuring the entropy of English
+        - 'link " Computerphile TCP b: Additive Increase Multiplicative Decrease and Slow Start" [ref=e361] [cursor=pointer]':
+          - /url: https://www.youtube.com/watch?v=nKVML4YaBqs
+          - generic [ref=e362]:
+            - generic:
+              - generic: 
+          - generic [ref=e363]:
+            - generic [ref=e364]: Computerphile
+            - generic [ref=e365]: "TCP b: Additive Increase Multiplicative Decrease and Slow Start"
+        - link " Two Minute Papers DeepSeek just solved AI's billion dollar problem" [ref=e366] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=mG4SmhWyeFA
+          - generic [ref=e367]:
+            - generic:
+              - generic: 
+          - generic [ref=e368]:
+            - generic [ref=e369]: Two Minute Papers
+            - generic [ref=e370]: DeepSeek just solved AI's billion dollar problem
+        - link " Google DeepMind When millions of AI agents meet" [ref=e371] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=V04bm-3d6EQ
+          - generic [ref=e372]:
+            - generic:
+              - generic: 
+          - generic [ref=e373]:
+            - generic [ref=e374]: Google DeepMind
+            - generic [ref=e375]: When millions of AI agents meet
+        - link " OpenAI ChatGPT Futures, Class of 2026" [ref=e376] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=mVpCDzoNtxA
+          - generic [ref=e377]:
+            - generic:
+              - generic: 
+          - generic [ref=e378]:
+            - generic [ref=e379]: OpenAI
+            - generic [ref=e380]: ChatGPT Futures, Class of 2026
+        - link " Fireship The most trusted code on Earth is being rewritten in Rust" [ref=e381] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=Sntj4HmuykI
+          - generic [ref=e382]:
+            - generic:
+              - generic: 
+          - generic [ref=e383]:
+            - generic [ref=e384]: Fireship
+            - generic [ref=e385]: The most trusted code on Earth is being rewritten in Rust
+        - link " Andrej Karpathy Deep Dive into LLMs like ChatGPT" [ref=e386] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=7xTGNNLPyMI
+          - generic [ref=e387]:
+            - generic:
+              - generic: 
+          - generic [ref=e388]:
+            - generic [ref=e389]: Andrej Karpathy
+            - generic [ref=e390]: Deep Dive into LLMs like ChatGPT
+        - link " 3Blue1Brown What's the perfect encoding? How do you know?" [ref=e391] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=7L_eTem1SQ4
+          - generic [ref=e392]:
+            - generic:
+              - generic: 
+          - generic [ref=e393]:
+            - generic [ref=e394]: 3Blue1Brown
+            - generic [ref=e395]: What's the perfect encoding? How do you know?
+        - 'link " Computerphile TCP a: Ensuring your data gets there in the right order" [ref=e396] [cursor=pointer]':
+          - /url: https://www.youtube.com/watch?v=IADOV8UZO34
+          - generic [ref=e397]:
+            - generic:
+              - generic: 
+          - generic [ref=e398]:
+            - generic [ref=e399]: Computerphile
+            - generic [ref=e400]: "TCP a: Ensuring your data gets there in the right order"
+        - link " Two Minute Papers Scientists found a better language for AI agents" [ref=e401] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=dUmT0OIGoqE
+          - generic [ref=e402]:
+            - generic:
+              - generic: 
+          - generic [ref=e403]:
+            - generic [ref=e404]: Two Minute Papers
+            - generic [ref=e405]: Scientists found a better language for AI agents
+        - link " Fireship I read every major CS paper of the last 100 years" [ref=e406] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=ML3q7Ok4hJg
+          - generic [ref=e407]:
+            - generic:
+              - generic: 
+          - generic [ref=e408]:
+            - generic [ref=e409]: Fireship
+            - generic [ref=e410]: I read every major CS paper of the last 100 years
+        - link " Andrej Karpathy How I use LLMs" [ref=e411] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=EWvNQjAaOHw
+          - generic [ref=e412]:
+            - generic:
+              - generic: 
+          - generic [ref=e413]:
+            - generic [ref=e414]: Andrej Karpathy
+            - generic [ref=e415]: How I use LLMs
+        - link " 3Blue1Brown Measuring the entropy of English" [ref=e416] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=-7etvZSBxlk
+          - generic [ref=e417]:
+            - generic:
+              - generic: 
+          - generic [ref=e418]:
+            - generic [ref=e419]: 3Blue1Brown
+            - generic [ref=e420]: Measuring the entropy of English
+        - 'link " Computerphile TCP b: Additive Increase Multiplicative Decrease and Slow Start" [ref=e421] [cursor=pointer]':
+          - /url: https://www.youtube.com/watch?v=nKVML4YaBqs
+          - generic [ref=e422]:
+            - generic:
+              - generic: 
+          - generic [ref=e423]:
+            - generic [ref=e424]: Computerphile
+            - generic [ref=e425]: "TCP b: Additive Increase Multiplicative Decrease and Slow Start"
+        - link " Two Minute Papers DeepSeek just solved AI's billion dollar problem" [ref=e426] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=mG4SmhWyeFA
+          - generic [ref=e427]:
+            - generic:
+              - generic: 
+          - generic [ref=e428]:
+            - generic [ref=e429]: Two Minute Papers
+            - generic [ref=e430]: DeepSeek just solved AI's billion dollar problem
+        - link " Google DeepMind When millions of AI agents meet" [ref=e431] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=V04bm-3d6EQ
+          - generic [ref=e432]:
+            - generic:
+              - generic: 
+          - generic [ref=e433]:
+            - generic [ref=e434]: Google DeepMind
+            - generic [ref=e435]: When millions of AI agents meet
+        - link " OpenAI ChatGPT Futures, Class of 2026" [ref=e436] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=mVpCDzoNtxA
+          - generic [ref=e437]:
+            - generic:
+              - generic: 
+          - generic [ref=e438]:
+            - generic [ref=e439]: OpenAI
+            - generic [ref=e440]: ChatGPT Futures, Class of 2026
+        - link " Fireship The most trusted code on Earth is being rewritten in Rust" [ref=e441] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=Sntj4HmuykI
+          - generic [ref=e442]:
+            - generic:
+              - generic: 
+          - generic [ref=e443]:
+            - generic [ref=e444]: Fireship
+            - generic [ref=e445]: The most trusted code on Earth is being rewritten in Rust
+        - link " Andrej Karpathy Deep Dive into LLMs like ChatGPT" [ref=e446] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=7xTGNNLPyMI
+          - generic [ref=e447]:
+            - generic:
+              - generic: 
+          - generic [ref=e448]:
+            - generic [ref=e449]: Andrej Karpathy
+            - generic [ref=e450]: Deep Dive into LLMs like ChatGPT
+        - link " 3Blue1Brown What's the perfect encoding? How do you know?" [ref=e451] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=7L_eTem1SQ4
+          - generic [ref=e452]:
+            - generic:
+              - generic: 
+          - generic [ref=e453]:
+            - generic [ref=e454]: 3Blue1Brown
+            - generic [ref=e455]: What's the perfect encoding? How do you know?
+        - 'link " Computerphile TCP a: Ensuring your data gets there in the right order" [ref=e456] [cursor=pointer]':
+          - /url: https://www.youtube.com/watch?v=IADOV8UZO34
+          - generic [ref=e457]:
+            - generic:
+              - generic: 
+          - generic [ref=e458]:
+            - generic [ref=e459]: Computerphile
+            - generic [ref=e460]: "TCP a: Ensuring your data gets there in the right order"
+        - link " Two Minute Papers Scientists found a better language for AI agents" [ref=e461] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=dUmT0OIGoqE
+          - generic [ref=e462]:
+            - generic:
+              - generic: 
+          - generic [ref=e463]:
+            - generic [ref=e464]: Two Minute Papers
+            - generic [ref=e465]: Scientists found a better language for AI agents
+  - generic [ref=e467]:
+    - generic [ref=e468]:
+      - generic [ref=e469]:
+        - generic [ref=e470]: 
+        - text: AI / QA Radar
+      - heading "Live Feed" [level=2] [ref=e471]
+      - paragraph [ref=e472]: Auto-curated from top AI, QA, and testing sources.
+    - generic [ref=e473]:
+      - button "All" [ref=e474] [cursor=pointer]
+      - button "AI & LLM" [ref=e475] [cursor=pointer]
+      - button "QA & Testing" [ref=e476] [cursor=pointer]
+      - button "Dev & Engineering" [ref=e477] [cursor=pointer]
+    - generic [ref=e478]:
+      - button "Previous" [ref=e479] [cursor=pointer]:
+        - generic [ref=e480]: 
+      - generic [ref=e481]:
+        - link "Google AI Blog 4d ago Get ready for the game with new football features in Search Click to read the full article. AI & LLM" [ref=e482] [cursor=pointer]:
+          - /url: https://blog.google/products-and-platforms/products/search/football-features-google-search/
+          - generic [ref=e483]:
+            - generic [ref=e484]: Google AI Blog
+            - generic [ref=e485]: 4d ago
+          - heading "Get ready for the game with new football features in Search" [level=3] [ref=e486]
+          - paragraph [ref=e487]: Click to read the full article.
+          - generic [ref=e488]: AI & LLM
+        - link "DeepMind Sep 2 Introducing Gemini 3.8 Flash and 3.8 Flash Cyber Click to read the full article. AI & LLM" [ref=e489] [cursor=pointer]:
+          - /url: https://deepmind.google/blog/introducing-gemini-3-8-flash-and-38-flash-cyber/
+          - generic [ref=e490]:
+            - generic [ref=e491]: DeepMind
+            - generic [ref=e492]: Sep 2
+          - heading "Introducing Gemini 3.8 Flash and 3.8 Flash Cyber" [level=3] [ref=e493]
+          - paragraph [ref=e494]: Click to read the full article.
+          - generic [ref=e495]: AI & LLM
+        - 'link "Cypress Blog 3d ago Cypress Ambassador Spotlight: Maksym Donets Welcome back to another edition of our Ambassador Spotlight series, where we shine a light on the Cypress community m... QA & Testing" [active] [ref=e496] [cursor=pointer]':
+          - /url: https://www.cypress.io/blog/cypress-ambassador-spotlight-maksym-donets/
+          - generic [ref=e497]:
+            - generic [ref=e498]: Cypress Blog
+            - generic [ref=e499]: 3d ago
+          - 'heading "Cypress Ambassador Spotlight: Maksym Donets" [level=3] [ref=e500]'
+          - paragraph [ref=e501]: Welcome back to another edition of our Ambassador Spotlight series, where we shine a light on the Cypress community m...
+          - generic [ref=e502]: QA & Testing
+        - 'link "Testomat Blog 2d ago Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner Explorbot is an open-source QA agent for autonomous testing of web applications. You point it at a URL. It reads the ... QA & Testing" [ref=e503] [cursor=pointer]':
+          - /url: https://testomat.io/blog/mercury-testing/
+          - generic [ref=e504]:
+            - generic [ref=e505]: Testomat Blog
+            - generic [ref=e506]: 2d ago
+          - 'heading "Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner" [level=3] [ref=e507]'
+          - paragraph [ref=e508]: Explorbot is an open-source QA agent for autonomous testing of web applications. You point it at a URL. It reads the ...
+          - generic [ref=e509]: QA & Testing
+        - 'link "Dev.to 2h ago Context aware Spring AI chat microservice Keeping State in a Stateless World: Building a Context-Aware Gemini Microservice with Spring AI and H2 By default, La... Dev & Engineering" [ref=e510] [cursor=pointer]':
+          - /url: https://dev.to/marinenimd/context-aware-spring-ai-chat-microservice-ake
+          - generic [ref=e511]:
+            - generic [ref=e512]: Dev.to
+            - generic [ref=e513]: 2h ago
+          - heading "Context aware Spring AI chat microservice" [level=3] [ref=e514]
+          - paragraph [ref=e515]: "Keeping State in a Stateless World: Building a Context-Aware Gemini Microservice with Spring AI and H2 By default, La..."
+          - generic [ref=e516]: Dev & Engineering
+        - link "Hacker News Best 6h ago Garry Tan wants US open-weight AI labs to 'distill' frontier models, too Discussion on Hacker News — click to read the full article. Dev & Engineering" [ref=e517] [cursor=pointer]:
+          - /url: https://techcrunch.com/2026/09/11/y-combinators-garry-tan-wants-u-s-open-weight-ai-labs-to-distill-frontier-models-too/
+          - generic [ref=e518]:
+            - generic [ref=e519]: Hacker News Best
+            - generic [ref=e520]: 6h ago
+          - heading "Garry Tan wants US open-weight AI labs to 'distill' frontier models, too" [level=3] [ref=e521]
+          - paragraph [ref=e522]: Discussion on Hacker News — click to read the full article.
+          - generic [ref=e523]: Dev & Engineering
+        - link "Google AI Blog 4d ago Get ready for the game with new football features in Search Click to read the full article. AI & LLM" [ref=e524] [cursor=pointer]:
+          - /url: https://blog.google/products-and-platforms/products/search/football-features-google-search/
+          - generic [ref=e525]:
+            - generic [ref=e526]: Google AI Blog
+            - generic [ref=e527]: 4d ago
+          - heading "Get ready for the game with new football features in Search" [level=3] [ref=e528]
+          - paragraph [ref=e529]: Click to read the full article.
+          - generic [ref=e530]: AI & LLM
+        - link "DeepMind Sep 2 Introducing Gemini 3.8 Flash and 3.8 Flash Cyber Click to read the full article. AI & LLM" [ref=e531] [cursor=pointer]:
+          - /url: https://deepmind.google/blog/introducing-gemini-3-8-flash-and-38-flash-cyber/
+          - generic [ref=e532]:
+            - generic [ref=e533]: DeepMind
+            - generic [ref=e534]: Sep 2
+          - heading "Introducing Gemini 3.8 Flash and 3.8 Flash Cyber" [level=3] [ref=e535]
+          - paragraph [ref=e536]: Click to read the full article.
+          - generic [ref=e537]: AI & LLM
+        - 'link "Cypress Blog 3d ago Cypress Ambassador Spotlight: Maksym Donets Welcome back to another edition of our Ambassador Spotlight series, where we shine a light on the Cypress community m... QA & Testing" [ref=e538] [cursor=pointer]':
+          - /url: https://www.cypress.io/blog/cypress-ambassador-spotlight-maksym-donets/
+          - generic [ref=e539]:
+            - generic [ref=e540]: Cypress Blog
+            - generic [ref=e541]: 3d ago
+          - 'heading "Cypress Ambassador Spotlight: Maksym Donets" [level=3] [ref=e542]'
+          - paragraph [ref=e543]: Welcome back to another edition of our Ambassador Spotlight series, where we shine a light on the Cypress community m...
+          - generic [ref=e544]: QA & Testing
+        - 'link "Testomat Blog 2d ago Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner Explorbot is an open-source QA agent for autonomous testing of web applications. You point it at a URL. It reads the ... QA & Testing" [ref=e545] [cursor=pointer]':
+          - /url: https://testomat.io/blog/mercury-testing/
+          - generic [ref=e546]:
+            - generic [ref=e547]: Testomat Blog
+            - generic [ref=e548]: 2d ago
+          - 'heading "Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner" [level=3] [ref=e549]'
+          - paragraph [ref=e550]: Explorbot is an open-source QA agent for autonomous testing of web applications. You point it at a URL. It reads the ...
+          - generic [ref=e551]: QA & Testing
+        - 'link "Dev.to 2h ago Context aware Spring AI chat microservice Keeping State in a Stateless World: Building a Context-Aware Gemini Microservice with Spring AI and H2 By default, La... Dev & Engineering" [ref=e552] [cursor=pointer]':
+          - /url: https://dev.to/marinenimd/context-aware-spring-ai-chat-microservice-ake
+          - generic [ref=e553]:
+            - generic [ref=e554]: Dev.to
+            - generic [ref=e555]: 2h ago
+          - heading "Context aware Spring AI chat microservice" [level=3] [ref=e556]
+          - paragraph [ref=e557]: "Keeping State in a Stateless World: Building a Context-Aware Gemini Microservice with Spring AI and H2 By default, La..."
+          - generic [ref=e558]: Dev & Engineering
+        - link "Hacker News Best 6h ago Garry Tan wants US open-weight AI labs to 'distill' frontier models, too Discussion on Hacker News — click to read the full article. Dev & Engineering" [ref=e559] [cursor=pointer]:
+          - /url: https://techcrunch.com/2026/09/11/y-combinators-garry-tan-wants-u-s-open-weight-ai-labs-to-distill-frontier-models-too/
+          - generic [ref=e560]:
+            - generic [ref=e561]: Hacker News Best
+            - generic [ref=e562]: 6h ago
+          - heading "Garry Tan wants US open-weight AI labs to 'distill' frontier models, too" [level=3] [ref=e563]
+          - paragraph [ref=e564]: Discussion on Hacker News — click to read the full article.
+          - generic [ref=e565]: Dev & Engineering
+      - button "Next" [ref=e566] [cursor=pointer]:
+        - generic [ref=e567]: 
+  - generic [ref=e569]:
+    - generic [ref=e570]:
+      - generic [ref=e571]:
+        - generic [ref=e572]: 
+        - text: Explore
+      - heading "Essential Principles for Safe AI" [level=2] [ref=e573]
+      - paragraph [ref=e574]: Key practices for building, testing, and deploying AI responsibly.
+    - generic [ref=e575]:
+      - generic [ref=e576]:
+        - generic [ref=e578]: 
+        - heading "AI Red Teaming" [level=3] [ref=e579]
+        - paragraph [ref=e580]: Trying to break LLMs before they break production. Prompt injection, jailbreaks, adversarial testing.
+        - generic [ref=e581]:
+          - generic [ref=e582]: Prompt Injection
+          - generic [ref=e583]: Jailbreaks
+          - generic [ref=e584]: Safety
+      - generic [ref=e585]:
+        - generic [ref=e587]: 
+        - heading "LLM Evaluation" [level=3] [ref=e588]
+        - paragraph [ref=e589]: Building eval pipelines for RAG systems and AI agents. Measuring what actually matters.
+        - generic [ref=e590]:
+          - generic [ref=e591]: Promptfoo
+          - generic [ref=e592]: DeepEval
+          - generic [ref=e593]: Phoenix
+      - generic [ref=e594]:
+        - generic [ref=e596]: 
+        - heading "Test Automation" [level=3] [ref=e597]
+        - paragraph [ref=e598]: Playwright, CI/CD pipelines, and making machines test other machines.
+        - generic [ref=e600]: Playwright
+      - generic [ref=e601]:
+        - generic [ref=e603]: 
+        - heading "RAG & Vector Search" [level=3] [ref=e604]
+        - paragraph [ref=e605]: Retrieval-augmented generation, embeddings, and building knowledge-grounded AI systems.
+        - generic [ref=e606]:
+          - generic [ref=e607]: LlamaIndex
+          - generic [ref=e608]: RAGAS
+          - generic [ref=e609]: Embeddings
+      - generic [ref=e610]:
+        - generic [ref=e612]: 
+        - heading "AI Observability" [level=3] [ref=e613]
+        - paragraph [ref=e614]: Tracing, logging, and monitoring LLM apps in production. Catching drift, hallucinations, and cost spikes early.
+        - generic [ref=e615]:
+          - generic [ref=e616]: LangSmith
+          - generic [ref=e617]: Langfuse
+          - generic [ref=e618]: Helicone
+  - generic [ref=e620]:
+    - generic [ref=e621]:
+      - generic [ref=e622]:
+        - generic [ref=e623]: 
+        - text: Toolkit
+      - heading "Best QA & AI Tools" [level=2] [ref=e624]
+      - paragraph [ref=e625]: Daily drivers for testing, automation, and AI quality workflows.
+    - generic [ref=e626]:
+      - link " Promptfoo LLM eval framework" [ref=e627] [cursor=pointer]:
+        - /url: https://www.promptfoo.dev/
+        - generic [ref=e629]: 
+        - heading "Promptfoo" [level=4] [ref=e630]
+        - paragraph [ref=e631]: LLM eval framework
+      - link " Playwright E2E test automation" [ref=e632] [cursor=pointer]:
+        - /url: https://playwright.dev/
+        - generic [ref=e634]: 
+        - heading "Playwright" [level=4] [ref=e635]
+        - paragraph [ref=e636]: E2E test automation
+      - link " DeepEval LLM testing metrics" [ref=e637] [cursor=pointer]:
+        - /url: https://www.confident-ai.com/
+        - generic [ref=e639]: 
+        - heading "DeepEval" [level=4] [ref=e640]
+        - paragraph [ref=e641]: LLM testing metrics
+      - link " Phoenix AI observability" [ref=e642] [cursor=pointer]:
+        - /url: https://arize.com/phoenix/
+        - generic [ref=e644]: 
+        - heading "Phoenix" [level=4] [ref=e645]
+        - paragraph [ref=e646]: AI observability
+      - link " LangChain LLM orchestration" [ref=e647] [cursor=pointer]:
+        - /url: https://www.langchain.com/
+        - generic [ref=e649]: 
+        - heading "LangChain" [level=4] [ref=e650]
+        - paragraph [ref=e651]: LLM orchestration
+      - link " RAGAS RAG evaluation" [ref=e652] [cursor=pointer]:
+        - /url: https://docs.ragas.io/
+        - generic [ref=e654]: 
+        - heading "RAGAS" [level=4] [ref=e655]
+        - paragraph [ref=e656]: RAG evaluation
+      - link " LlamaIndex RAG framework" [ref=e657] [cursor=pointer]:
+        - /url: https://www.llamaindex.ai/
+        - generic [ref=e659]: 
+        - heading "LlamaIndex" [level=4] [ref=e660]
+        - paragraph [ref=e661]: RAG framework
+  - generic [ref=e663]:
+    - generic [ref=e664]:
+      - generic [ref=e665]:
+        - generic [ref=e666]: 
+        - text: Lab
+      - heading "AI Lab" [level=2] [ref=e667]
+      - paragraph [ref=e668]: Hands-on testing tools & experiments for builders.
+    - generic [ref=e669]:
+      - generic [ref=e670]:
+        - generic [ref=e672]: 
+        - heading "AI Chat Lab" [level=3] [ref=e673]
+        - paragraph [ref=e674]: Chat with an AI expert on QA, testing, and AI safety. Powered by multi-model orchestration.
+        - button " Open Chat" [ref=e675] [cursor=pointer]:
+          - generic [ref=e676]: 
+          - text: Open Chat
+      - generic [ref=e677]:
+        - generic [ref=e679]: 
+        - heading "RAG Hallucination Analyzer" [level=3] [ref=e680]
+        - paragraph [ref=e681]: Paste context + response. Get atomic fact-level breakdown and hallucination score 0–100%.
+        - button " Run Analysis" [ref=e682] [cursor=pointer]:
+          - generic [ref=e683]: 
+          - text: Run Analysis
+      - generic [ref=e684]:
+        - generic [ref=e686]: 
+        - heading "Prompt Injection Scanner" [level=3] [ref=e687]
+        - paragraph [ref=e688]: Scan for hidden Unicode, homoglyphs, control characters and injection patterns in prompts.
+        - button " Scan Prompt" [ref=e689] [cursor=pointer]:
+          - generic [ref=e690]: 
+          - text: Scan Prompt
+      - generic [ref=e691]:
+        - generic [ref=e693]: 
+        - heading "Attack Scenario Builder" [level=3] [ref=e694]
+        - paragraph [ref=e695]: Configure industry, target, attack type, severity — get production-grade adversarial payloads.
+        - button " Build Scenario" [ref=e696] [cursor=pointer]:
+          - generic [ref=e697]: 
+          - text: Build Scenario
+      - generic [ref=e698]:
+        - generic [ref=e700]: 
+        - heading "Can You Break This AI?" [level=3] [ref=e701]
+        - paragraph [ref=e702]: Try prompt injection, jailbreaks, and adversarial attacks. See if you can outsmart the bot — then learn the mitigations.
+        - button " Start Challenge" [ref=e703] [cursor=pointer]:
+          - generic [ref=e704]: 
+          - text: Start Challenge
+  - text:                  
+  - contentinfo [ref=e705]:
+    - generic [ref=e707]:
+      - generic [ref=e708]:
+        - generic [ref=e710]: 
+        - generic [ref=e711]: alexpavlovsky
+      - paragraph [ref=e712]: Personal tech hub. Built with curiosity.
+      - generic [ref=e714]:
+        - paragraph [ref=e715]:
+          - generic [ref=e716]: 
+          - text: Daily AI, QA & Agent Automation Digest
+        - generic [ref=e717]:
+          - textbox "your@email.com" [ref=e718]
+          - button "Subscribe" [ref=e719] [cursor=pointer]
+        - paragraph [ref=e720]
+      - button " Forum & Feedback" [ref=e722] [cursor=pointer]:
+        - generic [ref=e723]: 
+        - text: Forum & Feedback
+      - generic [ref=e724]:
+        - link "GitHub" [ref=e725] [cursor=pointer]:
+          - /url: https://github.com/qa-apps
+          - generic [ref=e726]: 
+        - link "LinkedIn" [ref=e727] [cursor=pointer]:
+          - /url: https://www.linkedin.com/in/qa-apps/
+          - generic [ref=e728]: 
+        - link "Alex Pavlovsky profile" [ref=e729] [cursor=pointer]:
+          - /url: https://www.linkedin.com/in/qa-apps/
+          - img "Alex Pavlovsky" [ref=e730]
+        - link "Email" [ref=e731] [cursor=pointer]:
+          - /url: mailto:alex@alexpavsky.com
+          - generic [ref=e732]: 
+      - paragraph [ref=e733]: alex@alexpavsky.com
+  - text:     
+  - generic [ref=e734]:
+    - button "Open AI chat" [ref=e735] [cursor=pointer]:
+      - generic [ref=e736]: 
+      - generic [ref=e737]: AI
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic: 
+          - generic:
+            - heading "AI Assistant" [level=4]
+            - generic: Online
+        - generic:
+          - button "Maximize":
+            - generic: 
+          - button "New chat":
+            - generic: 
+          - button "Close":
+            - generic: 
+      - generic:
+        - generic:
+          - generic:
+            - generic: 
+          - heading "Before we start" [level=4]
+          - paragraph: This AI chat is for informational purposes only. Responses may be inaccurate or incomplete. Do not share sensitive personal data.
+          - generic:
+            - checkbox "I agree to the terms of use and understand AI limitations"
+            - generic:
+              - text: I agree to the
+              - link "terms of use":
+                - /url: "#"
+              - text: and understand AI limitations
+          - button "Agree & Start Chat" [disabled]
+        - text: 
+      - generic:
+        - generic:
+          - generic:
+            - generic: 
+          - generic:
+            - paragraph: Hey! I'm an AI assistant. Ask me anything — QA, AI testing, coding, science, or just chat.
+      - generic:
+        - generic:
+          - button "Attach file":
+            - generic: +
+          - button "Voice input":
+            - generic: 
+            - generic: Auto
+          - generic:
+            - textbox "Type your message..."
+            - button "Attach or drop files":
+              - generic: 
+              - generic: Drag file here
+            - text:  
+          - button "Send":
+            - generic: 
+  - text:                    
+  - generic:
+    - button "Open live news feed" [ref=e738] [cursor=pointer]:
+      - generic [ref=e741]: LIVE
+    - dialog "Live news feed":
+      - generic:
+        - generic:
+          - generic: LIVE ALERTS
+          - button "Close live feed": ×
+        - generic:
+          - generic:
+            - link "LIVE 6h ago Garry Tan wants US open-weight AI labs to 'distill' frontier models, too Hacker News Best":
+              - /url: https://techcrunch.com/2026/09/11/y-combinators-garry-tan-wants-u-s-open-weight-ai-labs-to-distill-frontier-models-too/
+              - generic:
+                - generic: LIVE
+                - generic: 6h ago
+              - generic: Garry Tan wants US open-weight AI labs to 'distill' frontier models, too
+              - generic: Hacker News Best
+            - link "LIVE 8h ago Data collected by cars and sold to third parties Hacker News Best":
+              - /url: https://www.theverge.com/column/994172/your-car-is-selling-your-data
+              - generic:
+                - generic: LIVE
+                - generic: 8h ago
+              - generic: Data collected by cars and sold to third parties
+              - generic: Hacker News Best
+            - link "LIVE 4h ago Why is Google still serving dodgy ads? Hacker News Best":
+              - /url: https://www.atomic14.com/2026/09/13/why-is-google-still-serving-dodgy-ads
+              - generic:
+                - generic: LIVE
+                - generic: 4h ago
+              - generic: Why is Google still serving dodgy ads?
+              - generic: Hacker News Best
+            - 'link "LIVE 2h ago I built BoardEject: an open-source Apple Freeform Excalidraw converter Dev.to"':
+              - /url: https://dev.to/royalpinto007/i-built-boardeject-an-open-source-apple-freeform-excalidraw-converter-36ka
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: "I built BoardEject: an open-source Apple Freeform Excalidraw converter"
+              - generic: Dev.to
+            - link "LIVE 2h ago How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center) Dev.to":
+              - /url: https://dev.to/nexoper/how-i-built-a-bilingual-rag-powered-ai-calling-chat-agent-with-a-full-admin-ops-center-573o
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center)
+              - generic: Dev.to
+            - link "LIVE 2h ago How to Actually Set Up Stripe's Billing Meters in 2026 (Most Tutorials Are Wrong) Dev.to":
+              - /url: https://dev.to/kttttttherealest/how-to-actually-set-up-stripes-billing-meters-in-2026-most-tutorials-are-wrong-3knn
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: How to Actually Set Up Stripe's Billing Meters in 2026 (Most Tutorials Are Wrong)
+              - generic: Dev.to
+            - link "LIVE 12h ago Revolut confirms customer data breach through fake government requests Hacker News Best":
+              - /url: https://techcrunch.com/2026/09/12/revolut-confirms-customer-data-breach-through-fake-government-requests/
+              - generic:
+                - generic: LIVE
+                - generic: 12h ago
+              - generic: Revolut confirms customer data breach through fake government requests
+              - generic: Hacker News Best
+            - link "LIVE 13h ago Homebrew 7.0.0 Hacker News Best":
+              - /url: https://brew.sh/2026/09/13/homebrew-7.0.0/
+              - generic:
+                - generic: LIVE
+                - generic: 13h ago
+              - generic: Homebrew 7.0.0
+              - generic: Hacker News Best
+            - link "LIVE 14h ago JetKVM Mini Hacker News Best":
+              - /url: https://jetkvm.com/blog/introducing-jetkvm-mini
+              - generic:
+                - generic: LIVE
+                - generic: 14h ago
+              - generic: JetKVM Mini
+              - generic: Hacker News Best
+            - link "LIVE 2h ago A Turing Machine in Minecraft Dev.to":
+              - /url: https://dev.to/oleg_merkulov/a-turing-machine-in-minecraft-2120
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: A Turing Machine in Minecraft
+              - generic: Dev.to
+            - link "LIVE 2h ago Context aware Spring AI chat microservice Dev.to":
+              - /url: https://dev.to/marinenimd/context-aware-spring-ai-chat-microservice-ake
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: Context aware Spring AI chat microservice
+              - generic: Dev.to
+            - link "LIVE 2h ago The Budget Card Workshop Dev.to":
+              - /url: https://dev.to/applab_8831/the-budget-card-workshop-3d6m
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: The Budget Card Workshop
+              - generic: Dev.to
+            - link "LIVE 2h ago Claude Certified Developer - Foundations certification Overview Dev.to":
+              - /url: https://dev.to/yashnigam/claude-certified-developer-foundations-certification-overview-4n07
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: Claude Certified Developer - Foundations certification Overview
+              - generic: Dev.to
+            - link "LIVE 1d ago LG Says We're Fake News [video] Hacker News Best":
+              - /url: https://www.youtube.com/watch?v=ToP9xfLDSME
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: LG Says We're Fake News [video]
+              - generic: Hacker News Best
+            - link "LIVE 2h ago Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer) Dev.to":
+              - /url: https://dev.to/joemetry/three-design-to-code-rules-most-developers-ignore-that-will-make-you-a-better-engineer-4o4p
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer)
+              - generic: Dev.to
+            - link "LIVE 6h ago Garry Tan wants US open-weight AI labs to 'distill' frontier models, too Hacker News Best":
+              - /url: https://techcrunch.com/2026/09/11/y-combinators-garry-tan-wants-u-s-open-weight-ai-labs-to-distill-frontier-models-too/
+              - generic:
+                - generic: LIVE
+                - generic: 6h ago
+              - generic: Garry Tan wants US open-weight AI labs to 'distill' frontier models, too
+              - generic: Hacker News Best
+            - link "LIVE 8h ago Data collected by cars and sold to third parties Hacker News Best":
+              - /url: https://www.theverge.com/column/994172/your-car-is-selling-your-data
+              - generic:
+                - generic: LIVE
+                - generic: 8h ago
+              - generic: Data collected by cars and sold to third parties
+              - generic: Hacker News Best
+            - link "LIVE 4h ago Why is Google still serving dodgy ads? Hacker News Best":
+              - /url: https://www.atomic14.com/2026/09/13/why-is-google-still-serving-dodgy-ads
+              - generic:
+                - generic: LIVE
+                - generic: 4h ago
+              - generic: Why is Google still serving dodgy ads?
+              - generic: Hacker News Best
+            - 'link "LIVE 2h ago I built BoardEject: an open-source Apple Freeform Excalidraw converter Dev.to"':
+              - /url: https://dev.to/royalpinto007/i-built-boardeject-an-open-source-apple-freeform-excalidraw-converter-36ka
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: "I built BoardEject: an open-source Apple Freeform Excalidraw converter"
+              - generic: Dev.to
+            - link "LIVE 2h ago How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center) Dev.to":
+              - /url: https://dev.to/nexoper/how-i-built-a-bilingual-rag-powered-ai-calling-chat-agent-with-a-full-admin-ops-center-573o
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center)
+              - generic: Dev.to
+            - link "LIVE 2h ago How to Actually Set Up Stripe's Billing Meters in 2026 (Most Tutorials Are Wrong) Dev.to":
+              - /url: https://dev.to/kttttttherealest/how-to-actually-set-up-stripes-billing-meters-in-2026-most-tutorials-are-wrong-3knn
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: How to Actually Set Up Stripe's Billing Meters in 2026 (Most Tutorials Are Wrong)
+              - generic: Dev.to
+            - link "LIVE 12h ago Revolut confirms customer data breach through fake government requests Hacker News Best":
+              - /url: https://techcrunch.com/2026/09/12/revolut-confirms-customer-data-breach-through-fake-government-requests/
+              - generic:
+                - generic: LIVE
+                - generic: 12h ago
+              - generic: Revolut confirms customer data breach through fake government requests
+              - generic: Hacker News Best
+            - link "LIVE 13h ago Homebrew 7.0.0 Hacker News Best":
+              - /url: https://brew.sh/2026/09/13/homebrew-7.0.0/
+              - generic:
+                - generic: LIVE
+                - generic: 13h ago
+              - generic: Homebrew 7.0.0
+              - generic: Hacker News Best
+            - link "LIVE 14h ago JetKVM Mini Hacker News Best":
+              - /url: https://jetkvm.com/blog/introducing-jetkvm-mini
+              - generic:
+                - generic: LIVE
+                - generic: 14h ago
+              - generic: JetKVM Mini
+              - generic: Hacker News Best
+            - link "LIVE 2h ago A Turing Machine in Minecraft Dev.to":
+              - /url: https://dev.to/oleg_merkulov/a-turing-machine-in-minecraft-2120
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: A Turing Machine in Minecraft
+              - generic: Dev.to
+            - link "LIVE 2h ago Context aware Spring AI chat microservice Dev.to":
+              - /url: https://dev.to/marinenimd/context-aware-spring-ai-chat-microservice-ake
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: Context aware Spring AI chat microservice
+              - generic: Dev.to
+            - link "LIVE 2h ago The Budget Card Workshop Dev.to":
+              - /url: https://dev.to/applab_8831/the-budget-card-workshop-3d6m
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: The Budget Card Workshop
+              - generic: Dev.to
+            - link "LIVE 2h ago Claude Certified Developer - Foundations certification Overview Dev.to":
+              - /url: https://dev.to/yashnigam/claude-certified-developer-foundations-certification-overview-4n07
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: Claude Certified Developer - Foundations certification Overview
+              - generic: Dev.to
+            - link "LIVE 1d ago LG Says We're Fake News [video] Hacker News Best":
+              - /url: https://www.youtube.com/watch?v=ToP9xfLDSME
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: LG Says We're Fake News [video]
+              - generic: Hacker News Best
+            - link "LIVE 2h ago Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer) Dev.to":
+              - /url: https://dev.to/joemetry/three-design-to-code-rules-most-developers-ignore-that-will-make-you-a-better-engineer-4o4p
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer)
+              - generic: Dev.to
+            - link "LIVE 6h ago Garry Tan wants US open-weight AI labs to 'distill' frontier models, too Hacker News Best":
+              - /url: https://techcrunch.com/2026/09/11/y-combinators-garry-tan-wants-u-s-open-weight-ai-labs-to-distill-frontier-models-too/
+              - generic:
+                - generic: LIVE
+                - generic: 6h ago
+              - generic: Garry Tan wants US open-weight AI labs to 'distill' frontier models, too
+              - generic: Hacker News Best
+            - link "LIVE 8h ago Data collected by cars and sold to third parties Hacker News Best":
+              - /url: https://www.theverge.com/column/994172/your-car-is-selling-your-data
+              - generic:
+                - generic: LIVE
+                - generic: 8h ago
+              - generic: Data collected by cars and sold to third parties
+              - generic: Hacker News Best
+            - link "LIVE 4h ago Why is Google still serving dodgy ads? Hacker News Best":
+              - /url: https://www.atomic14.com/2026/09/13/why-is-google-still-serving-dodgy-ads
+              - generic:
+                - generic: LIVE
+                - generic: 4h ago
+              - generic: Why is Google still serving dodgy ads?
+              - generic: Hacker News Best
+            - 'link "LIVE 2h ago I built BoardEject: an open-source Apple Freeform Excalidraw converter Dev.to"':
+              - /url: https://dev.to/royalpinto007/i-built-boardeject-an-open-source-apple-freeform-excalidraw-converter-36ka
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: "I built BoardEject: an open-source Apple Freeform Excalidraw converter"
+              - generic: Dev.to
+            - link "LIVE 2h ago How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center) Dev.to":
+              - /url: https://dev.to/nexoper/how-i-built-a-bilingual-rag-powered-ai-calling-chat-agent-with-a-full-admin-ops-center-573o
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: How I Built a Bilingual RAG-Powered AI Calling & Chat Agent (With a Full Admin Ops Center)
+              - generic: Dev.to
+            - link "LIVE 2h ago How to Actually Set Up Stripe's Billing Meters in 2026 (Most Tutorials Are Wrong) Dev.to":
+              - /url: https://dev.to/kttttttherealest/how-to-actually-set-up-stripes-billing-meters-in-2026-most-tutorials-are-wrong-3knn
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: How to Actually Set Up Stripe's Billing Meters in 2026 (Most Tutorials Are Wrong)
+              - generic: Dev.to
+            - link "LIVE 12h ago Revolut confirms customer data breach through fake government requests Hacker News Best":
+              - /url: https://techcrunch.com/2026/09/12/revolut-confirms-customer-data-breach-through-fake-government-requests/
+              - generic:
+                - generic: LIVE
+                - generic: 12h ago
+              - generic: Revolut confirms customer data breach through fake government requests
+              - generic: Hacker News Best
+            - link "LIVE 13h ago Homebrew 7.0.0 Hacker News Best":
+              - /url: https://brew.sh/2026/09/13/homebrew-7.0.0/
+              - generic:
+                - generic: LIVE
+                - generic: 13h ago
+              - generic: Homebrew 7.0.0
+              - generic: Hacker News Best
+            - link "LIVE 14h ago JetKVM Mini Hacker News Best":
+              - /url: https://jetkvm.com/blog/introducing-jetkvm-mini
+              - generic:
+                - generic: LIVE
+                - generic: 14h ago
+              - generic: JetKVM Mini
+              - generic: Hacker News Best
+            - link "LIVE 2h ago A Turing Machine in Minecraft Dev.to":
+              - /url: https://dev.to/oleg_merkulov/a-turing-machine-in-minecraft-2120
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: A Turing Machine in Minecraft
+              - generic: Dev.to
+            - link "LIVE 2h ago Context aware Spring AI chat microservice Dev.to":
+              - /url: https://dev.to/marinenimd/context-aware-spring-ai-chat-microservice-ake
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: Context aware Spring AI chat microservice
+              - generic: Dev.to
+            - link "LIVE 2h ago The Budget Card Workshop Dev.to":
+              - /url: https://dev.to/applab_8831/the-budget-card-workshop-3d6m
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: The Budget Card Workshop
+              - generic: Dev.to
+            - link "LIVE 2h ago Claude Certified Developer - Foundations certification Overview Dev.to":
+              - /url: https://dev.to/yashnigam/claude-certified-developer-foundations-certification-overview-4n07
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: Claude Certified Developer - Foundations certification Overview
+              - generic: Dev.to
+            - link "LIVE 1d ago LG Says We're Fake News [video] Hacker News Best":
+              - /url: https://www.youtube.com/watch?v=ToP9xfLDSME
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: LG Says We're Fake News [video]
+              - generic: Hacker News Best
+            - link "LIVE 2h ago Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer) Dev.to":
+              - /url: https://dev.to/joemetry/three-design-to-code-rules-most-developers-ignore-that-will-make-you-a-better-engineer-4o4p
+              - generic:
+                - generic: LIVE
+                - generic: 2h ago
+              - generic: Three Design-to-Code Rules Most Developers Ignore (That Will Make You a Better Engineer)
+              - generic: Dev.to
+        - generic:
+          - generic:
+            - text: Speed
+            - slider "Scroll speed": "0.6"
+          - button "PAUSE"
+  - generic:
+    - button "Talk to the Voice Agent" [ref=e743] [cursor=pointer]:
+      - generic [ref=e753]: Voice Agent
+    - region:
+      - button:
+        - img
+      - generic: Voice Agent
+      - generic:
+        - button
+      - generic: Tap to start
+      - generic: Tap once, then just talk — hands-free
+```

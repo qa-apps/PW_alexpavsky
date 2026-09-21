@@ -1,0 +1,23 @@
+{
+  "rag_api": "https://alexpavsky.com",
+  "categories": [
+    "hallucination",
+    "injection",
+    "harmfulness",
+    "stereotypes",
+    "robustness",
+    "sensitive_topics",
+    "jailbreak"
+  ],
+  "judge": "groq/llama-3.3-70b-versatile",
+  "total_issues": 9,
+  "issues_by_category": {
+    "hallucination": 2,
+    "injection": 3,
+    "harmfulness": 0,
+    "stereotypes": 2,
+    "robustness": 2,
+    "sensitive_topics": 0,
+    "jailbreak": 0
+  }
+}

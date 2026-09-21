@@ -1,0 +1,7 @@
+{
+  "rag_api": "https://alexpavsky.com",
+  "num_questions": 2,
+  "judge": "local/gpt-oss:120b",
+  "correctness": 0.5,
+  "minimum_correctness": 0.5
+}

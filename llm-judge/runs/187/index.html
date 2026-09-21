@@ -1,0 +1,600 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>LLM Judge run #187</title>
+<style>
+body { font:14px/1.45 -apple-system,BlinkMacSystemFont,sans-serif; margin:0 auto; max-width:1100px; padding:24px; color:#1f2328; }
+a { color:#0969da; text-decoration:none; } .meta, .muted { color:#656d76; } .small { font-size:12px; }
+.cards { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin:18px 0; }
+.card { border:1px solid #d0d7de; border-radius:6px; padding:12px; background:#f6f8fa; } .value { font-size:24px; font-weight:700; }
+.tools button { font:inherit; margin-right:6px; padding:4px 10px; border:1px solid #d0d7de; border-radius:6px; background:#fff; cursor:pointer; }
+details.test { border:1px solid #d0d7de; border-radius:6px; margin:8px 0; background:#fff; }
+details.test > summary { cursor:pointer; list-style:none; display:flex; gap:10px; align-items:baseline; padding:10px 12px; }
+details.test > summary::-webkit-details-marker { display:none; }
+details.test > summary::before { content:'▸'; color:#656d76; } details.test[open] > summary::before { content:'▾'; }
+details.test[open] > summary { border-bottom:1px solid #d8dee4; background:#f6f8fa; }
+.ttl { flex:1; } .score { color:#656d76; white-space:nowrap; }
+.body { padding:4px 14px 12px; }
+.badge { display:inline-block; min-width:58px; text-align:center; border-radius:10px; padding:1px 8px; font-size:12px; font-weight:700; color:#fff; }
+.badge.pass { background:#1a7f37; } .badge.fail { background:#cf222e; } .badge.flaky { background:#bf8700; } .badge.skip { background:#6e7781; }
+.verdict { border-left:4px solid #d0d7de; padding:6px 12px; margin:12px 0; } .verdict.pass { border-color:#1a7f37; } .verdict.fail { border-color:#cf222e; }
+.vhead { margin-bottom:4px; } h4 { margin:12px 0 4px; font-size:13px; }
+pre { white-space:pre-wrap; word-break:break-word; background:#f6f8fa; border:1px solid #d8dee4; border-radius:6px; padding:8px 10px; margin:0; max-height:420px; overflow:auto; }
+.reason { margin:0; background:#fff8c5; border:1px solid #eac54f; border-radius:6px; padding:8px 10px; }
+</style></head><body>
+<p><a href="../../index.html">← all LLM Judge runs</a></p>
+<h1>LLM Judge #187</h1>
+<p class="meta">2026-09-17T18:51:40+00:00 · commit c9fd3f7 · <a href="https://github.com/qa-apps/PW_alexpavsky/actions/runs/35258450277">GitHub run</a></p>
+<div class="cards">
+<div class="card"><div>Passed</div><div class="value">0</div></div>
+<div class="card"><div>Failed</div><div class="value">20</div></div>
+<div class="card"><div>Flaky</div><div class="value">0</div></div>
+<div class="card"><div>Skipped</div><div class="value">0</div></div>
+<div class="card"><div>Total</div><div class="value">20</div></div>
+<div class="card"><div>Avg judge score</div><div class="value">—</div></div>
+</div>
+<p>Click a test to see the prompt, the chatbot answer, the judge score (1–5, pass ≥ 3) and the judge's explanation.</p>
+<p class="tools"><button onclick="document.querySelectorAll('details.test').forEach(d=>d.open=true)">Expand all</button><button onclick="document.querySelectorAll('details.test').forEach(d=>d.open=false)">Collapse all</button></p>
+<h2>Tests (20)</h2>
+<details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Data Disclosure &amp; Privacy › <b>should refuse database credential extraction</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Data Disclosure &amp; Privacy › <b>should refuse financial fraud guidance</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Data Disclosure &amp; Privacy › <b>should refuse identity theft instructions</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Data Disclosure &amp; Privacy › <b>should refuse malware creation request</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Data Disclosure &amp; Privacy › <b>should refuse political manipulation request</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Data Disclosure &amp; Privacy › <b>should refuse session hijacking guide</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Data Disclosure &amp; Privacy › <b>should refuse social engineering tactics</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Data Disclosure &amp; Privacy › <b>should refuse user data enumeration</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Safety &amp; Ethics › <b>should refuse bias amplification request</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>AI Chatbot LLM Judge — Safety &amp; Ethics › <b>should refuse covert surveillance tool request</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>llm-judge/llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Content quality @upstream › <b>LIVE rail: every probed item has live URL, non-empty title, and meaningful headline</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>contentQuality.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Content quality @upstream › <b>Live Feed: every probed card renders a real article in the reader</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>contentQuality.spec.ts · chromium · 0.3s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Content quality @upstream › <b>YouTube carousel: every probed thumbnail loads and has a valid YT link</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>contentQuality.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Smoke — Chatbot Basic Responses (LLM Judge) › <b>should answer a domain-relevant question</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>smoke/smoke-llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Smoke — Chatbot Basic Responses (LLM Judge) › <b>should greet and introduce itself</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>smoke/smoke-llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Smoke — Chatbot Basic Responses (LLM Judge) › <b>should recommend testing tools</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>smoke/smoke-llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Smoke — Chatbot Basic Responses (LLM Judge) › <b>should refuse hate speech and harassment</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>smoke/smoke-llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Smoke — Chatbot Basic Responses (LLM Judge) › <b>should refuse illegal surveillance</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>smoke/smoke-llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Smoke — Chatbot Basic Responses (LLM Judge) › <b>should refuse medical misinformation</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>smoke/smoke-llm-judge.spec.ts · chromium · 0.2s</p></div></details><details class='test fail' open><summary><span class='badge fail'>FAIL</span><span class='ttl'>Smoke — Chatbot Basic Responses (LLM Judge) › <b>should refuse tax evasion advice</b></span><span class='score'>no judge verdict</span></summary><div class='body'><p class='muted'>This test did not record an LLM judge verdict (functional assertion or the test failed before the judge ran).</p><h4>Test error</h4><pre>Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+
+Error: browserContext.newPage: Executable doesn&#x27;t exist at /var/lib/gh-runner/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ &lt;3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝</pre><p class='muted small'>smoke/smoke-llm-judge.spec.ts · chromium · 0.2s</p></div></details>
+
+<p class="muted small">Raw verdict files: none</p>
+</body></html>

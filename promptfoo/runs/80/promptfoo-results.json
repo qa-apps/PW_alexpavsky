@@ -1,0 +1,496 @@
+{
+  "evalId": "eval-8Gr-2026-08-13T07:48:16",
+  "results": {
+    "version": 3,
+    "timestamp": "2026-08-13T07:48:16.868Z",
+    "prompts": [
+      {
+        "id": "a31645b173df318dacc283dcde9407f1f96684acbe5cc4bee420c428cdb439b7",
+        "raw": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+        "label": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+        "provider": "CEREBRAS · GPT-OSS 120B · reliable [free]",
+        "metrics": {
+          "score": 2,
+          "testPassCount": 2,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 3,
+          "assertFailCount": 0,
+          "totalLatencyMs": 1171,
+          "tokenUsage": {
+            "prompt": 271,
+            "completion": 1180,
+            "cached": 0,
+            "total": 1451,
+            "numRequests": 2,
+            "completionDetails": {
+              "reasoning": 117,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains-any",
+                "value": [
+                  "AI assistant",
+                  "assistant",
+                  "Alex"
+                ]
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "not-contains",
+                "value": "I am an AI language model"
+              }
+            }
+          ]
+        },
+        "id": "c0ddf963-1d15-4a7e-ba1f-5a847284c443",
+        "latencyMs": 377,
+        "namedScores": {},
+        "prompt": {
+          "raw": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\nHello, who are you?\n",
+          "label": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+          "config": {}
+        },
+        "promptId": "a31645b173df318dacc283dcde9407f1f96684acbe5cc4bee420c428cdb439b7",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:chat:gpt-oss-120b",
+          "label": "CEREBRAS · GPT-OSS 120B · reliable [free]"
+        },
+        "response": {
+          "output": "Thinking: We need to respond as a helpful AI assistant for Alex Pavsky, focusing on QA, AI testing, red teaming, automation, safe use of AI. The user asks \"Hello, who are you?\" We should answer directly, introduce ourselves as the assistant for Alex Pavsky, mention the focus areas, and ask how we can help. If unrelated, steer back. So answer accordingly.\n\nHello! I’m an AI assistant dedicated to supporting Alex Pavsky’s work in software quality assurance, AI testing, red‑team exercises, automation, and the safe, responsible use of artificial intelligence. I’m here to help you with questions, troubleshooting, or ideas in any of those areas. How can I assist you today?",
+          "tokenUsage": {
+            "total": 290,
+            "prompt": 134,
+            "completion": 156,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 78,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 377,
+          "finishReason": "stop",
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "a2a61dd5efe4689b-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Thu, 13 Aug 2026 07:48:17 GMT",
+                "inference-id": "chatcmpl-1e6a4f14-da22-47c3-a38d-ed0c0c9b4692",
+                "referrer-policy": "strict-origin-when-cross-origin",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=EnM.HmlDCX99U7n33zJvuqYeJI3vurEXZo7.xKPMSsM-1786607296.9466062-1.0.1.1-MClk8jzsTsbNyJNSnGT6dKVrRl..bccV6Rax2d20bq6gmTWGGWaTrV9cy6eLRUEeysGYnQjk_DJsCpravEdTzQFumMPl1cyL5.GeLKmRznnH7JHm7xXKPeELbWRXg1eR; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.cerebras.ai; Expires=Thu, 13 Aug 2026 08:18:17 GMT",
+                "strict-transport-security": "max-age=15552000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-ratelimit-limit-requests-day": "2400",
+                "x-ratelimit-limit-requests-hour": "150",
+                "x-ratelimit-limit-requests-minute": "5",
+                "x-ratelimit-limit-tokens-day": "1000000",
+                "x-ratelimit-limit-tokens-hour": "1000000",
+                "x-ratelimit-limit-tokens-minute": "30000",
+                "x-ratelimit-remaining-requests-day": "2399",
+                "x-ratelimit-remaining-requests-hour": "149",
+                "x-ratelimit-remaining-requests-minute": "4",
+                "x-ratelimit-remaining-tokens-day": "889757",
+                "x-ratelimit-remaining-tokens-hour": "998900",
+                "x-ratelimit-remaining-tokens-minute": "28900",
+                "x-request-id": "a2a61dd5efe4689b-CMH"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "description": "Standard greeting",
+          "vars": {
+            "prompt": "Hello, who are you?"
+          },
+          "assert": [
+            {
+              "type": "contains-any",
+              "value": [
+                "AI assistant",
+                "assistant",
+                "Alex"
+              ]
+            },
+            {
+              "type": "not-contains",
+              "value": "I am an AI language model"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "prompt": "Hello, who are you?"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "a2a61dd5efe4689b-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Thu, 13 Aug 2026 07:48:17 GMT",
+              "inference-id": "chatcmpl-1e6a4f14-da22-47c3-a38d-ed0c0c9b4692",
+              "referrer-policy": "strict-origin-when-cross-origin",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=EnM.HmlDCX99U7n33zJvuqYeJI3vurEXZo7.xKPMSsM-1786607296.9466062-1.0.1.1-MClk8jzsTsbNyJNSnGT6dKVrRl..bccV6Rax2d20bq6gmTWGGWaTrV9cy6eLRUEeysGYnQjk_DJsCpravEdTzQFumMPl1cyL5.GeLKmRznnH7JHm7xXKPeELbWRXg1eR; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.cerebras.ai; Expires=Thu, 13 Aug 2026 08:18:17 GMT",
+              "strict-transport-security": "max-age=15552000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-ratelimit-limit-requests-day": "2400",
+              "x-ratelimit-limit-requests-hour": "150",
+              "x-ratelimit-limit-requests-minute": "5",
+              "x-ratelimit-limit-tokens-day": "1000000",
+              "x-ratelimit-limit-tokens-hour": "1000000",
+              "x-ratelimit-limit-tokens-minute": "30000",
+              "x-ratelimit-remaining-requests-day": "2399",
+              "x-ratelimit-remaining-requests-hour": "149",
+              "x-ratelimit-remaining-requests-minute": "4",
+              "x-ratelimit-remaining-tokens-day": "889757",
+              "x-ratelimit-remaining-tokens-hour": "998900",
+              "x-ratelimit-remaining-tokens-minute": "28900",
+              "x-request-id": "a2a61dd5efe4689b-CMH"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains-any",
+                "value": [
+                  "red-team",
+                  "adversarial",
+                  "vulnerability",
+                  "safety"
+                ]
+              }
+            }
+          ]
+        },
+        "id": "92ef32c4-8ea4-4ef5-adb3-f5a0879124c9",
+        "latencyMs": 794,
+        "namedScores": {},
+        "prompt": {
+          "raw": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\nWhat is red-teaming in AI safety?\n",
+          "label": "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n",
+          "config": {}
+        },
+        "promptId": "a31645b173df318dacc283dcde9407f1f96684acbe5cc4bee420c428cdb439b7",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:chat:gpt-oss-120b",
+          "label": "CEREBRAS · GPT-OSS 120B · reliable [free]"
+        },
+        "response": {
+          "output": "Thinking: We need to answer directly about red-teaming in AI safety. Provide concise explanation, purpose, methods, best practices, examples. Also mention QA, automation, safe use. Keep tone helpful.\n\n**Red‑teaming in AI safety** is a systematic, adversarial approach to probing an AI system for weaknesses, unintended behaviors, and security vulnerabilities before the model is deployed widely. Think of it as a “controlled attack” where a dedicated team (the “red team”) tries to make the model do things it shouldn’t—whether that’s leaking private data, generating harmful content, or being manipulated into biased decisions. The goal is to surface failure modes early so they can be patched, mitigated, or documented.\n\n---\n\n### Core Elements of an AI Red‑Team\n\n| Element | What It Means | Typical Techniques |\n|---------|---------------|--------------------|\n| **Threat Modeling** | Identify realistic adversarial goals (e.g., jailbreak, data extraction, bias amplification). | Scenario brainstorming, threat‑tree construction. |\n| **Attack Surface Mapping** | List all ways an attacker can interact with the model (API calls, prompts, fine‑tuning pipelines, embeddings, etc.). | Documentation review, code audit. |\n| **Adversarial Prompting** | Craft inputs that coax the model into disallowed behavior. | Prompt injection, jailbreak strings, “jailbreak‑chain” prompts, multi‑turn conversations. |\n| **Data‑Poisoning Simulations** | Pretend to inject malicious data into training or fine‑tuning sets. | Synthetic poisoned samples, label‑flipping attacks. |\n| **Model Extraction / Inference Attacks** | Try to reconstruct model parameters or proprietary knowledge. | Membership inference, query‑based model stealing. |\n| **Robustness Testing** | Stress the model with out‑of‑distribution or noisy inputs. | Perturbations, paraphrasing, adversarial examples. |\n| **Safety Metric Evaluation** | Quantify how often the model violates policy or produces unsafe output. | Automated scoring (e.g., toxicity, factuality), human‑in‑the‑loop review. |\n| **Reporting & Mitigation** | Document findings, prioritize fixes, and verify remediation. | Bug‑track tickets, regression test suites, policy updates. |\n\n---\n\n### Why Red‑Teaming Matters for AI Safety\n\n1. **Pre‑deployment Risk Reduction** – Finds exploitable bugs before users encounter them.\n2. **Regulatory & Compliance Alignment** – Demonstrates due diligence for standards like ISO/IEC 42001 (AI governance) or upcoming AI‑specific regulations.\n3. **Improved Trustworthiness** – Shows stakeholders that the model has been stress‑tested against malicious use.\n4. **Feedback Loop for QA & Automation** – Many red‑team findings become part of automated regression suites, turning “ad‑hoc” attacks into repeatable test cases.\n\n---\n\n### Typical Red‑Team Workflow (QA‑friendly)\n\n1. **Scope Definition** – Agree on which model version, APIs, and policy boundaries are in scope.\n2. **Baseline Measurement** – Run the model through existing safety test suites to establish a “before” state.\n3. **Adversarial Exploration** – Use a mix of manual prompt engineering and scripted generators (e.g., Python scripts that mutate prompts) to discover failures.\n4. **Logging & Reproducibility** – Capture full request/response logs, random seeds, and environment details.\n5. **Severity Rating** – Classify each issue (e.g., *Critical* if it enables unrestricted jailbreak, *Medium* for mild policy violations).\n6. **Mitigation Sprint** – Engineers apply defenses (prompt sanitization, reinforcement‑learning‑from‑human‑feedback (RLHF) updates, guardrails) and re‑run the same attacks.\n7. **Regression Automation** – Convert successful attacks into automated unit/integration tests that run on every CI build.\n8. **Post‑mortem & Knowledge Base** – Summarize tactics, share with the broader team, and update threat models.\n\n---\n\n### Practical Tips for an Effective Red‑Team\n\n- **Diverse Skill Sets** – Include prompt engineers, security researchers, ethicists, and domain experts. Different perspectives uncover different failure modes.\n- **Iterative “Attack‑Defend” Cycles** – Run short sprints (e.g., 48‑hour cycles) where the red team attacks, the blue team patches, and the red team re‑attacks. This mimics real‑world adversarial dynamics.\n- **Leverage Existing Tools** – Open‑source frameworks like *OpenAI’s “Red Teaming Guide”*, *AI‑Red‑Team Toolkit (ARTT)*, or *Prompt‑Injection‑Scanner* can accelerate the process.\n- **Automate Where Possible** – Use fuzzing‑style generators to produce thousands of prompt variations; integrate them into CI pipelines.\n- **Document Edge Cases** – Even if a",
+          "tokenUsage": {
+            "total": 1161,
+            "prompt": 137,
+            "completion": 1024,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 39,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 794,
+          "finishReason": "length",
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "DYNAMIC",
+                "cf-ray": "a2a61dd8b897689b-SJC",
+                "connection": "keep-alive",
+                "content-encoding": "br",
+                "content-type": "application/json",
+                "date": "Thu, 13 Aug 2026 07:48:18 GMT",
+                "inference-id": "chatcmpl-caf73300-c2c8-4ce6-8853-451261cf5eb9",
+                "referrer-policy": "strict-origin-when-cross-origin",
+                "server": "cloudflare",
+                "set-cookie": "__cf_bm=wKjMcXcVzLKdzZFvM7SelLJxTVDQPWqpsDBFwfkesrw-1786607297.3981435-1.0.1.1-k3RmVdEAIcZta71hOTm.rL8uRs0y7dr4zlbtbNQdfY2z9gjp_4ImgU06N17c.fwezEeWBPK5IkeeFbBCdp2LAYnti0EUIdb5_KA8vR3VkgXggsN2s226gaBT7uwc7UC3; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.cerebras.ai; Expires=Thu, 13 Aug 2026 08:18:18 GMT",
+                "strict-transport-security": "max-age=15552000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-ratelimit-limit-requests-day": "2400",
+                "x-ratelimit-limit-requests-hour": "150",
+                "x-ratelimit-limit-requests-minute": "5",
+                "x-ratelimit-limit-tokens-day": "1000000",
+                "x-ratelimit-limit-tokens-hour": "1000000",
+                "x-ratelimit-limit-tokens-minute": "30000",
+                "x-ratelimit-remaining-requests-day": "2398",
+                "x-ratelimit-remaining-requests-hour": "148",
+                "x-ratelimit-remaining-requests-minute": "3",
+                "x-ratelimit-remaining-tokens-day": "889463",
+                "x-ratelimit-remaining-tokens-hour": "998606",
+                "x-ratelimit-remaining-tokens-minute": "28606",
+                "x-request-id": "a2a61dd8b897689b-CMH"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "description": "Relevant domain question",
+          "vars": {
+            "prompt": "What is red-teaming in AI safety?"
+          },
+          "assert": [
+            {
+              "type": "contains-any",
+              "value": [
+                "red-team",
+                "adversarial",
+                "vulnerability",
+                "safety"
+              ]
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "vars": {
+          "prompt": "What is red-teaming in AI safety?"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "DYNAMIC",
+              "cf-ray": "a2a61dd8b897689b-SJC",
+              "connection": "keep-alive",
+              "content-encoding": "br",
+              "content-type": "application/json",
+              "date": "Thu, 13 Aug 2026 07:48:18 GMT",
+              "inference-id": "chatcmpl-caf73300-c2c8-4ce6-8853-451261cf5eb9",
+              "referrer-policy": "strict-origin-when-cross-origin",
+              "server": "cloudflare",
+              "set-cookie": "__cf_bm=wKjMcXcVzLKdzZFvM7SelLJxTVDQPWqpsDBFwfkesrw-1786607297.3981435-1.0.1.1-k3RmVdEAIcZta71hOTm.rL8uRs0y7dr4zlbtbNQdfY2z9gjp_4ImgU06N17c.fwezEeWBPK5IkeeFbBCdp2LAYnti0EUIdb5_KA8vR3VkgXggsN2s226gaBT7uwc7UC3; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.cerebras.ai; Expires=Thu, 13 Aug 2026 08:18:18 GMT",
+              "strict-transport-security": "max-age=15552000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-ratelimit-limit-requests-day": "2400",
+              "x-ratelimit-limit-requests-hour": "150",
+              "x-ratelimit-limit-requests-minute": "5",
+              "x-ratelimit-limit-tokens-day": "1000000",
+              "x-ratelimit-limit-tokens-hour": "1000000",
+              "x-ratelimit-limit-tokens-minute": "30000",
+              "x-ratelimit-remaining-requests-day": "2398",
+              "x-ratelimit-remaining-requests-hour": "148",
+              "x-ratelimit-remaining-requests-minute": "3",
+              "x-ratelimit-remaining-tokens-day": "889463",
+              "x-ratelimit-remaining-tokens-hour": "998606",
+              "x-ratelimit-remaining-tokens-minute": "28606",
+              "x-request-id": "a2a61dd8b897689b-CMH"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      }
+    ],
+    "stats": {
+      "successes": 2,
+      "failures": 0,
+      "errors": 0,
+      "tokenUsage": {
+        "prompt": 271,
+        "completion": 1180,
+        "cached": 0,
+        "total": 1451,
+        "numRequests": 2,
+        "completionDetails": {
+          "reasoning": 117,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0
+          }
+        }
+      },
+      "durationMs": 1422,
+      "evaluationDurationMs": 1422
+    }
+  },
+  "config": {
+    "tags": {},
+    "description": "AI Chatbot Assistant — Basic Evaluation (2 core smoke probes)",
+    "prompts": [
+      "You are a helpful AI assistant for Alex Pavsky, focused on QA, AI testing, red teaming, automation, and safe use of AI.\nAnswer those topics directly and helpfully.\nIf the user asks something unrelated, respond politely but steer the conversation back toward Alex Pavsky's AI/QA domain.\n{{prompt}}\n"
+    ],
+    "providers": [
+      {
+        "id": "openai:chat:gpt-oss-120b",
+        "label": "CEREBRAS · GPT-OSS 120B · reliable [free]",
+        "config": {
+          "apiBaseUrl": "https://api.cerebras.ai/v1",
+          "apiKey": "[REDACTED]",
+          "model": "gpt-oss-120b",
+          "temperature": 0
+        }
+      }
+    ],
+    "tests": [
+      {
+        "description": "Standard greeting",
+        "vars": {
+          "prompt": "Hello, who are you?"
+        },
+        "assert": [
+          {
+            "type": "contains-any",
+            "value": [
+              "AI assistant",
+              "assistant",
+              "Alex"
+            ]
+          },
+          {
+            "type": "not-contains",
+            "value": "I am an AI language model"
+          }
+        ]
+      },
+      {
+        "description": "Relevant domain question",
+        "vars": {
+          "prompt": "What is red-teaming in AI safety?"
+        },
+        "assert": [
+          {
+            "type": "contains-any",
+            "value": [
+              "red-team",
+              "adversarial",
+              "vulnerability",
+              "safety"
+            ]
+          }
+        ]
+      }
+    ],
+    "scenarios": [],
+    "env": {},
+    "outputPath": [
+      "promptfoo-results.json"
+    ],
+    "extensions": [],
+    "metadata": {},
+    "evaluateOptions": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.121.3",
+    "nodeVersion": "v22.23.1",
+    "platform": "linux",
+    "arch": "x64",
+    "exportedAt": "2026-08-13T07:48:18.358Z",
+    "evaluationCreatedAt": "2026-08-13T07:48:16.868Z"
+  }
+}

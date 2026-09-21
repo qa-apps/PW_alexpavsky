@@ -1,0 +1,1236 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link " alexpavlovsky" [ref=e4] [cursor=pointer]:
+        - /url: "#"
+        - generic [ref=e6]: 
+        - generic [ref=e7]: alexpavlovsky
+      - generic [ref=e8]:
+        - link "Feed" [ref=e9] [cursor=pointer]:
+          - /url: "#feed"
+        - link "Explore" [ref=e10] [cursor=pointer]:
+          - /url: "#explore"
+        - link "Tools" [ref=e11] [cursor=pointer]:
+          - /url: "#tools"
+        - link "Challenge" [ref=e12] [cursor=pointer]:
+          - /url: "#challenge"
+        - link "Digest" [ref=e13] [cursor=pointer]:
+          - /url: "#digest"
+        - link " Break it" [ref=e14] [cursor=pointer]:
+          - /url: "#challenge"
+          - generic [ref=e15]: 
+          - text: Break it
+      - generic [ref=e16]:
+        - button "Toggle theme" [ref=e17] [cursor=pointer]:
+          - generic [ref=e18]: 
+        - button "Login" [ref=e19] [cursor=pointer]:
+          - generic [ref=e20]: 
+          - generic [ref=e21]: Login
+        - text:     
+  - text: 
+  - banner [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]: AI Integration & Quality Management
+        - heading "AI Testing & Integration. Building Trust." [level=1] [ref=e27]:
+          - text: AI Testing & Integration.
+          - text: Building Trust.
+        - paragraph [ref=e28]: Personal tech hub - exploring LLM testing, red teaming, automation, and everything where AI meets quality.
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e31]: "58"
+            - text: Articles today
+          - generic [ref=e33]:
+            - generic [ref=e34]: "7"
+            - text: RSS sources
+          - generic [ref=e36]:
+            - generic [ref=e37]: 24/7
+            - text: Auto-updated
+        - generic [ref=e38]:
+          - link " Live Feed" [ref=e39] [cursor=pointer]:
+            - /url: "#feed"
+            - generic [ref=e40]: 
+            - text: Live Feed
+          - link " AI Lab" [ref=e41] [cursor=pointer]:
+            - /url: "#lab"
+            - generic [ref=e42]: 
+            - text: AI Lab
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - generic [ref=e50]: deepeval_suite.py
+          - generic [ref=e51]:
+            - generic [ref=e52]: $ deepeval test run --verbose
+            - generic [ref=e53]: ↳ Evaluating RAG pipeline...
+            - generic [ref=e54]:
+              - text: ✓ Faithfulness
+              - generic [ref=e55]: "score: 0.96"
+            - generic [ref=e56]:
+              - text: ✓ Answer Relevancy
+              - generic [ref=e57]: "score: 0.94"
+            - generic [ref=e58]:
+              - text: ✓ Contextual Recall
+              - generic [ref=e59]: "score: 0.91"
+            - generic [ref=e60]:
+              - text: ✓ Hallucination
+              - generic [ref=e61]: "score: 0.02 (low ✓)"
+            - generic [ref=e62]:
+              - text: ✓ Toxicity
+              - generic [ref=e63]: "score: 0.00"
+            - generic [ref=e64]:
+              - text: ✓ Bias
+              - generic [ref=e65]: "score: 0.01"
+            - generic [ref=e66]: ✓ 6/6 metrics passed · All thresholds met
+            - generic [ref=e67]: $ _
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - generic [ref=e70]: AI Test Result
+            - generic [ref=e71]: PASS
+          - generic [ref=e72]:
+            - generic [ref=e73]:
+              - img [ref=e74]
+              - generic [ref=e77]:
+                - generic [ref=e78]: "82"
+                - generic [ref=e79]: Safety
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - generic [ref=e82]: 
+                - generic [ref=e83]: Prompt Injection
+                - generic [ref=e84]: Passed
+              - generic [ref=e85]:
+                - generic [ref=e86]: 
+                - generic [ref=e87]: RAG Grounding
+                - generic [ref=e88]: Passed
+              - generic [ref=e89]:
+                - generic [ref=e90]: 
+                - generic [ref=e91]: Hallucination
+                - generic [ref=e92]: Warning
+              - generic [ref=e93]:
+                - generic [ref=e94]: 
+                - generic [ref=e95]: Toxicity
+                - generic [ref=e96]: Passed
+          - img [ref=e97]
+    - generic [ref=e101]:
+      - generic [ref=e102]:
+        - button " Adversarial Simulation Stress-test your AI with realistic attack scenarios. Explore →" [ref=e103] [cursor=pointer]:
+          - generic [ref=e105]: 
+          - generic [ref=e106]:
+            - generic [ref=e107]: Adversarial Simulation
+            - generic [ref=e108]: Stress-test your AI with realistic attack scenarios.
+          - generic [ref=e109]: Explore →
+        - button " Injection Risk Scanner Check if prompts are vulnerable to hidden injections. Scan →" [ref=e110] [cursor=pointer]:
+          - generic [ref=e112]: 
+          - generic [ref=e113]:
+            - generic [ref=e114]: Injection Risk Scanner
+            - generic [ref=e115]: Check if prompts are vulnerable to hidden injections.
+          - generic [ref=e116]: Scan →
+        - button " Grounding & Retrieval QA See if RAG answers stay connected to source docs. Verify →" [ref=e117] [cursor=pointer]:
+          - generic [ref=e119]: 
+          - generic [ref=e120]:
+            - generic [ref=e121]: Grounding & Retrieval QA
+            - generic [ref=e122]: See if RAG answers stay connected to source docs.
+          - generic [ref=e123]: Verify →
+        - button " Reliability & Fact Check Flag hallucinations and unsupported AI claims. Check →" [ref=e124] [cursor=pointer]:
+          - generic [ref=e126]: 
+          - generic [ref=e127]:
+            - generic [ref=e128]: Reliability & Fact Check
+            - generic [ref=e129]: Flag hallucinations and unsupported AI claims.
+          - generic [ref=e130]: Check →
+      - paragraph [ref=e131]:
+        - text: Explore detailed tools in the
+        - link "AI Lab" [ref=e132] [cursor=pointer]:
+          - /url: "#lab"
+        - text: below ↓
+  - generic [ref=e135]:
+    - generic [ref=e136]: LIVE
+    - button "Scroll left" [ref=e137] [cursor=pointer]:
+      - generic [ref=e138]: 
+    - generic [ref=e140]:
+      - 'link " Dev.to: Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces" [ref=e141] [cursor=pointer]':
+        - /url: https://dev.to/swishmilnet/attestly-generate-eu-ai-act-annex-iv-docs-from-your-agents-operational-traces-4ik7
+        - generic [ref=e142]: 
+        - strong [ref=e143]: "Dev.to:"
+        - text: "Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces"
+      - 'link " Dev.to: I Made Four Authorization Engines Answer the Same Questions" [ref=e144] [cursor=pointer]':
+        - /url: https://dev.to/kanywst/i-made-four-authorization-engines-answer-the-same-questions-5a96
+        - generic [ref=e145]: 
+        - strong [ref=e146]: "Dev.to:"
+        - text: I Made Four Authorization Engines Answer the Same Questions
+      - 'link " Dev.to: I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0." [ref=e147] [cursor=pointer]':
+        - /url: https://dev.to/dante777/i-built-an-epistemic-gate-to-stop-llm-data-poisoning-during-fine-tuning-tested-across-5-42kk
+        - generic [ref=e148]: 
+        - strong [ref=e149]: "Dev.to:"
+        - text: I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0.
+      - 'link " Dev.to: Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing" [ref=e150] [cursor=pointer]':
+        - /url: https://dev.to/sarantoon/typhoon-vs-openthai-vs-pathumma-three-thai-llms-worth-knowing-3g8
+        - generic [ref=e151]: 
+        - strong [ref=e152]: "Dev.to:"
+        - text: "Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing"
+      - 'link " Dev.to: How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049)" [ref=e153] [cursor=pointer]':
+        - /url: https://dev.to/aws-builders/how-to-use-cloudtrail-to-check-whether-you-were-affected-by-the-aws-ssm-agent-vulnerability-1mln
+        - generic [ref=e154]: 
+        - strong [ref=e155]: "Dev.to:"
+        - text: How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049)
+      - 'link " Dev.to: The version number that promised nothing had changed" [ref=e156] [cursor=pointer]':
+        - /url: https://dev.to/sergey_shinder_ab2d943365/the-version-number-that-promised-nothing-had-changed-2a0e
+        - generic [ref=e157]: 
+        - strong [ref=e158]: "Dev.to:"
+        - text: The version number that promised nothing had changed
+      - 'link " Dev.to: Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE." [ref=e159] [cursor=pointer]':
+        - /url: https://dev.to/nirbhay_hiwse/learn-how-antigravity-usage-intelligence-lets-you-monitor-token-consumption-cache-savings-and-33j
+        - generic [ref=e160]: 
+        - strong [ref=e161]: "Dev.to:"
+        - text: Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE.
+      - 'link " Dev.to: Twelve Months After Go Live, No One Measured the Savings We Promised" [ref=e162] [cursor=pointer]':
+        - /url: https://dev.to/serguey_shinder_4ab9b87b1/twelve-months-after-go-live-no-one-measured-the-savings-we-promised-49k
+        - generic [ref=e163]: 
+        - strong [ref=e164]: "Dev.to:"
+        - text: Twelve Months After Go Live, No One Measured the Savings We Promised
+      - 'link " Dev.to: How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable" [ref=e165] [cursor=pointer]':
+        - /url: https://dev.to/pharos_production/how-to-rehearse-smart-contract-rollback-before-calling-a-system-upgradeable-3532
+        - generic [ref=e166]: 
+        - strong [ref=e167]: "Dev.to:"
+        - text: How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable
+      - 'link " Dev.to: Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy" [ref=e168] [cursor=pointer]':
+        - /url: https://dev.to/oleksandr_kuryzhev_42873f/nginx-tls-hardening-manual-directives-vs-delegated-edge-policy-1m4g
+        - generic [ref=e169]: 
+        - strong [ref=e170]: "Dev.to:"
+        - text: "Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy"
+      - 'link " Dev.to: How Zero Trust Networking Improves Cloud Security" [ref=e171] [cursor=pointer]':
+        - /url: https://dev.to/ronak_sharma_913570f6e215/how-zero-trust-networking-improves-cloud-security-1h9l
+        - generic [ref=e172]: 
+        - strong [ref=e173]: "Dev.to:"
+        - text: How Zero Trust Networking Improves Cloud Security
+      - 'link " Dev.to: Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity" [ref=e174] [cursor=pointer]':
+        - /url: https://dev.to/nirbhay_hiwse/antigravity-usage-intelligence-track-tokens-quotas-cache-reasoning-and-agent-activity-ca1
+        - generic [ref=e175]: 
+        - strong [ref=e176]: "Dev.to:"
+        - text: "Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity"
+      - 'link " Hacker News Best: google.com/goto: Google''s anti-scraping update" [ref=e177] [cursor=pointer]':
+        - /url: https://www.autom.dev/blog/google-search-goto-links
+        - generic [ref=e178]: 
+        - strong [ref=e179]: "Hacker News Best:"
+        - text: "google.com/goto: Google's anti-scraping update"
+      - 'link " Hacker News Best: OpenAI agents carried out an undisclosed attack on RubyGems" [ref=e180] [cursor=pointer]':
+        - /url: https://www.rubyhack.ai/
+        - generic [ref=e181]: 
+        - strong [ref=e182]: "Hacker News Best:"
+        - text: OpenAI agents carried out an undisclosed attack on RubyGems
+      - 'link " Hacker News Best: I spent $220 on Google app ads and 60% of the installs were robots" [ref=e183] [cursor=pointer]':
+        - /url: https://dayzlegame.com/blog/google-ads-bot-farm/
+        - generic [ref=e184]: 
+        - strong [ref=e185]: "Hacker News Best:"
+        - text: I spent $220 on Google app ads and 60% of the installs were robots
+      - 'link " Hacker News Best: The EPA is planning to scrap public review rules for data center pollution" [ref=e186] [cursor=pointer]':
+        - /url: https://capitalbnews.org/data-centers-permit-rules-epa/
+        - generic [ref=e187]: 
+        - strong [ref=e188]: "Hacker News Best:"
+        - text: The EPA is planning to scrap public review rules for data center pollution
+      - 'link " Hacker News Best: A misalignment of AI in mathematics" [ref=e189] [cursor=pointer]':
+        - /url: https://mathandai.org/
+        - generic [ref=e190]: 
+        - strong [ref=e191]: "Hacker News Best:"
+        - text: A misalignment of AI in mathematics
+      - 'link " Testomat Blog: Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner" [ref=e192] [cursor=pointer]':
+        - /url: https://testomat.io/blog/mercury-testing/
+        - generic [ref=e193]: 
+        - strong [ref=e194]: "Testomat Blog:"
+        - text: "Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner"
+      - 'link " Hacker News Best: Houthis ''take control'' of key island in global shipping route" [ref=e195] [cursor=pointer]':
+        - /url: https://www.bbc.com/news/live/cmd683p01eljt
+        - generic [ref=e196]: 
+        - strong [ref=e197]: "Hacker News Best:"
+        - text: Houthis 'take control' of key island in global shipping route
+      - 'link " Smashing Magazine: Building A UX ROI Case That Survives The Boardroom" [ref=e198] [cursor=pointer]':
+        - /url: https://smashingmagazine.com/2026/09/building-ux-roi-case-survives-boardroom/
+        - generic [ref=e199]: 
+        - strong [ref=e200]: "Smashing Magazine:"
+        - text: Building A UX ROI Case That Survives The Boardroom
+      - 'link " Dev.to: Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces" [ref=e201] [cursor=pointer]':
+        - /url: https://dev.to/swishmilnet/attestly-generate-eu-ai-act-annex-iv-docs-from-your-agents-operational-traces-4ik7
+        - generic [ref=e202]: 
+        - strong [ref=e203]: "Dev.to:"
+        - text: "Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces"
+      - 'link " Dev.to: I Made Four Authorization Engines Answer the Same Questions" [ref=e204] [cursor=pointer]':
+        - /url: https://dev.to/kanywst/i-made-four-authorization-engines-answer-the-same-questions-5a96
+        - generic [ref=e205]: 
+        - strong [ref=e206]: "Dev.to:"
+        - text: I Made Four Authorization Engines Answer the Same Questions
+      - 'link " Dev.to: I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0." [ref=e207] [cursor=pointer]':
+        - /url: https://dev.to/dante777/i-built-an-epistemic-gate-to-stop-llm-data-poisoning-during-fine-tuning-tested-across-5-42kk
+        - generic [ref=e208]: 
+        - strong [ref=e209]: "Dev.to:"
+        - text: I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0.
+      - 'link " Dev.to: Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing" [ref=e210] [cursor=pointer]':
+        - /url: https://dev.to/sarantoon/typhoon-vs-openthai-vs-pathumma-three-thai-llms-worth-knowing-3g8
+        - generic [ref=e211]: 
+        - strong [ref=e212]: "Dev.to:"
+        - text: "Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing"
+      - 'link " Dev.to: How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049)" [ref=e213] [cursor=pointer]':
+        - /url: https://dev.to/aws-builders/how-to-use-cloudtrail-to-check-whether-you-were-affected-by-the-aws-ssm-agent-vulnerability-1mln
+        - generic [ref=e214]: 
+        - strong [ref=e215]: "Dev.to:"
+        - text: How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049)
+      - 'link " Dev.to: The version number that promised nothing had changed" [ref=e216] [cursor=pointer]':
+        - /url: https://dev.to/sergey_shinder_ab2d943365/the-version-number-that-promised-nothing-had-changed-2a0e
+        - generic [ref=e217]: 
+        - strong [ref=e218]: "Dev.to:"
+        - text: The version number that promised nothing had changed
+      - 'link " Dev.to: Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE." [ref=e219] [cursor=pointer]':
+        - /url: https://dev.to/nirbhay_hiwse/learn-how-antigravity-usage-intelligence-lets-you-monitor-token-consumption-cache-savings-and-33j
+        - generic [ref=e220]: 
+        - strong [ref=e221]: "Dev.to:"
+        - text: Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE.
+      - 'link " Dev.to: Twelve Months After Go Live, No One Measured the Savings We Promised" [ref=e222] [cursor=pointer]':
+        - /url: https://dev.to/serguey_shinder_4ab9b87b1/twelve-months-after-go-live-no-one-measured-the-savings-we-promised-49k
+        - generic [ref=e223]: 
+        - strong [ref=e224]: "Dev.to:"
+        - text: Twelve Months After Go Live, No One Measured the Savings We Promised
+      - 'link " Dev.to: How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable" [ref=e225] [cursor=pointer]':
+        - /url: https://dev.to/pharos_production/how-to-rehearse-smart-contract-rollback-before-calling-a-system-upgradeable-3532
+        - generic [ref=e226]: 
+        - strong [ref=e227]: "Dev.to:"
+        - text: How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable
+      - 'link " Dev.to: Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy" [ref=e228] [cursor=pointer]':
+        - /url: https://dev.to/oleksandr_kuryzhev_42873f/nginx-tls-hardening-manual-directives-vs-delegated-edge-policy-1m4g
+        - generic [ref=e229]: 
+        - strong [ref=e230]: "Dev.to:"
+        - text: "Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy"
+      - 'link " Dev.to: How Zero Trust Networking Improves Cloud Security" [ref=e231] [cursor=pointer]':
+        - /url: https://dev.to/ronak_sharma_913570f6e215/how-zero-trust-networking-improves-cloud-security-1h9l
+        - generic [ref=e232]: 
+        - strong [ref=e233]: "Dev.to:"
+        - text: How Zero Trust Networking Improves Cloud Security
+      - 'link " Dev.to: Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity" [ref=e234] [cursor=pointer]':
+        - /url: https://dev.to/nirbhay_hiwse/antigravity-usage-intelligence-track-tokens-quotas-cache-reasoning-and-agent-activity-ca1
+        - generic [ref=e235]: 
+        - strong [ref=e236]: "Dev.to:"
+        - text: "Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity"
+      - 'link " Hacker News Best: google.com/goto: Google''s anti-scraping update" [ref=e237] [cursor=pointer]':
+        - /url: https://www.autom.dev/blog/google-search-goto-links
+        - generic [ref=e238]: 
+        - strong [ref=e239]: "Hacker News Best:"
+        - text: "google.com/goto: Google's anti-scraping update"
+      - 'link " Hacker News Best: OpenAI agents carried out an undisclosed attack on RubyGems" [ref=e240] [cursor=pointer]':
+        - /url: https://www.rubyhack.ai/
+        - generic [ref=e241]: 
+        - strong [ref=e242]: "Hacker News Best:"
+        - text: OpenAI agents carried out an undisclosed attack on RubyGems
+      - 'link " Hacker News Best: I spent $220 on Google app ads and 60% of the installs were robots" [ref=e243] [cursor=pointer]':
+        - /url: https://dayzlegame.com/blog/google-ads-bot-farm/
+        - generic [ref=e244]: 
+        - strong [ref=e245]: "Hacker News Best:"
+        - text: I spent $220 on Google app ads and 60% of the installs were robots
+      - 'link " Hacker News Best: The EPA is planning to scrap public review rules for data center pollution" [ref=e246] [cursor=pointer]':
+        - /url: https://capitalbnews.org/data-centers-permit-rules-epa/
+        - generic [ref=e247]: 
+        - strong [ref=e248]: "Hacker News Best:"
+        - text: The EPA is planning to scrap public review rules for data center pollution
+      - 'link " Hacker News Best: A misalignment of AI in mathematics" [ref=e249] [cursor=pointer]':
+        - /url: https://mathandai.org/
+        - generic [ref=e250]: 
+        - strong [ref=e251]: "Hacker News Best:"
+        - text: A misalignment of AI in mathematics
+      - 'link " Testomat Blog: Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner" [ref=e252] [cursor=pointer]':
+        - /url: https://testomat.io/blog/mercury-testing/
+        - generic [ref=e253]: 
+        - strong [ref=e254]: "Testomat Blog:"
+        - text: "Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner"
+      - 'link " Hacker News Best: Houthis ''take control'' of key island in global shipping route" [ref=e255] [cursor=pointer]':
+        - /url: https://www.bbc.com/news/live/cmd683p01eljt
+        - generic [ref=e256]: 
+        - strong [ref=e257]: "Hacker News Best:"
+        - text: Houthis 'take control' of key island in global shipping route
+      - 'link " Smashing Magazine: Building A UX ROI Case That Survives The Boardroom" [ref=e258] [cursor=pointer]':
+        - /url: https://smashingmagazine.com/2026/09/building-ux-roi-case-survives-boardroom/
+        - generic [ref=e259]: 
+        - strong [ref=e260]: "Smashing Magazine:"
+        - text: Building A UX ROI Case That Survives The Boardroom
+    - button "Scroll right" [ref=e261] [cursor=pointer]:
+      - generic [ref=e262]: 
+  - generic [ref=e264]:
+    - generic [ref=e265]:
+      - generic [ref=e266]:
+        - generic [ref=e267]: 
+        - text: Trending AI & Tech Videos
+      - generic [ref=e268]:
+        - button "Previous" [ref=e269] [cursor=pointer]:
+          - generic [ref=e270]: 
+        - button "Next" [ref=e271] [cursor=pointer]:
+          - generic [ref=e272]: 
+    - generic [ref=e273]:
+      - button "Previous" [ref=e274] [cursor=pointer]:
+        - generic [ref=e275]: 
+      - button "Next" [ref=e276] [cursor=pointer]:
+        - generic [ref=e277]: 
+      - generic [ref=e279]:
+        - link " Fireship I read every major CS paper of the last 100 years" [ref=e280] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=ML3q7Ok4hJg
+          - generic [ref=e281]:
+            - generic:
+              - generic: 
+          - generic [ref=e282]:
+            - generic [ref=e283]: Fireship
+            - generic [ref=e284]: I read every major CS paper of the last 100 years
+        - link " Andrej Karpathy How I use LLMs" [ref=e285] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=EWvNQjAaOHw
+          - generic [ref=e286]:
+            - generic:
+              - generic: 
+          - generic [ref=e287]:
+            - generic [ref=e288]: Andrej Karpathy
+            - generic [ref=e289]: How I use LLMs
+        - link " 3Blue1Brown Measuring the entropy of English" [ref=e290] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=-7etvZSBxlk
+          - generic [ref=e291]:
+            - generic:
+              - generic: 
+          - generic [ref=e292]:
+            - generic [ref=e293]: 3Blue1Brown
+            - generic [ref=e294]: Measuring the entropy of English
+        - 'link " Computerphile TCP b: Additive Increase Multiplicative Decrease and Slow Start" [ref=e295] [cursor=pointer]':
+          - /url: https://www.youtube.com/watch?v=nKVML4YaBqs
+          - generic [ref=e296]:
+            - generic:
+              - generic: 
+          - generic [ref=e297]:
+            - generic [ref=e298]: Computerphile
+            - generic [ref=e299]: "TCP b: Additive Increase Multiplicative Decrease and Slow Start"
+        - link " Two Minute Papers DeepSeek just solved AI's billion dollar problem" [ref=e300] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=mG4SmhWyeFA
+          - generic [ref=e301]:
+            - generic:
+              - generic: 
+          - generic [ref=e302]:
+            - generic [ref=e303]: Two Minute Papers
+            - generic [ref=e304]: DeepSeek just solved AI's billion dollar problem
+        - link " Google DeepMind When millions of AI agents meet" [ref=e305] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=V04bm-3d6EQ
+          - generic [ref=e306]:
+            - generic:
+              - generic: 
+          - generic [ref=e307]:
+            - generic [ref=e308]: Google DeepMind
+            - generic [ref=e309]: When millions of AI agents meet
+        - link " OpenAI ChatGPT Futures, Class of 2026" [ref=e310] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=mVpCDzoNtxA
+          - generic [ref=e311]:
+            - generic:
+              - generic: 
+          - generic [ref=e312]:
+            - generic [ref=e313]: OpenAI
+            - generic [ref=e314]: ChatGPT Futures, Class of 2026
+        - link " Fireship The most trusted code on Earth is being rewritten in Rust" [ref=e315] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=Sntj4HmuykI
+          - generic [ref=e316]:
+            - generic:
+              - generic: 
+          - generic [ref=e317]:
+            - generic [ref=e318]: Fireship
+            - generic [ref=e319]: The most trusted code on Earth is being rewritten in Rust
+        - link " Andrej Karpathy Deep Dive into LLMs like ChatGPT" [ref=e320] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=7xTGNNLPyMI
+          - generic [ref=e321]:
+            - generic:
+              - generic: 
+          - generic [ref=e322]:
+            - generic [ref=e323]: Andrej Karpathy
+            - generic [ref=e324]: Deep Dive into LLMs like ChatGPT
+        - link " 3Blue1Brown What's the perfect encoding? How do you know?" [ref=e325] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=7L_eTem1SQ4
+          - generic [ref=e326]:
+            - generic:
+              - generic: 
+          - generic [ref=e327]:
+            - generic [ref=e328]: 3Blue1Brown
+            - generic [ref=e329]: What's the perfect encoding? How do you know?
+        - 'link " Computerphile TCP a: Ensuring your data gets there in the right order" [ref=e330] [cursor=pointer]':
+          - /url: https://www.youtube.com/watch?v=IADOV8UZO34
+          - generic [ref=e331]:
+            - generic:
+              - generic: 
+          - generic [ref=e332]:
+            - generic [ref=e333]: Computerphile
+            - generic [ref=e334]: "TCP a: Ensuring your data gets there in the right order"
+        - link " Two Minute Papers Scientists found a better language for AI agents" [ref=e335] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=dUmT0OIGoqE
+          - generic [ref=e336]:
+            - generic:
+              - generic: 
+          - generic [ref=e337]:
+            - generic [ref=e338]: Two Minute Papers
+            - generic [ref=e339]: Scientists found a better language for AI agents
+        - link " Fireship I read every major CS paper of the last 100 years" [ref=e340] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=ML3q7Ok4hJg
+          - generic [ref=e341]:
+            - generic:
+              - generic: 
+          - generic [ref=e342]:
+            - generic [ref=e343]: Fireship
+            - generic [ref=e344]: I read every major CS paper of the last 100 years
+        - link " Andrej Karpathy How I use LLMs" [ref=e345] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=EWvNQjAaOHw
+          - generic [ref=e346]:
+            - generic:
+              - generic: 
+          - generic [ref=e347]:
+            - generic [ref=e348]: Andrej Karpathy
+            - generic [ref=e349]: How I use LLMs
+        - link " 3Blue1Brown Measuring the entropy of English" [ref=e350] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=-7etvZSBxlk
+          - generic [ref=e351]:
+            - generic:
+              - generic: 
+          - generic [ref=e352]:
+            - generic [ref=e353]: 3Blue1Brown
+            - generic [ref=e354]: Measuring the entropy of English
+        - 'link " Computerphile TCP b: Additive Increase Multiplicative Decrease and Slow Start" [ref=e355] [cursor=pointer]':
+          - /url: https://www.youtube.com/watch?v=nKVML4YaBqs
+          - generic [ref=e356]:
+            - generic:
+              - generic: 
+          - generic [ref=e357]:
+            - generic [ref=e358]: Computerphile
+            - generic [ref=e359]: "TCP b: Additive Increase Multiplicative Decrease and Slow Start"
+        - link " Two Minute Papers DeepSeek just solved AI's billion dollar problem" [ref=e360] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=mG4SmhWyeFA
+          - generic [ref=e361]:
+            - generic:
+              - generic: 
+          - generic [ref=e362]:
+            - generic [ref=e363]: Two Minute Papers
+            - generic [ref=e364]: DeepSeek just solved AI's billion dollar problem
+        - link " Google DeepMind When millions of AI agents meet" [ref=e365] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=V04bm-3d6EQ
+          - generic [ref=e366]:
+            - generic:
+              - generic: 
+          - generic [ref=e367]:
+            - generic [ref=e368]: Google DeepMind
+            - generic [ref=e369]: When millions of AI agents meet
+        - link " OpenAI ChatGPT Futures, Class of 2026" [ref=e370] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=mVpCDzoNtxA
+          - generic [ref=e371]:
+            - generic:
+              - generic: 
+          - generic [ref=e372]:
+            - generic [ref=e373]: OpenAI
+            - generic [ref=e374]: ChatGPT Futures, Class of 2026
+        - link " Fireship The most trusted code on Earth is being rewritten in Rust" [ref=e375] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=Sntj4HmuykI
+          - generic [ref=e376]:
+            - generic:
+              - generic: 
+          - generic [ref=e377]:
+            - generic [ref=e378]: Fireship
+            - generic [ref=e379]: The most trusted code on Earth is being rewritten in Rust
+        - link " Andrej Karpathy Deep Dive into LLMs like ChatGPT" [ref=e380] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=7xTGNNLPyMI
+          - generic [ref=e381]:
+            - generic:
+              - generic: 
+          - generic [ref=e382]:
+            - generic [ref=e383]: Andrej Karpathy
+            - generic [ref=e384]: Deep Dive into LLMs like ChatGPT
+        - link " 3Blue1Brown What's the perfect encoding? How do you know?" [ref=e385] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=7L_eTem1SQ4
+          - generic [ref=e386]:
+            - generic:
+              - generic: 
+          - generic [ref=e387]:
+            - generic [ref=e388]: 3Blue1Brown
+            - generic [ref=e389]: What's the perfect encoding? How do you know?
+        - 'link " Computerphile TCP a: Ensuring your data gets there in the right order" [ref=e390] [cursor=pointer]':
+          - /url: https://www.youtube.com/watch?v=IADOV8UZO34
+          - generic [ref=e391]:
+            - generic:
+              - generic: 
+          - generic [ref=e392]:
+            - generic [ref=e393]: Computerphile
+            - generic [ref=e394]: "TCP a: Ensuring your data gets there in the right order"
+        - link " Two Minute Papers Scientists found a better language for AI agents" [ref=e395] [cursor=pointer]:
+          - /url: https://www.youtube.com/watch?v=dUmT0OIGoqE
+          - generic [ref=e396]:
+            - generic:
+              - generic: 
+          - generic [ref=e397]:
+            - generic [ref=e398]: Two Minute Papers
+            - generic [ref=e399]: Scientists found a better language for AI agents
+  - generic [ref=e401]:
+    - generic [ref=e402]:
+      - generic [ref=e403]:
+        - generic [ref=e404]: 
+        - text: AI / QA Radar
+      - heading "Live Feed" [level=2] [ref=e405]
+      - paragraph [ref=e406]: Auto-curated from top AI, QA, and testing sources.
+    - generic [ref=e407]:
+      - button "All" [ref=e408] [cursor=pointer]
+      - button "AI & LLM" [ref=e409] [cursor=pointer]
+      - button "QA & Testing" [ref=e410] [cursor=pointer]
+      - button "Dev & Engineering" [ref=e411] [cursor=pointer]
+    - generic [ref=e412]:
+      - button "Previous" [ref=e413] [cursor=pointer]:
+        - generic [ref=e414]: 
+      - generic [ref=e415]:
+        - link "Google AI Blog 3d ago Get ready for the game with new football features in Search Click to read the full article. AI & LLM" [ref=e416] [cursor=pointer]:
+          - /url: https://blog.google/products-and-platforms/products/search/football-features-google-search/
+          - generic [ref=e417]:
+            - generic [ref=e418]: Google AI Blog
+            - generic [ref=e419]: 3d ago
+          - heading "Get ready for the game with new football features in Search" [level=3] [ref=e420]
+          - paragraph [ref=e421]: Click to read the full article.
+          - generic [ref=e422]: AI & LLM
+        - link "DeepMind Sep 2 Introducing Gemini 3.8 Flash and 3.8 Flash Cyber Click to read the full article. AI & LLM" [ref=e423] [cursor=pointer]:
+          - /url: https://deepmind.google/blog/introducing-gemini-3-8-flash-and-38-flash-cyber/
+          - generic [ref=e424]:
+            - generic [ref=e425]: DeepMind
+            - generic [ref=e426]: Sep 2
+          - heading "Introducing Gemini 3.8 Flash and 3.8 Flash Cyber" [level=3] [ref=e427]
+          - paragraph [ref=e428]: Click to read the full article.
+          - generic [ref=e429]: AI & LLM
+        - 'link "Cypress Blog 2d ago Cypress Ambassador Spotlight: Maksym Donets Welcome back to another edition of our Ambassador Spotlight series, where we shine a light on the Cypress community m... QA & Testing" [ref=e430] [cursor=pointer]':
+          - /url: https://www.cypress.io/blog/cypress-ambassador-spotlight-maksym-donets/
+          - generic [ref=e431]:
+            - generic [ref=e432]: Cypress Blog
+            - generic [ref=e433]: 2d ago
+          - 'heading "Cypress Ambassador Spotlight: Maksym Donets" [level=3] [ref=e434]'
+          - paragraph [ref=e435]: Welcome back to another edition of our Ambassador Spotlight series, where we shine a light on the Cypress community m...
+          - generic [ref=e436]: QA & Testing
+        - 'link "Testomat Blog 1d ago Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner Explorbot is an open-source QA agent for autonomous testing of web applications. You point it at a URL. It reads the ... QA & Testing" [ref=e437] [cursor=pointer]':
+          - /url: https://testomat.io/blog/mercury-testing/
+          - generic [ref=e438]:
+            - generic [ref=e439]: Testomat Blog
+            - generic [ref=e440]: 1d ago
+          - 'heading "Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner" [level=3] [ref=e441]'
+          - paragraph [ref=e442]: Explorbot is an open-source QA agent for autonomous testing of web applications. You point it at a URL. It reads the ...
+          - generic [ref=e443]: QA & Testing
+        - link "Hacker News Best 1d ago A misalignment of AI in mathematics Discussion on Hacker News — click to read the full article. Dev & Engineering" [ref=e444] [cursor=pointer]:
+          - /url: https://mathandai.org/
+          - generic [ref=e445]:
+            - generic [ref=e446]: Hacker News Best
+            - generic [ref=e447]: 1d ago
+          - heading "A misalignment of AI in mathematics" [level=3] [ref=e448]
+          - paragraph [ref=e449]: Discussion on Hacker News — click to read the full article.
+          - generic [ref=e450]: Dev & Engineering
+        - link "Dev.to 22h ago Twelve Months After Go Live, No One Measured the Savings We Promised The business case for our workflow platform promised savings of around four hundred thousand a year, made up of reduc... Dev & Engineering" [ref=e451] [cursor=pointer]:
+          - /url: https://dev.to/serguey_shinder_4ab9b87b1/twelve-months-after-go-live-no-one-measured-the-savings-we-promised-49k
+          - generic [ref=e452]:
+            - generic [ref=e453]: Dev.to
+            - generic [ref=e454]: 22h ago
+          - heading "Twelve Months After Go Live, No One Measured the Savings We Promised" [level=3] [ref=e455]
+          - paragraph [ref=e456]: The business case for our workflow platform promised savings of around four hundred thousand a year, made up of reduc...
+          - generic [ref=e457]: Dev & Engineering
+        - link "Google AI Blog 3d ago Get ready for the game with new football features in Search Click to read the full article. AI & LLM" [ref=e458] [cursor=pointer]:
+          - /url: https://blog.google/products-and-platforms/products/search/football-features-google-search/
+          - generic [ref=e459]:
+            - generic [ref=e460]: Google AI Blog
+            - generic [ref=e461]: 3d ago
+          - heading "Get ready for the game with new football features in Search" [level=3] [ref=e462]
+          - paragraph [ref=e463]: Click to read the full article.
+          - generic [ref=e464]: AI & LLM
+        - link "DeepMind Sep 2 Introducing Gemini 3.8 Flash and 3.8 Flash Cyber Click to read the full article. AI & LLM" [ref=e465] [cursor=pointer]:
+          - /url: https://deepmind.google/blog/introducing-gemini-3-8-flash-and-38-flash-cyber/
+          - generic [ref=e466]:
+            - generic [ref=e467]: DeepMind
+            - generic [ref=e468]: Sep 2
+          - heading "Introducing Gemini 3.8 Flash and 3.8 Flash Cyber" [level=3] [ref=e469]
+          - paragraph [ref=e470]: Click to read the full article.
+          - generic [ref=e471]: AI & LLM
+        - 'link "Cypress Blog 2d ago Cypress Ambassador Spotlight: Maksym Donets Welcome back to another edition of our Ambassador Spotlight series, where we shine a light on the Cypress community m... QA & Testing" [ref=e472] [cursor=pointer]':
+          - /url: https://www.cypress.io/blog/cypress-ambassador-spotlight-maksym-donets/
+          - generic [ref=e473]:
+            - generic [ref=e474]: Cypress Blog
+            - generic [ref=e475]: 2d ago
+          - 'heading "Cypress Ambassador Spotlight: Maksym Donets" [level=3] [ref=e476]'
+          - paragraph [ref=e477]: Welcome back to another edition of our Ambassador Spotlight series, where we shine a light on the Cypress community m...
+          - generic [ref=e478]: QA & Testing
+        - 'link "Testomat Blog 1d ago Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner Explorbot is an open-source QA agent for autonomous testing of web applications. You point it at a URL. It reads the ... QA & Testing" [ref=e479] [cursor=pointer]':
+          - /url: https://testomat.io/blog/mercury-testing/
+          - generic [ref=e480]:
+            - generic [ref=e481]: Testomat Blog
+            - generic [ref=e482]: 1d ago
+          - 'heading "Mercury Testing: Running the Mercury 2.5 Diffusion LLM as Explorbot’s Planner" [level=3] [ref=e483]'
+          - paragraph [ref=e484]: Explorbot is an open-source QA agent for autonomous testing of web applications. You point it at a URL. It reads the ...
+          - generic [ref=e485]: QA & Testing
+        - link "Hacker News Best 1d ago A misalignment of AI in mathematics Discussion on Hacker News — click to read the full article. Dev & Engineering" [ref=e486] [cursor=pointer]:
+          - /url: https://mathandai.org/
+          - generic [ref=e487]:
+            - generic [ref=e488]: Hacker News Best
+            - generic [ref=e489]: 1d ago
+          - heading "A misalignment of AI in mathematics" [level=3] [ref=e490]
+          - paragraph [ref=e491]: Discussion on Hacker News — click to read the full article.
+          - generic [ref=e492]: Dev & Engineering
+        - link "Dev.to 22h ago Twelve Months After Go Live, No One Measured the Savings We Promised The business case for our workflow platform promised savings of around four hundred thousand a year, made up of reduc... Dev & Engineering" [ref=e493] [cursor=pointer]:
+          - /url: https://dev.to/serguey_shinder_4ab9b87b1/twelve-months-after-go-live-no-one-measured-the-savings-we-promised-49k
+          - generic [ref=e494]:
+            - generic [ref=e495]: Dev.to
+            - generic [ref=e496]: 22h ago
+          - heading "Twelve Months After Go Live, No One Measured the Savings We Promised" [level=3] [ref=e497]
+          - paragraph [ref=e498]: The business case for our workflow platform promised savings of around four hundred thousand a year, made up of reduc...
+          - generic [ref=e499]: Dev & Engineering
+      - button "Next" [ref=e500] [cursor=pointer]:
+        - generic [ref=e501]: 
+  - generic [ref=e503]:
+    - generic [ref=e504]:
+      - generic [ref=e505]:
+        - generic [ref=e506]: 
+        - text: Explore
+      - heading "Essential Principles for Safe AI" [level=2] [ref=e507]
+      - paragraph [ref=e508]: Key practices for building, testing, and deploying AI responsibly.
+    - generic [ref=e509]:
+      - generic [ref=e510]:
+        - generic [ref=e512]: 
+        - heading "AI Red Teaming" [level=3] [ref=e513]
+        - paragraph [ref=e514]: Trying to break LLMs before they break production. Prompt injection, jailbreaks, adversarial testing.
+        - generic [ref=e515]:
+          - generic [ref=e516]: Prompt Injection
+          - generic [ref=e517]: Jailbreaks
+          - generic [ref=e518]: Safety
+      - generic [ref=e519]:
+        - generic [ref=e521]: 
+        - heading "LLM Evaluation" [level=3] [ref=e522]
+        - paragraph [ref=e523]: Building eval pipelines for RAG systems and AI agents. Measuring what actually matters.
+        - generic [ref=e524]:
+          - generic [ref=e525]: Promptfoo
+          - generic [ref=e526]: DeepEval
+          - generic [ref=e527]: Phoenix
+      - generic [ref=e528]:
+        - generic [ref=e530]: 
+        - heading "Test Automation" [level=3] [ref=e531]
+        - paragraph [ref=e532]: Playwright, CI/CD pipelines, and making machines test other machines.
+        - generic [ref=e534]: Playwright
+      - generic [ref=e535]:
+        - generic [ref=e537]: 
+        - heading "RAG & Vector Search" [level=3] [ref=e538]
+        - paragraph [ref=e539]: Retrieval-augmented generation, embeddings, and building knowledge-grounded AI systems.
+        - generic [ref=e540]:
+          - generic [ref=e541]: LlamaIndex
+          - generic [ref=e542]: RAGAS
+          - generic [ref=e543]: Embeddings
+      - generic [ref=e544]:
+        - generic [ref=e546]: 
+        - heading "AI Observability" [level=3] [ref=e547]
+        - paragraph [ref=e548]: Tracing, logging, and monitoring LLM apps in production. Catching drift, hallucinations, and cost spikes early.
+        - generic [ref=e549]:
+          - generic [ref=e550]: LangSmith
+          - generic [ref=e551]: Langfuse
+          - generic [ref=e552]: Helicone
+  - generic [ref=e554]:
+    - generic [ref=e555]:
+      - generic [ref=e556]:
+        - generic [ref=e557]: 
+        - text: Toolkit
+      - heading "Best QA & AI Tools" [level=2] [ref=e558]
+      - paragraph [ref=e559]: Daily drivers for testing, automation, and AI quality workflows.
+    - generic [ref=e560]:
+      - link " Promptfoo LLM eval framework" [ref=e561] [cursor=pointer]:
+        - /url: https://www.promptfoo.dev/
+        - generic [ref=e563]: 
+        - heading "Promptfoo" [level=4] [ref=e564]
+        - paragraph [ref=e565]: LLM eval framework
+      - link " Playwright E2E test automation" [ref=e566] [cursor=pointer]:
+        - /url: https://playwright.dev/
+        - generic [ref=e568]: 
+        - heading "Playwright" [level=4] [ref=e569]
+        - paragraph [ref=e570]: E2E test automation
+      - link " DeepEval LLM testing metrics" [ref=e571] [cursor=pointer]:
+        - /url: https://www.confident-ai.com/
+        - generic [ref=e573]: 
+        - heading "DeepEval" [level=4] [ref=e574]
+        - paragraph [ref=e575]: LLM testing metrics
+      - link " Phoenix AI observability" [ref=e576] [cursor=pointer]:
+        - /url: https://arize.com/phoenix/
+        - generic [ref=e578]: 
+        - heading "Phoenix" [level=4] [ref=e579]
+        - paragraph [ref=e580]: AI observability
+      - link " LangChain LLM orchestration" [ref=e581] [cursor=pointer]:
+        - /url: https://www.langchain.com/
+        - generic [ref=e583]: 
+        - heading "LangChain" [level=4] [ref=e584]
+        - paragraph [ref=e585]: LLM orchestration
+      - link " RAGAS RAG evaluation" [ref=e586] [cursor=pointer]:
+        - /url: https://docs.ragas.io/
+        - generic [ref=e588]: 
+        - heading "RAGAS" [level=4] [ref=e589]
+        - paragraph [ref=e590]: RAG evaluation
+      - link " LlamaIndex RAG framework" [ref=e591] [cursor=pointer]:
+        - /url: https://www.llamaindex.ai/
+        - generic [ref=e593]: 
+        - heading "LlamaIndex" [level=4] [ref=e594]
+        - paragraph [ref=e595]: RAG framework
+  - generic [ref=e597]:
+    - generic [ref=e598]:
+      - generic [ref=e599]:
+        - generic [ref=e600]: 
+        - text: Lab
+      - heading "AI Lab" [level=2] [ref=e601]
+      - paragraph [ref=e602]: Hands-on testing tools & experiments for builders.
+    - generic [ref=e603]:
+      - generic [ref=e604]:
+        - generic [ref=e606]: 
+        - heading "AI Chat Lab" [level=3] [ref=e607]
+        - paragraph [ref=e608]: Chat with an AI expert on QA, testing, and AI safety. Powered by multi-model orchestration.
+        - button " Open Chat" [ref=e609] [cursor=pointer]:
+          - generic [ref=e610]: 
+          - text: Open Chat
+      - generic [ref=e611]:
+        - generic [ref=e613]: 
+        - heading "RAG Hallucination Analyzer" [level=3] [ref=e614]
+        - paragraph [ref=e615]: Paste context + response. Get atomic fact-level breakdown and hallucination score 0–100%.
+        - button " Run Analysis" [ref=e616] [cursor=pointer]:
+          - generic [ref=e617]: 
+          - text: Run Analysis
+      - generic [ref=e618]:
+        - generic [ref=e620]: 
+        - heading "Prompt Injection Scanner" [level=3] [ref=e621]
+        - paragraph [ref=e622]: Scan for hidden Unicode, homoglyphs, control characters and injection patterns in prompts.
+        - button " Scan Prompt" [ref=e623] [cursor=pointer]:
+          - generic [ref=e624]: 
+          - text: Scan Prompt
+      - generic [ref=e625]:
+        - generic [ref=e627]: 
+        - heading "Attack Scenario Builder" [level=3] [ref=e628]
+        - paragraph [ref=e629]: Configure industry, target, attack type, severity — get production-grade adversarial payloads.
+        - button " Build Scenario" [ref=e630] [cursor=pointer]:
+          - generic [ref=e631]: 
+          - text: Build Scenario
+      - generic [ref=e632]:
+        - generic [ref=e634]: 
+        - heading "Can You Break This AI?" [level=3] [ref=e635]
+        - paragraph [ref=e636]: Try prompt injection, jailbreaks, and adversarial attacks. See if you can outsmart the bot — then learn the mitigations.
+        - button " Start Challenge" [ref=e637] [cursor=pointer]:
+          - generic [ref=e638]: 
+          - text: Start Challenge
+  - text:                  
+  - contentinfo [ref=e639]:
+    - generic [ref=e641]:
+      - generic [ref=e642]:
+        - generic [ref=e644]: 
+        - generic [ref=e645]: alexpavlovsky
+      - paragraph [ref=e646]: Personal tech hub. Built with curiosity.
+      - generic [ref=e648]:
+        - paragraph [ref=e649]:
+          - generic [ref=e650]: 
+          - text: Daily AI, QA & Agent Automation Digest
+        - generic [ref=e651]:
+          - textbox "your@email.com" [ref=e652]
+          - button "Subscribe" [ref=e653] [cursor=pointer]
+        - paragraph [ref=e654]
+      - button " Forum & Feedback" [ref=e656] [cursor=pointer]:
+        - generic [ref=e657]: 
+        - text: Forum & Feedback
+      - generic [ref=e658]:
+        - link "GitHub" [ref=e659] [cursor=pointer]:
+          - /url: https://github.com/qa-apps
+          - generic [ref=e660]: 
+        - link "LinkedIn" [ref=e661] [cursor=pointer]:
+          - /url: https://www.linkedin.com/in/qa-apps/
+          - generic [ref=e662]: 
+        - link "Alex Pavlovsky profile" [ref=e663] [cursor=pointer]:
+          - /url: https://www.linkedin.com/in/qa-apps/
+          - img "Alex Pavlovsky" [ref=e664]
+        - link "Email" [ref=e665] [cursor=pointer]:
+          - /url: mailto:alex@alexpavsky.com
+          - generic [ref=e666]: 
+      - paragraph [ref=e667]: alex@alexpavsky.com
+  - text:     
+  - generic [ref=e668]:
+    - button "Open AI chat" [ref=e669] [cursor=pointer]:
+      - generic [ref=e670]: 
+      - generic [ref=e671]: AI
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic: 
+          - generic:
+            - heading "AI Assistant" [level=4]
+            - generic: Online
+        - generic:
+          - button "Maximize":
+            - generic: 
+          - button "New chat":
+            - generic: 
+          - button "Close":
+            - generic: 
+      - generic:
+        - generic:
+          - generic:
+            - generic: 
+          - heading "Before we start" [level=4]
+          - paragraph: This AI chat is for informational purposes only. Responses may be inaccurate or incomplete. Do not share sensitive personal data.
+          - generic:
+            - checkbox "I agree to the terms of use and understand AI limitations"
+            - generic:
+              - text: I agree to the
+              - link "terms of use":
+                - /url: "#"
+              - text: and understand AI limitations
+          - button "Agree & Start Chat" [disabled]
+        - text: 
+      - generic:
+        - generic:
+          - generic:
+            - generic: 
+          - generic:
+            - paragraph: Hey! I'm an AI assistant. Ask me anything — QA, AI testing, coding, science, or just chat.
+      - generic:
+        - generic:
+          - button "Attach file":
+            - generic: +
+          - button "Voice input":
+            - generic: 
+            - generic: Auto
+          - generic:
+            - textbox "Type your message..."
+            - button "Attach or drop files":
+              - generic: 
+              - generic: Drag file here
+            - text:  
+          - button "Send":
+            - generic: 
+  - text:                    
+  - generic:
+    - button "Open live news feed" [ref=e672] [cursor=pointer]:
+      - generic [ref=e675]: LIVE
+    - dialog "Live news feed":
+      - generic:
+        - generic:
+          - generic: LIVE ALERTS
+          - button "Close live feed": ×
+        - generic:
+          - generic:
+            - link "LIVE 1d ago I spent $220 on Google app ads and 60% of the installs were robots Hacker News Best":
+              - /url: https://dayzlegame.com/blog/google-ads-bot-farm/
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: I spent $220 on Google app ads and 60% of the installs were robots
+              - generic: Hacker News Best
+            - link "LIVE 1d ago A misalignment of AI in mathematics Hacker News Best":
+              - /url: https://mathandai.org/
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: A misalignment of AI in mathematics
+              - generic: Hacker News Best
+            - 'link "LIVE 1d ago google.com/goto: Google''s anti-scraping update Hacker News Best"':
+              - /url: https://www.autom.dev/blog/google-search-goto-links
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: "google.com/goto: Google's anti-scraping update"
+              - generic: Hacker News Best
+            - link "LIVE 22h ago The version number that promised nothing had changed Dev.to":
+              - /url: https://dev.to/sergey_shinder_ab2d943365/the-version-number-that-promised-nothing-had-changed-2a0e
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: The version number that promised nothing had changed
+              - generic: Dev.to
+            - 'link "LIVE 22h ago Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces Dev.to"':
+              - /url: https://dev.to/swishmilnet/attestly-generate-eu-ai-act-annex-iv-docs-from-your-agents-operational-traces-4ik7
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: "Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces"
+              - generic: Dev.to
+            - link "LIVE 22h ago I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0. Dev.to":
+              - /url: https://dev.to/dante777/i-built-an-epistemic-gate-to-stop-llm-data-poisoning-during-fine-tuning-tested-across-5-42kk
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0.
+              - generic: Dev.to
+            - link "LIVE 22h ago Twelve Months After Go Live, No One Measured the Savings We Promised Dev.to":
+              - /url: https://dev.to/serguey_shinder_4ab9b87b1/twelve-months-after-go-live-no-one-measured-the-savings-we-promised-49k
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: Twelve Months After Go Live, No One Measured the Savings We Promised
+              - generic: Dev.to
+            - link "LIVE 22h ago How Zero Trust Networking Improves Cloud Security Dev.to":
+              - /url: https://dev.to/ronak_sharma_913570f6e215/how-zero-trust-networking-improves-cloud-security-1h9l
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: How Zero Trust Networking Improves Cloud Security
+              - generic: Dev.to
+            - 'link "LIVE 22h ago Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing Dev.to"':
+              - /url: https://dev.to/sarantoon/typhoon-vs-openthai-vs-pathumma-three-thai-llms-worth-knowing-3g8
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: "Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing"
+              - generic: Dev.to
+            - 'link "LIVE 23h ago Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity Dev.to"':
+              - /url: https://dev.to/nirbhay_hiwse/antigravity-usage-intelligence-track-tokens-quotas-cache-reasoning-and-agent-activity-ca1
+              - generic:
+                - generic: LIVE
+                - generic: 23h ago
+              - generic: "Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity"
+              - generic: Dev.to
+            - link "LIVE 22h ago How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049) Dev.to":
+              - /url: https://dev.to/aws-builders/how-to-use-cloudtrail-to-check-whether-you-were-affected-by-the-aws-ssm-agent-vulnerability-1mln
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049)
+              - generic: Dev.to
+            - link "LIVE 22h ago Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE. Dev.to":
+              - /url: https://dev.to/nirbhay_hiwse/learn-how-antigravity-usage-intelligence-lets-you-monitor-token-consumption-cache-savings-and-33j
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE.
+              - generic: Dev.to
+            - 'link "LIVE 22h ago Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy Dev.to"':
+              - /url: https://dev.to/oleksandr_kuryzhev_42873f/nginx-tls-hardening-manual-directives-vs-delegated-edge-policy-1m4g
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: "Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy"
+              - generic: Dev.to
+            - link "LIVE 22h ago How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable Dev.to":
+              - /url: https://dev.to/pharos_production/how-to-rehearse-smart-contract-rollback-before-calling-a-system-upgradeable-3532
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable
+              - generic: Dev.to
+            - link "LIVE 22h ago I Made Four Authorization Engines Answer the Same Questions Dev.to":
+              - /url: https://dev.to/kanywst/i-made-four-authorization-engines-answer-the-same-questions-5a96
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: I Made Four Authorization Engines Answer the Same Questions
+              - generic: Dev.to
+            - link "LIVE 1d ago I spent $220 on Google app ads and 60% of the installs were robots Hacker News Best":
+              - /url: https://dayzlegame.com/blog/google-ads-bot-farm/
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: I spent $220 on Google app ads and 60% of the installs were robots
+              - generic: Hacker News Best
+            - link "LIVE 1d ago A misalignment of AI in mathematics Hacker News Best":
+              - /url: https://mathandai.org/
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: A misalignment of AI in mathematics
+              - generic: Hacker News Best
+            - 'link "LIVE 1d ago google.com/goto: Google''s anti-scraping update Hacker News Best"':
+              - /url: https://www.autom.dev/blog/google-search-goto-links
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: "google.com/goto: Google's anti-scraping update"
+              - generic: Hacker News Best
+            - link "LIVE 22h ago The version number that promised nothing had changed Dev.to":
+              - /url: https://dev.to/sergey_shinder_ab2d943365/the-version-number-that-promised-nothing-had-changed-2a0e
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: The version number that promised nothing had changed
+              - generic: Dev.to
+            - 'link "LIVE 22h ago Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces Dev.to"':
+              - /url: https://dev.to/swishmilnet/attestly-generate-eu-ai-act-annex-iv-docs-from-your-agents-operational-traces-4ik7
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: "Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces"
+              - generic: Dev.to
+            - link "LIVE 22h ago I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0. Dev.to":
+              - /url: https://dev.to/dante777/i-built-an-epistemic-gate-to-stop-llm-data-poisoning-during-fine-tuning-tested-across-5-42kk
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0.
+              - generic: Dev.to
+            - link "LIVE 22h ago Twelve Months After Go Live, No One Measured the Savings We Promised Dev.to":
+              - /url: https://dev.to/serguey_shinder_4ab9b87b1/twelve-months-after-go-live-no-one-measured-the-savings-we-promised-49k
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: Twelve Months After Go Live, No One Measured the Savings We Promised
+              - generic: Dev.to
+            - link "LIVE 22h ago How Zero Trust Networking Improves Cloud Security Dev.to":
+              - /url: https://dev.to/ronak_sharma_913570f6e215/how-zero-trust-networking-improves-cloud-security-1h9l
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: How Zero Trust Networking Improves Cloud Security
+              - generic: Dev.to
+            - 'link "LIVE 22h ago Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing Dev.to"':
+              - /url: https://dev.to/sarantoon/typhoon-vs-openthai-vs-pathumma-three-thai-llms-worth-knowing-3g8
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: "Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing"
+              - generic: Dev.to
+            - 'link "LIVE 23h ago Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity Dev.to"':
+              - /url: https://dev.to/nirbhay_hiwse/antigravity-usage-intelligence-track-tokens-quotas-cache-reasoning-and-agent-activity-ca1
+              - generic:
+                - generic: LIVE
+                - generic: 23h ago
+              - generic: "Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity"
+              - generic: Dev.to
+            - link "LIVE 22h ago How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049) Dev.to":
+              - /url: https://dev.to/aws-builders/how-to-use-cloudtrail-to-check-whether-you-were-affected-by-the-aws-ssm-agent-vulnerability-1mln
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049)
+              - generic: Dev.to
+            - link "LIVE 22h ago Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE. Dev.to":
+              - /url: https://dev.to/nirbhay_hiwse/learn-how-antigravity-usage-intelligence-lets-you-monitor-token-consumption-cache-savings-and-33j
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE.
+              - generic: Dev.to
+            - 'link "LIVE 22h ago Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy Dev.to"':
+              - /url: https://dev.to/oleksandr_kuryzhev_42873f/nginx-tls-hardening-manual-directives-vs-delegated-edge-policy-1m4g
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: "Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy"
+              - generic: Dev.to
+            - link "LIVE 22h ago How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable Dev.to":
+              - /url: https://dev.to/pharos_production/how-to-rehearse-smart-contract-rollback-before-calling-a-system-upgradeable-3532
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable
+              - generic: Dev.to
+            - link "LIVE 22h ago I Made Four Authorization Engines Answer the Same Questions Dev.to":
+              - /url: https://dev.to/kanywst/i-made-four-authorization-engines-answer-the-same-questions-5a96
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: I Made Four Authorization Engines Answer the Same Questions
+              - generic: Dev.to
+            - link "LIVE 1d ago I spent $220 on Google app ads and 60% of the installs were robots Hacker News Best":
+              - /url: https://dayzlegame.com/blog/google-ads-bot-farm/
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: I spent $220 on Google app ads and 60% of the installs were robots
+              - generic: Hacker News Best
+            - link "LIVE 1d ago A misalignment of AI in mathematics Hacker News Best":
+              - /url: https://mathandai.org/
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: A misalignment of AI in mathematics
+              - generic: Hacker News Best
+            - 'link "LIVE 1d ago google.com/goto: Google''s anti-scraping update Hacker News Best"':
+              - /url: https://www.autom.dev/blog/google-search-goto-links
+              - generic:
+                - generic: LIVE
+                - generic: 1d ago
+              - generic: "google.com/goto: Google's anti-scraping update"
+              - generic: Hacker News Best
+            - link "LIVE 22h ago The version number that promised nothing had changed Dev.to":
+              - /url: https://dev.to/sergey_shinder_ab2d943365/the-version-number-that-promised-nothing-had-changed-2a0e
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: The version number that promised nothing had changed
+              - generic: Dev.to
+            - 'link "LIVE 22h ago Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces Dev.to"':
+              - /url: https://dev.to/swishmilnet/attestly-generate-eu-ai-act-annex-iv-docs-from-your-agents-operational-traces-4ik7
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: "Attestly: Generate EU AI Act Annex IV docs from your agents’ operational traces"
+              - generic: Dev.to
+            - link "LIVE 22h ago I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0. Dev.to":
+              - /url: https://dev.to/dante777/i-built-an-epistemic-gate-to-stop-llm-data-poisoning-during-fine-tuning-tested-across-5-42kk
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: I built an epistemic gate to stop LLM data poisoning during fine-tuning. Tested across 5 architectures, orchestrated on a 2006 Toshiba laptop for $0.
+              - generic: Dev.to
+            - link "LIVE 22h ago Twelve Months After Go Live, No One Measured the Savings We Promised Dev.to":
+              - /url: https://dev.to/serguey_shinder_4ab9b87b1/twelve-months-after-go-live-no-one-measured-the-savings-we-promised-49k
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: Twelve Months After Go Live, No One Measured the Savings We Promised
+              - generic: Dev.to
+            - link "LIVE 22h ago How Zero Trust Networking Improves Cloud Security Dev.to":
+              - /url: https://dev.to/ronak_sharma_913570f6e215/how-zero-trust-networking-improves-cloud-security-1h9l
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: How Zero Trust Networking Improves Cloud Security
+              - generic: Dev.to
+            - 'link "LIVE 22h ago Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing Dev.to"':
+              - /url: https://dev.to/sarantoon/typhoon-vs-openthai-vs-pathumma-three-thai-llms-worth-knowing-3g8
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: "Typhoon vs OpenThai vs Pathumma: Three Thai LLMs Worth Knowing"
+              - generic: Dev.to
+            - 'link "LIVE 23h ago Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity Dev.to"':
+              - /url: https://dev.to/nirbhay_hiwse/antigravity-usage-intelligence-track-tokens-quotas-cache-reasoning-and-agent-activity-ca1
+              - generic:
+                - generic: LIVE
+                - generic: 23h ago
+              - generic: "Antigravity Usage Intelligence: Track Tokens, Quotas, Cache, Reasoning, and Agent Activity"
+              - generic: Dev.to
+            - link "LIVE 22h ago How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049) Dev.to":
+              - /url: https://dev.to/aws-builders/how-to-use-cloudtrail-to-check-whether-you-were-affected-by-the-aws-ssm-agent-vulnerability-1mln
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: How to Use CloudTrail to Check Whether You Were Affected by the AWS SSM Agent Vulnerability (CVE-2026-89049)
+              - generic: Dev.to
+            - link "LIVE 22h ago Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE. Dev.to":
+              - /url: https://dev.to/nirbhay_hiwse/learn-how-antigravity-usage-intelligence-lets-you-monitor-token-consumption-cache-savings-and-33j
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: Learn how Antigravity Usage Intelligence lets you monitor token consumption, cache savings, and quotas in Google’s Antigravity IDE.
+              - generic: Dev.to
+            - 'link "LIVE 22h ago Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy Dev.to"':
+              - /url: https://dev.to/oleksandr_kuryzhev_42873f/nginx-tls-hardening-manual-directives-vs-delegated-edge-policy-1m4g
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: "Nginx TLS Hardening: Manual Directives vs Delegated Edge Policy"
+              - generic: Dev.to
+            - link "LIVE 22h ago How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable Dev.to":
+              - /url: https://dev.to/pharos_production/how-to-rehearse-smart-contract-rollback-before-calling-a-system-upgradeable-3532
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: How to Rehearse Smart-Contract Rollback Before Calling a System Upgradeable
+              - generic: Dev.to
+            - link "LIVE 22h ago I Made Four Authorization Engines Answer the Same Questions Dev.to":
+              - /url: https://dev.to/kanywst/i-made-four-authorization-engines-answer-the-same-questions-5a96
+              - generic:
+                - generic: LIVE
+                - generic: 22h ago
+              - generic: I Made Four Authorization Engines Answer the Same Questions
+              - generic: Dev.to
+        - generic:
+          - generic:
+            - text: Speed
+            - slider "Scroll speed": "0.6"
+          - button "PAUSE"
+  - generic:
+    - button "Talk to the Voice Agent" [ref=e677] [cursor=pointer]:
+      - generic [ref=e687]: Voice Agent
+    - region:
+      - button:
+        - img
+      - generic: Voice Agent
+      - generic:
+        - button
+      - generic: Tap to start
+      - generic: Tap once, then just talk — hands-free
+```

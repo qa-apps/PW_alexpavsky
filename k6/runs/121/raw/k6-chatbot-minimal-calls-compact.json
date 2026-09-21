@@ -1,0 +1,1 @@
+{"calls":[{"time":"2026-09-17T21:08:38.256312055Z","endpoint":"chatbot","method":"POST","route":"/api/chat","status":"200","ok":true,"error":"","duration_ms":312.856249,"n":1,"offset_s":0.0}],"checks":{"chatbot: no server crash":[1,0],"chatbot: body is not empty":[1,0],"chatbot: expected content type":[1,0]}}

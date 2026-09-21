@@ -1,0 +1,4600 @@
+[
+  {
+    "run_number": 4,
+    "run_id": "26014413601",
+    "timestamp": "2026-05-18T05:10:36+00:00",
+    "commit": "5db9ba7",
+    "ragas": {
+      "avg_faithfulness": 0.945,
+      "avg_relevancy": 0.789,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": [
+      "report.md"
+    ]
+  },
+  {
+    "run_number": 6,
+    "run_id": "26076960376",
+    "timestamp": "2026-05-19T05:23:24+00:00",
+    "commit": "2bf4762",
+    "ragas": {
+      "avg_faithfulness": 0.959,
+      "avg_relevancy": 0.787,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 9,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 1,
+        "stereotypes": 3,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 7,
+    "run_id": "26142200101",
+    "timestamp": "2026-05-20T05:23:57+00:00",
+    "commit": "00d694a",
+    "ragas": {
+      "avg_faithfulness": 0.909,
+      "avg_relevancy": 0.736,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 9,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 3,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 8,
+    "run_id": "26177206578",
+    "timestamp": "2026-05-20T17:23:40+00:00",
+    "commit": "14bfbdc",
+    "ragas": {
+      "avg_faithfulness": 0.626,
+      "avg_relevancy": 0.51,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 9,
+    "run_id": "26177443886",
+    "timestamp": "2026-05-20T17:54:02+00:00",
+    "commit": "7c0131c",
+    "ragas": {
+      "avg_faithfulness": 0.636,
+      "avg_relevancy": 0.579,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 9,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 1,
+        "stereotypes": 3,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 10,
+    "run_id": "26179749571",
+    "timestamp": "2026-05-20T18:25:22+00:00",
+    "commit": "fa221cd",
+    "ragas": {
+      "avg_faithfulness": 0.848,
+      "avg_relevancy": 0.628,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 1,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 11,
+    "run_id": "26194170555",
+    "timestamp": "2026-05-20T23:13:46+00:00",
+    "commit": "ba48536",
+    "ragas": {
+      "avg_faithfulness": 0.779,
+      "avg_relevancy": 0.61,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 12,
+    "run_id": "26197442748",
+    "timestamp": "2026-05-21T00:43:01+00:00",
+    "commit": "1ddc644",
+    "ragas": {
+      "avg_faithfulness": 0.972,
+      "avg_relevancy": 0.76,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 13,
+    "run_id": "26199545806",
+    "timestamp": "2026-05-21T01:44:07+00:00",
+    "commit": "f7c694b",
+    "ragas": {
+      "avg_faithfulness": 0.913,
+      "avg_relevancy": 0.759,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 14,
+    "run_id": "26206397334",
+    "timestamp": "2026-05-21T05:25:36+00:00",
+    "commit": "5e7d34b",
+    "ragas": {
+      "avg_faithfulness": 0.944,
+      "avg_relevancy": 0.787,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 1,
+        "stereotypes": 0,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 15,
+    "run_id": "26269144761",
+    "timestamp": "2026-05-22T05:22:34+00:00",
+    "commit": "5e7d34b",
+    "ragas": {
+      "avg_faithfulness": 0.923,
+      "avg_relevancy": 0.769,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 16,
+    "run_id": "26323831626",
+    "timestamp": "2026-05-23T05:14:52+00:00",
+    "commit": "a2513b9",
+    "ragas": {
+      "avg_faithfulness": 0.923,
+      "avg_relevancy": 0.755,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 17,
+    "run_id": "26352344612",
+    "timestamp": "2026-05-24T05:22:08+00:00",
+    "commit": "3994769",
+    "ragas": {
+      "avg_faithfulness": 0.886,
+      "avg_relevancy": 0.748,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 1,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 18,
+    "run_id": "26384212115",
+    "timestamp": "2026-05-25T05:29:43+00:00",
+    "commit": "ea1b980",
+    "ragas": {
+      "avg_faithfulness": 0.938,
+      "avg_relevancy": 0.696,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 1,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 19,
+    "run_id": "26433045107",
+    "timestamp": "2026-05-26T05:23:29+00:00",
+    "commit": "b1a1865",
+    "ragas": {
+      "avg_faithfulness": 0.915,
+      "avg_relevancy": 0.749,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 20,
+    "run_id": "26491837064",
+    "timestamp": "2026-05-27T05:32:14+00:00",
+    "commit": "b1a1865",
+    "ragas": {
+      "avg_faithfulness": 0.904,
+      "avg_relevancy": 0.77,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 3,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 21,
+    "run_id": "26555624621",
+    "timestamp": "2026-05-28T05:28:55+00:00",
+    "commit": "b1a1865",
+    "ragas": {
+      "avg_faithfulness": 0.924,
+      "avg_relevancy": 0.749,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 10,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 6,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 22,
+    "run_id": "26618956140",
+    "timestamp": "2026-05-29T05:27:00+00:00",
+    "commit": "b1a1865",
+    "ragas": {
+      "avg_faithfulness": 0.797,
+      "avg_relevancy": 0.743,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 25,
+    "run_id": "26736495443",
+    "timestamp": "2026-06-01T05:46:12+00:00",
+    "commit": "8f7188f",
+    "ragas": {
+      "avg_faithfulness": 0.95,
+      "avg_relevancy": 0.788,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 26,
+    "run_id": "26799661113",
+    "timestamp": "2026-06-02T05:37:49+00:00",
+    "commit": "3b938ad",
+    "ragas": {
+      "avg_faithfulness": 0.937,
+      "avg_relevancy": 0.754,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 27,
+    "run_id": "26865140914",
+    "timestamp": "2026-06-03T05:44:05+00:00",
+    "commit": "3b938ad",
+    "ragas": {
+      "avg_faithfulness": 0.914,
+      "avg_relevancy": 0.709,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 9,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 3,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 28,
+    "run_id": "26932167522",
+    "timestamp": "2026-06-04T05:28:05+00:00",
+    "commit": "3b938ad",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 5,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 29,
+    "run_id": "26996408496",
+    "timestamp": "2026-06-05T05:29:38+00:00",
+    "commit": "26175ea",
+    "ragas": {
+      "avg_faithfulness": 0.922,
+      "avg_relevancy": 0.723,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 3,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 30,
+    "run_id": "27069947707",
+    "timestamp": "2026-06-06T18:39:34+00:00",
+    "commit": "4920784",
+    "ragas": {
+      "avg_faithfulness": 0.943,
+      "avg_relevancy": 0.701,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 9,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 1,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 31,
+    "run_id": "27100597060",
+    "timestamp": "2026-06-07T18:38:30+00:00",
+    "commit": "cac411c",
+    "ragas": {
+      "avg_faithfulness": 0.971,
+      "avg_relevancy": 0.724,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 32,
+    "run_id": "27158783120",
+    "timestamp": "2026-06-08T19:04:10+00:00",
+    "commit": "4e2b82e",
+    "ragas": {
+      "avg_faithfulness": 0.903,
+      "avg_relevancy": 0.727,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 10,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 5,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 33,
+    "run_id": "27227064055",
+    "timestamp": "2026-06-09T18:57:28+00:00",
+    "commit": "4e2b82e",
+    "ragas": {
+      "avg_faithfulness": 0.908,
+      "avg_relevancy": 0.744,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 34,
+    "run_id": "27297886262",
+    "timestamp": "2026-06-10T19:09:50+00:00",
+    "commit": "8ef43f5",
+    "ragas": {
+      "avg_faithfulness": 0.865,
+      "avg_relevancy": 0.706,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 10,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 1,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 35,
+    "run_id": "27369431905",
+    "timestamp": "2026-06-11T19:11:43+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.957,
+      "avg_relevancy": 0.71,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 3,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 36,
+    "run_id": "27434822483",
+    "timestamp": "2026-06-12T18:54:15+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.91,
+      "avg_relevancy": 0.745,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 37,
+    "run_id": "27474843924",
+    "timestamp": "2026-06-13T18:40:58+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.898,
+      "avg_relevancy": 0.773,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 38,
+    "run_id": "27507589958",
+    "timestamp": "2026-06-14T18:40:22+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.948,
+      "avg_relevancy": 0.742,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 39,
+    "run_id": "27569748359",
+    "timestamp": "2026-06-15T19:31:22+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.941,
+      "avg_relevancy": 0.708,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 40,
+    "run_id": "27640913813",
+    "timestamp": "2026-06-16T19:29:51+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.884,
+      "avg_relevancy": 0.74,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 2,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 41,
+    "run_id": "27711146458",
+    "timestamp": "2026-06-17T19:03:39+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.925,
+      "avg_relevancy": 0.751,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 42,
+    "run_id": "27781114144",
+    "timestamp": "2026-06-18T19:03:13+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.915,
+      "avg_relevancy": 0.78,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 43,
+    "run_id": "27841958002",
+    "timestamp": "2026-06-19T18:47:48+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.877,
+      "avg_relevancy": 0.776,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 2,
+        "harmfulness": 1,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 44,
+    "run_id": "27879576986",
+    "timestamp": "2026-06-20T18:38:37+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.932,
+      "avg_relevancy": 0.708,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 2,
+        "harmfulness": 1,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 45,
+    "run_id": "27913131314",
+    "timestamp": "2026-06-21T18:39:45+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.876,
+      "avg_relevancy": 0.706,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 46,
+    "run_id": "27976474114",
+    "timestamp": "2026-06-22T19:19:35+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.949,
+      "avg_relevancy": 0.686,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 47,
+    "run_id": "28047597960",
+    "timestamp": "2026-06-23T18:51:49+00:00",
+    "commit": "fc67399",
+    "ragas": {
+      "avg_faithfulness": 0.895,
+      "avg_relevancy": 0.739,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 48,
+    "run_id": "28120215024",
+    "timestamp": "2026-06-24T18:46:43+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.917,
+      "avg_relevancy": 0.798,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 49,
+    "run_id": "28191769581",
+    "timestamp": "2026-06-25T18:55:58+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.923,
+      "avg_relevancy": 0.75,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 5,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 50,
+    "run_id": "28256890851",
+    "timestamp": "2026-06-26T18:43:28+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.877,
+      "avg_relevancy": 0.699,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 9,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 6,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 51,
+    "run_id": "28297470199",
+    "timestamp": "2026-06-27T18:35:09+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.952,
+      "avg_relevancy": 0.772,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 9,
+      "issues_by_category": {
+        "hallucination": 2,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 52,
+    "run_id": "28331291336",
+    "timestamp": "2026-06-28T18:39:21+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.928,
+      "avg_relevancy": 0.749,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 53,
+    "run_id": "28393881921",
+    "timestamp": "2026-06-29T18:55:37+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.924,
+      "avg_relevancy": 0.761,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 4,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 54,
+    "run_id": "28466552220",
+    "timestamp": "2026-06-30T18:51:33+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.872,
+      "avg_relevancy": 0.759,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 55,
+    "run_id": "28538851566",
+    "timestamp": "2026-07-01T18:53:11+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.921,
+      "avg_relevancy": 0.769,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 4,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 56,
+    "run_id": "28612148115",
+    "timestamp": "2026-07-02T18:46:17+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.854,
+      "avg_relevancy": 0.784,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 57,
+    "run_id": "28678361449",
+    "timestamp": "2026-07-03T19:16:29+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.907,
+      "avg_relevancy": 0.746,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 4,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 2,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 58,
+    "run_id": "28715947792",
+    "timestamp": "2026-07-04T19:09:39+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.941,
+      "avg_relevancy": 0.758,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 59,
+    "run_id": "28751052698",
+    "timestamp": "2026-07-05T19:08:36+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.958,
+      "avg_relevancy": 0.754,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 60,
+    "run_id": "28817299067",
+    "timestamp": "2026-07-06T19:52:34+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.942,
+      "avg_relevancy": 0.726,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 4,
+        "harmfulness": 1,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 61,
+    "run_id": "28892647726",
+    "timestamp": "2026-07-07T19:51:29+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.926,
+      "avg_relevancy": 0.761,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 62,
+    "run_id": "28968041059",
+    "timestamp": "2026-07-08T19:26:50+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.944,
+      "avg_relevancy": 0.755,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 63,
+    "run_id": "29043451474",
+    "timestamp": "2026-07-09T19:42:17+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.879,
+      "avg_relevancy": 0.75,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 64,
+    "run_id": "29116962327",
+    "timestamp": "2026-07-10T19:32:24+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.962,
+      "avg_relevancy": 0.764,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 3,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 65,
+    "run_id": "29163737400",
+    "timestamp": "2026-07-11T18:58:23+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.904,
+      "avg_relevancy": 0.748,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 66,
+    "run_id": "29204216541",
+    "timestamp": "2026-07-12T19:01:50+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.937,
+      "avg_relevancy": 0.756,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 2,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 67,
+    "run_id": "29276972051",
+    "timestamp": "2026-07-13T19:29:10+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.924,
+      "avg_relevancy": 0.731,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 4,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 68,
+    "run_id": "29359214721",
+    "timestamp": "2026-07-14T19:12:02+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.925,
+      "avg_relevancy": 0.768,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 4,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 69,
+    "run_id": "29441820407",
+    "timestamp": "2026-07-15T19:14:42+00:00",
+    "commit": "204604d",
+    "ragas": {
+      "avg_faithfulness": 0.92,
+      "avg_relevancy": 0.779,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 70,
+    "run_id": "29525340098",
+    "timestamp": "2026-07-16T19:10:20+00:00",
+    "commit": "98b5083",
+    "ragas": {
+      "avg_faithfulness": 0.933,
+      "avg_relevancy": 0.773,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 2,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 71,
+    "run_id": "29604664483",
+    "timestamp": "2026-07-17T19:04:51+00:00",
+    "commit": "98b5083",
+    "ragas": {
+      "avg_faithfulness": 0.86,
+      "avg_relevancy": 0.769,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 3,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 72,
+    "run_id": "29656189124",
+    "timestamp": "2026-07-18T19:09:03+00:00",
+    "commit": "98b5083",
+    "ragas": {
+      "avg_faithfulness": 0.925,
+      "avg_relevancy": 0.757,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 73,
+    "run_id": "29699031554",
+    "timestamp": "2026-07-19T19:04:50+00:00",
+    "commit": "98b5083",
+    "ragas": {
+      "avg_faithfulness": 0.889,
+      "avg_relevancy": 0.756,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 74,
+    "run_id": "29771283039",
+    "timestamp": "2026-07-20T19:38:42+00:00",
+    "commit": "426cd4b",
+    "ragas": {
+      "avg_faithfulness": 0.931,
+      "avg_relevancy": 0.75,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 75,
+    "run_id": "29859188424",
+    "timestamp": "2026-07-21T19:17:51+00:00",
+    "commit": "426cd4b",
+    "ragas": {
+      "avg_faithfulness": 0.918,
+      "avg_relevancy": 0.736,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 4,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 76,
+    "run_id": "29948170730",
+    "timestamp": "2026-07-22T19:10:49+00:00",
+    "commit": "426cd4b",
+    "ragas": {
+      "avg_faithfulness": 0.926,
+      "avg_relevancy": 0.744,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 77,
+    "run_id": "30035333099",
+    "timestamp": "2026-07-23T19:14:23+00:00",
+    "commit": "426cd4b",
+    "ragas": {
+      "avg_faithfulness": 0.896,
+      "avg_relevancy": 0.751,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 4,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 78,
+    "run_id": "30119324592",
+    "timestamp": "2026-07-24T19:28:01+00:00",
+    "commit": "426cd4b",
+    "ragas": {
+      "avg_faithfulness": 0.962,
+      "avg_relevancy": 0.752,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 4,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 79,
+    "run_id": "30170037394",
+    "timestamp": "2026-07-25T19:01:05+00:00",
+    "commit": "426cd4b",
+    "ragas": {
+      "avg_faithfulness": 0.902,
+      "avg_relevancy": 0.759,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 3,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 80,
+    "run_id": "30215265079",
+    "timestamp": "2026-07-26T19:05:20+00:00",
+    "commit": "426cd4b",
+    "ragas": {
+      "avg_faithfulness": 0.931,
+      "avg_relevancy": 0.735,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 81,
+    "run_id": "30296336903",
+    "timestamp": "2026-07-27T19:26:31+00:00",
+    "commit": "426cd4b",
+    "ragas": {
+      "avg_faithfulness": 0.91,
+      "avg_relevancy": 0.761,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 82,
+    "run_id": "30389751934",
+    "timestamp": "2026-07-28T19:21:14+00:00",
+    "commit": "ce0de23",
+    "ragas": {
+      "avg_faithfulness": 0.922,
+      "avg_relevancy": 0.754,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 83,
+    "run_id": "30481020947",
+    "timestamp": "2026-07-29T19:06:17+00:00",
+    "commit": "ce0de23",
+    "ragas": {
+      "avg_faithfulness": 0.967,
+      "avg_relevancy": 0.755,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 84,
+    "run_id": "30572889549",
+    "timestamp": "2026-07-30T19:25:27+00:00",
+    "commit": "ce0de23",
+    "ragas": {
+      "avg_faithfulness": 0.906,
+      "avg_relevancy": 0.769,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 4,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 1,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 85,
+    "run_id": "30657250738",
+    "timestamp": "2026-07-31T19:24:32+00:00",
+    "commit": "ce0de23",
+    "ragas": {
+      "avg_faithfulness": 0.934,
+      "avg_relevancy": 0.729,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 3,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 86,
+    "run_id": "30713036259",
+    "timestamp": "2026-08-01T19:03:42+00:00",
+    "commit": "ce0de23",
+    "ragas": {
+      "avg_faithfulness": 0.937,
+      "avg_relevancy": 0.745,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 4,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 4,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 87,
+    "run_id": "30761626995",
+    "timestamp": "2026-08-02T19:04:36+00:00",
+    "commit": "ce0de23",
+    "ragas": {
+      "avg_faithfulness": 0.969,
+      "avg_relevancy": 0.754,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 3,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 88,
+    "run_id": "30844549851",
+    "timestamp": "2026-08-03T19:38:18+00:00",
+    "commit": "ce0de23",
+    "ragas": {
+      "avg_faithfulness": 0.995,
+      "avg_relevancy": 0.749,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 5,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 90,
+    "run_id": "31037743586",
+    "timestamp": "2026-08-05T19:32:10+00:00",
+    "commit": "ce0de23",
+    "ragas": {
+      "avg_faithfulness": 0.962,
+      "avg_relevancy": 0.76,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 6,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 101,
+    "run_id": "31680066117",
+    "timestamp": "2026-08-13T08:02:48+00:00",
+    "commit": "313822e",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": []
+  },
+  {
+    "run_number": 102,
+    "run_id": "31680066148",
+    "timestamp": "2026-08-13T08:04:56+00:00",
+    "commit": "313822e",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": []
+  },
+  {
+    "run_number": 103,
+    "run_id": "31680489385",
+    "timestamp": "2026-08-13T08:08:33+00:00",
+    "commit": "d673b03",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.912,
+      "status": "pass"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": [
+      "report.md"
+    ]
+  },
+  {
+    "run_number": 104,
+    "run_id": "31680997024",
+    "timestamp": "2026-08-13T08:15:59+00:00",
+    "commit": "29fe6d0",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.971,
+      "status": "pass"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": [
+      "report.md"
+    ]
+  },
+  {
+    "run_number": 105,
+    "run_id": "31681591498",
+    "timestamp": "2026-08-13T08:24:19+00:00",
+    "commit": "20474c2",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.844,
+      "status": "pass"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 1,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {},
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json"
+    ]
+  },
+  {
+    "run_number": 106,
+    "run_id": "31682154665",
+    "timestamp": "2026-08-13T08:31:54+00:00",
+    "commit": "20474c2",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.982,
+      "status": "pass"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {},
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json"
+    ]
+  },
+  {
+    "run_number": 107,
+    "run_id": "31731600164",
+    "timestamp": "2026-08-13T18:58:08+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.994,
+      "avg_relevancy": 0.808,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 12,
+      "issues_by_category": {
+        "hallucination": 2,
+        "injection": 7,
+        "harmfulness": 0,
+        "stereotypes": 3,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 108,
+    "run_id": "31829093425",
+    "timestamp": "2026-08-14T18:49:29+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.811,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 9,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 7,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 109,
+    "run_id": "31899712885",
+    "timestamp": "2026-08-15T18:13:44+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.994,
+      "avg_relevancy": 0.798,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.3333333333333333
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 6,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 110,
+    "run_id": "31963030773",
+    "timestamp": "2026-08-16T18:12:49+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.992,
+      "avg_relevancy": 0.849,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 7,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 111,
+    "run_id": "32053006610",
+    "timestamp": "2026-08-17T18:22:01+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.954,
+      "avg_relevancy": 0.865,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 5,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 112,
+    "run_id": "32168673552",
+    "timestamp": "2026-08-18T18:19:17+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.928,
+      "avg_relevancy": 0.842,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 11,
+      "issues_by_category": {
+        "hallucination": 2,
+        "injection": 6,
+        "harmfulness": 1,
+        "stereotypes": 2,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 113,
+    "run_id": "32284650296",
+    "timestamp": "2026-08-19T18:15:40+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.989,
+      "avg_relevancy": 0.837,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 12,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 7,
+        "harmfulness": 1,
+        "stereotypes": 2,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 114,
+    "run_id": "32400884254",
+    "timestamp": "2026-08-20T18:22:45+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.921,
+      "avg_relevancy": 0.78,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.3333333333333333
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 11,
+      "issues_by_category": {
+        "hallucination": 2,
+        "injection": 7,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 115,
+    "run_id": "32511267142",
+    "timestamp": "2026-08-21T18:26:10+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.961,
+      "avg_relevancy": 0.859,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.6666666666666666
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 10,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 7,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 116,
+    "run_id": "32589287584",
+    "timestamp": "2026-08-22T18:17:41+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.931,
+      "avg_relevancy": 0.835,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 10,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 7,
+        "harmfulness": 0,
+        "stereotypes": 2,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 117,
+    "run_id": "32656408939",
+    "timestamp": "2026-08-23T18:14:25+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.818,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 6,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 118,
+    "run_id": "32760203485",
+    "timestamp": "2026-08-24T18:22:03+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.978,
+      "avg_relevancy": 0.83,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 6,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 119,
+    "run_id": "32881460925",
+    "timestamp": "2026-08-25T18:34:01+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.939,
+      "avg_relevancy": 0.821,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.3333333333333333
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 10,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 7,
+        "harmfulness": 0,
+        "stereotypes": 1,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 120,
+    "run_id": "33005171791",
+    "timestamp": "2026-08-26T19:53:00+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.922,
+      "avg_relevancy": 0.824,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.3333333333333333
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 10,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 7,
+        "harmfulness": 1,
+        "stereotypes": 1,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 121,
+    "run_id": "33133858006",
+    "timestamp": "2026-08-28T02:06:09+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.96,
+      "avg_relevancy": 0.832,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 11,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 7,
+        "harmfulness": 1,
+        "stereotypes": 2,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 122,
+    "run_id": "33225616006",
+    "timestamp": "2026-08-29T01:26:40+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.926,
+      "avg_relevancy": 0.872,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.3333333333333333
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 10,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 7,
+        "harmfulness": 2,
+        "stereotypes": 1,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 123,
+    "run_id": "33272245581",
+    "timestamp": "2026-08-29T20:15:55+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.996,
+      "avg_relevancy": 0.834,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 7,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 124,
+    "run_id": "33332466284",
+    "timestamp": "2026-08-30T20:21:27+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.964,
+      "avg_relevancy": 0.825,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.6666666666666666
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 12,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 7,
+        "harmfulness": 2,
+        "stereotypes": 1,
+        "robustness": 1,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 125,
+    "run_id": "33444250763",
+    "timestamp": "2026-08-31T22:20:49+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.981,
+      "avg_relevancy": 0.838,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 7,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 6,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 0,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 126,
+    "run_id": "33553568034",
+    "timestamp": "2026-09-01T20:30:34+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 0.933,
+      "avg_relevancy": 0.829,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 12,
+      "issues_by_category": {
+        "hallucination": 0,
+        "injection": 7,
+        "harmfulness": 1,
+        "stereotypes": 2,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 127,
+    "run_id": "33677261947",
+    "timestamp": "2026-09-02T20:31:33+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.741,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 3,
+      "judge": "groq/llama-3.3-70b-versatile",
+      "correctness": 0.0
+    },
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "robustness",
+        "sensitive_topics",
+        "jailbreak"
+      ],
+      "judge": "groq/llama-3.3-70b-versatile",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 5,
+        "harmfulness": 0,
+        "stereotypes": 0,
+        "robustness": 2,
+        "sensitive_topics": 0,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 129,
+    "run_id": "33913257690",
+    "timestamp": "2026-09-04T19:53:59+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": []
+  },
+  {
+    "run_number": 130,
+    "run_id": "33987283374",
+    "timestamp": "2026-09-05T19:33:01+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": []
+  },
+  {
+    "run_number": 131,
+    "run_id": "34055100034",
+    "timestamp": "2026-09-06T19:33:28+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": []
+  },
+  {
+    "run_number": 132,
+    "run_id": "34160676030",
+    "timestamp": "2026-09-07T20:49:48+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": []
+  },
+  {
+    "run_number": 133,
+    "run_id": "34273948091",
+    "timestamp": "2026-09-08T20:20:45+00:00",
+    "commit": "221294d",
+    "ragas": {
+      "avg_faithfulness": null,
+      "avg_relevancy": null,
+      "status": "unknown"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": []
+  },
+  {
+    "run_number": 134,
+    "run_id": "34333315324",
+    "timestamp": "2026-09-09T09:26:30+00:00",
+    "commit": "8bc8d3d",
+    "ragas": {
+      "avg_faithfulness": 0.0,
+      "avg_relevancy": 0.0,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": [
+      "report.md"
+    ]
+  },
+  {
+    "run_number": 136,
+    "run_id": "34386278918",
+    "timestamp": "2026-09-09T18:08:17+00:00",
+    "commit": "8bc8d3d",
+    "ragas": {
+      "avg_faithfulness": 0.0,
+      "avg_relevancy": 0.0,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": [
+      "report.md"
+    ]
+  },
+  {
+    "run_number": 164,
+    "run_id": "34739718578",
+    "timestamp": "2026-09-13T05:51:23+00:00",
+    "commit": "1e4a938",
+    "ragas": {
+      "avg_faithfulness": 0.889,
+      "avg_relevancy": 0.0,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {
+      "rag_api": "https://alexpavsky.com",
+      "categories": [
+        "hallucination",
+        "injection",
+        "harmfulness",
+        "stereotypes",
+        "jailbreak"
+      ],
+      "judge": "local/gpt-oss:120b",
+      "total_issues": 8,
+      "issues_by_category": {
+        "hallucination": 1,
+        "injection": 3,
+        "harmfulness": 2,
+        "stereotypes": 2,
+        "jailbreak": 0
+      }
+    },
+    "files": [
+      "report.md",
+      "ragas_cases.json",
+      "giskard_scan.html",
+      "giskard_scan.json"
+    ]
+  },
+  {
+    "run_number": 166,
+    "run_id": "34741980805",
+    "timestamp": "2026-09-13T06:16:31+00:00",
+    "commit": "b64d4ed",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.849,
+      "status": "fail"
+    },
+    "giskard_rag": {},
+    "giskard_scan": {},
+    "files": [
+      "report.md",
+      "ragas_cases.json"
+    ]
+  },
+  {
+    "run_number": 167,
+    "run_id": "34742561372",
+    "timestamp": "2026-09-13T06:33:36+00:00",
+    "commit": "599a601",
+    "ragas": {
+      "avg_faithfulness": 1.0,
+      "avg_relevancy": 0.831,
+      "status": "fail"
+    },
+    "giskard_rag": {
+      "rag_api": "https://alexpavsky.com",
+      "num_questions": 2,
+      "judge": "local/gpt-oss:120b",
+      "correctness": 0.5,
+      "minimum_correctness": 0.5
+    },
+    "giskard_scan": {},
+    "files": [
+      "report.md",
+      "ragas_cases.json",
+      "giskard_rag.html",
+      "giskard_rag.json",
+      "giskard_rag_cases.json"
+    ]
+  },
+  {
+    "run_number": 193,
+    "run_id": "35249225333",
+    "timestamp": "2026-09-17T17:20:17+00:00",
+    "commit": "838deef",
+    "ragas": {
+      "avg_faithfulness": 0.708,
+      "avg_relevancy": 0.0,
+      "status": "fail"
+    },
+    "ragas_counts": {
+      "passed": 9,
+      "failed": 1,
+      "total": 10
+    },
+    "giskard_rag": {},
+    "giskard_counts": {
+      "passed": 0,
+      "failed": 0,
+      "total": 0
+    },
+    "giskard_scan": {},
+    "files": [
+      "report.md",
+      "summary.json",
+      "ragas_cases.json"
+    ]
+  }
+]

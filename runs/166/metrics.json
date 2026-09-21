@@ -1,0 +1,17 @@
+{
+  "run_number": 166,
+  "run_id": "34741980805",
+  "timestamp": "2026-09-13T06:16:31+00:00",
+  "commit": "b64d4ed",
+  "ragas": {
+    "avg_faithfulness": 1.0,
+    "avg_relevancy": 0.849,
+    "status": "fail"
+  },
+  "giskard_rag": {},
+  "giskard_scan": {},
+  "files": [
+    "report.md",
+    "ragas_cases.json"
+  ]
+}

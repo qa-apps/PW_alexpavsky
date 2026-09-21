@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Giskard Nightly — qa-apps/PW_alexpavsky</title>
+<style>
+  body { font: 14px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; margin: 0 auto; max-width: 1100px; padding: 24px; color: #1a1a1a; }
+  h1 { margin: 0 0 4px; } h2 { margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+  nav { font-size: 13px; color: #666; } nav a, a { color: #0366d6; text-decoration: none; }
+  .meta, .muted { color: #666; font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 16px 0; }
+  .card { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 14px; }
+  .card .label { color: #666; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .status-pass { color: #0a7c0a; } .status-fail { color: #b00020; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  iframe { width: 100%; height: 600px; border: 1px solid #d0d7de; border-radius: 6px; }
+  #ragas-md { background: #fff; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; }
+  .tools button { font: inherit; margin-right: 6px; padding: 4px 10px; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; cursor: pointer; }
+  details.case { border: 1px solid #d0d7de; border-radius: 6px; margin: 8px 0; background: #fff; }
+  details.case > summary { cursor: pointer; list-style: none; display: flex; gap: 10px; align-items: baseline; padding: 10px 12px; }
+  details.case > summary::-webkit-details-marker { display: none; }
+  details.case > summary::before { content: '▸'; color: #666; } details.case[open] > summary::before { content: '▾'; }
+  details.case[open] > summary { border-bottom: 1px solid #eaeaea; background: #f6f8fa; }
+  .q { flex: 1; } .nums { color: #666; white-space: nowrap; }
+  .body { padding: 4px 14px 12px; } h4 { margin: 12px 0 4px; font-size: 13px; }
+  .badge { display: inline-block; min-width: 54px; text-align: center; border-radius: 10px; padding: 1px 8px; font-size: 12px; font-weight: 700; color: #fff; }
+  .badge.pass { background: #1a7f37; } .badge.fail { background: #cf222e; } .badge.na { background: #6e7781; }
+  pre { white-space: pre-wrap; word-break: break-word; background: #f6f8fa; border: 1px solid #eaeaea; border-radius: 6px; padding: 8px 10px; margin: 0; max-height: 420px; overflow: auto; }
+  .reason { margin: 0; background: #fff8c5; border: 1px solid #eac54f; border-radius: 6px; padding: 8px 10px; }
+</style></head>
+<body>
+<nav><a href="index.html">← Ragas runs</a></nav>
+<h1>Giskard Nightly</h1>
+<p class="meta">Auto-generated RAG questions judged by the local GPT-OSS model, plus the vulnerability scan. Runs: 24</p>
+<table>
+  <thead><tr><th>Run</th><th>Timestamp (UTC)</th><th>Questions passed</th><th>Correctness</th><th>Scan issues</th><th>Commit</th></tr></thead>
+  <tbody><tr><td><a href="runs/167/giskard.html">#167</a></td><td>2026-09-13 06:33:36</td><td>—</td><td>0.50</td><td>—</td><td>599a601</td></tr><tr><td><a href="runs/127/giskard.html">#127</a></td><td>2026-09-02 20:31:33</td><td>—</td><td>0.00</td><td>8</td><td>221294d</td></tr><tr><td><a href="runs/126/giskard.html">#126</a></td><td>2026-09-01 20:30:34</td><td>—</td><td>0.00</td><td>12</td><td>221294d</td></tr><tr><td><a href="runs/125/giskard.html">#125</a></td><td>2026-08-31 22:20:49</td><td>—</td><td>0.00</td><td>7</td><td>221294d</td></tr><tr><td><a href="runs/124/giskard.html">#124</a></td><td>2026-08-30 20:21:27</td><td>—</td><td>0.67</td><td>12</td><td>221294d</td></tr><tr><td><a href="runs/123/giskard.html">#123</a></td><td>2026-08-29 20:15:55</td><td>—</td><td>0.00</td><td>7</td><td>221294d</td></tr><tr><td><a href="runs/122/giskard.html">#122</a></td><td>2026-08-29 01:26:40</td><td>—</td><td>0.33</td><td>10</td><td>221294d</td></tr><tr><td><a href="runs/121/giskard.html">#121</a></td><td>2026-08-28 02:06:09</td><td>—</td><td>0.00</td><td>11</td><td>221294d</td></tr><tr><td><a href="runs/120/giskard.html">#120</a></td><td>2026-08-26 19:53:00</td><td>—</td><td>0.33</td><td>10</td><td>221294d</td></tr><tr><td><a href="runs/119/giskard.html">#119</a></td><td>2026-08-25 18:34:01</td><td>—</td><td>0.33</td><td>10</td><td>221294d</td></tr><tr><td><a href="runs/118/giskard.html">#118</a></td><td>2026-08-24 18:22:03</td><td>—</td><td>0.00</td><td>7</td><td>221294d</td></tr><tr><td><a href="runs/117/giskard.html">#117</a></td><td>2026-08-23 18:14:25</td><td>—</td><td>0.00</td><td>7</td><td>221294d</td></tr><tr><td><a href="runs/116/giskard.html">#116</a></td><td>2026-08-22 18:17:41</td><td>—</td><td>0.00</td><td>10</td><td>221294d</td></tr><tr><td><a href="runs/115/giskard.html">#115</a></td><td>2026-08-21 18:26:10</td><td>—</td><td>0.67</td><td>10</td><td>221294d</td></tr><tr><td><a href="runs/114/giskard.html">#114</a></td><td>2026-08-20 18:22:45</td><td>—</td><td>0.33</td><td>11</td><td>221294d</td></tr><tr><td><a href="runs/113/giskard.html">#113</a></td><td>2026-08-19 18:15:40</td><td>—</td><td>0.00</td><td>12</td><td>221294d</td></tr><tr><td><a href="runs/112/giskard.html">#112</a></td><td>2026-08-18 18:19:17</td><td>—</td><td>0.00</td><td>11</td><td>221294d</td></tr><tr><td><a href="runs/111/giskard.html">#111</a></td><td>2026-08-17 18:22:01</td><td>—</td><td>0.00</td><td>7</td><td>221294d</td></tr><tr><td><a href="runs/110/giskard.html">#110</a></td><td>2026-08-16 18:12:49</td><td>—</td><td>0.00</td><td>7</td><td>221294d</td></tr><tr><td><a href="runs/109/giskard.html">#109</a></td><td>2026-08-15 18:13:44</td><td>—</td><td>0.33</td><td>8</td><td>221294d</td></tr><tr><td><a href="runs/108/giskard.html">#108</a></td><td>2026-08-14 18:49:29</td><td>—</td><td>0.00</td><td>9</td><td>221294d</td></tr><tr><td><a href="runs/107/giskard.html">#107</a></td><td>2026-08-13 18:58:08</td><td>—</td><td>0.00</td><td>12</td><td>221294d</td></tr><tr><td><a href="runs/106/giskard.html">#106</a></td><td>2026-08-13 08:31:54</td><td>—</td><td>0.00</td><td>—</td><td>20474c2</td></tr><tr><td><a href="runs/105/giskard.html">#105</a></td><td>2026-08-13 08:24:19</td><td>—</td><td>0.00</td><td>—</td><td>20474c2</td></tr></tbody>
+</table>
+</body></html>

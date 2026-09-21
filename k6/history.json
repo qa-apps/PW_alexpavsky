@@ -1,0 +1,378 @@
+[
+  {
+    "run_number": "84",
+    "timestamp": "2026-08-13T20:00:39+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 363,
+    "commit": "221294d",
+    "run_id": "31738570366"
+  },
+  {
+    "run_number": "85",
+    "timestamp": "2026-08-14T19:56:57+00:00",
+    "profiles": 2,
+    "requests": 1511,
+    "max_p95_ms": 503,
+    "commit": "221294d",
+    "run_id": "31835455817"
+  },
+  {
+    "run_number": "86",
+    "timestamp": "2026-08-15T19:34:53+00:00",
+    "profiles": 2,
+    "requests": 1513,
+    "max_p95_ms": 428,
+    "commit": "221294d",
+    "run_id": "31904234955"
+  },
+  {
+    "run_number": "87",
+    "timestamp": "2026-08-16T19:33:39+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 454,
+    "commit": "221294d",
+    "run_id": "31967862352"
+  },
+  {
+    "run_number": "88",
+    "timestamp": "2026-08-17T19:42:32+00:00",
+    "profiles": 2,
+    "requests": 1513,
+    "max_p95_ms": 396,
+    "commit": "221294d",
+    "run_id": "32061696915"
+  },
+  {
+    "run_number": "89",
+    "timestamp": "2026-08-18T19:41:25+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 464,
+    "commit": "221294d",
+    "run_id": "32177851972"
+  },
+  {
+    "run_number": "91",
+    "timestamp": "2026-08-20T19:46:10+00:00",
+    "profiles": 2,
+    "requests": 1511,
+    "max_p95_ms": 497,
+    "commit": "221294d",
+    "run_id": "32410311959"
+  },
+  {
+    "run_number": "92",
+    "timestamp": "2026-08-21T19:37:29+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 524,
+    "commit": "221294d",
+    "run_id": "32519274244"
+  },
+  {
+    "run_number": "93",
+    "timestamp": "2026-08-22T19:35:34+00:00",
+    "profiles": 2,
+    "requests": 1502,
+    "max_p95_ms": 18630,
+    "commit": "221294d",
+    "run_id": "32594067153"
+  },
+  {
+    "run_number": "94",
+    "timestamp": "2026-08-23T19:35:36+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 10421,
+    "commit": "221294d",
+    "run_id": "32661620705"
+  },
+  {
+    "run_number": "95",
+    "timestamp": "2026-08-24T19:45:34+00:00",
+    "profiles": 2,
+    "requests": 1505,
+    "max_p95_ms": 13734,
+    "commit": "221294d",
+    "run_id": "32769822525"
+  },
+  {
+    "run_number": "96",
+    "timestamp": "2026-08-25T19:46:13+00:00",
+    "profiles": 2,
+    "requests": 1503,
+    "max_p95_ms": 15040,
+    "commit": "221294d",
+    "run_id": "32891315989"
+  },
+  {
+    "run_number": "97",
+    "timestamp": "2026-08-26T21:51:59+00:00",
+    "profiles": 2,
+    "requests": 1511,
+    "max_p95_ms": 7844,
+    "commit": "221294d",
+    "run_id": "33017154573"
+  },
+  {
+    "run_number": "98",
+    "timestamp": "2026-08-28T03:36:25+00:00",
+    "profiles": 2,
+    "requests": 1505,
+    "max_p95_ms": 20919,
+    "commit": "221294d",
+    "run_id": "33139290025"
+  },
+  {
+    "run_number": "99",
+    "timestamp": "2026-08-29T02:12:10+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 384,
+    "commit": "221294d",
+    "run_id": "33228280922"
+  },
+  {
+    "run_number": "100",
+    "timestamp": "2026-08-29T21:44:50+00:00",
+    "profiles": 2,
+    "requests": 1503,
+    "max_p95_ms": 10376,
+    "commit": "221294d",
+    "run_id": "33276783072"
+  },
+  {
+    "run_number": "101",
+    "timestamp": "2026-08-30T21:55:34+00:00",
+    "profiles": 2,
+    "requests": 1503,
+    "max_p95_ms": 12407,
+    "commit": "221294d",
+    "run_id": "33337668053"
+  },
+  {
+    "run_number": "102",
+    "timestamp": "2026-08-31T23:13:38+00:00",
+    "profiles": 2,
+    "requests": 1511,
+    "max_p95_ms": 8364,
+    "commit": "221294d",
+    "run_id": "33449625007"
+  },
+  {
+    "run_number": "103",
+    "timestamp": "2026-09-01T21:47:25+00:00",
+    "profiles": 2,
+    "requests": 1513,
+    "max_p95_ms": 395,
+    "commit": "221294d",
+    "run_id": "33562806534"
+  },
+  {
+    "run_number": "104",
+    "timestamp": "2026-09-02T21:50:33+00:00",
+    "profiles": 2,
+    "requests": 1502,
+    "max_p95_ms": 17858,
+    "commit": "221294d",
+    "run_id": "33687144012"
+  },
+  {
+    "run_number": "105",
+    "timestamp": "2026-09-03T21:44:20+00:00",
+    "profiles": 2,
+    "requests": 501,
+    "max_p95_ms": 0,
+    "commit": "221294d",
+    "run_id": "33809330556"
+  },
+  {
+    "run_number": "106",
+    "timestamp": "2026-09-04T21:29:13+00:00",
+    "profiles": 2,
+    "requests": 1517,
+    "max_p95_ms": 347,
+    "commit": "221294d",
+    "run_id": "33921199347"
+  },
+  {
+    "run_number": "107",
+    "timestamp": "2026-09-05T21:15:19+00:00",
+    "profiles": 2,
+    "requests": 1522,
+    "max_p95_ms": 471,
+    "commit": "221294d",
+    "run_id": "33992413783"
+  },
+  {
+    "run_number": "108",
+    "timestamp": "2026-09-06T21:21:37+00:00",
+    "profiles": 2,
+    "requests": 1518,
+    "max_p95_ms": 347,
+    "commit": "221294d",
+    "run_id": "34060738714"
+  },
+  {
+    "run_number": "109",
+    "timestamp": "2026-09-07T22:02:02+00:00",
+    "profiles": 2,
+    "requests": 1525,
+    "max_p95_ms": 451,
+    "commit": "221294d",
+    "run_id": "34165133611"
+  },
+  {
+    "run_number": "110",
+    "timestamp": "2026-09-08T21:52:19+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 473,
+    "commit": "221294d",
+    "run_id": "34282785674"
+  },
+  {
+    "run_number": "111",
+    "timestamp": "2026-09-09T21:42:59+00:00",
+    "profiles": 2,
+    "requests": 1513,
+    "max_p95_ms": 346,
+    "commit": "8bc8d3d",
+    "run_id": "34408287839"
+  },
+  {
+    "run_number": "112",
+    "timestamp": "2026-09-10T21:38:52+00:00",
+    "profiles": 2,
+    "requests": 1513,
+    "max_p95_ms": 346,
+    "commit": "f43aff2",
+    "run_id": "34533169721"
+  },
+  {
+    "run_number": "113",
+    "timestamp": "2026-09-11T21:44:16+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 521,
+    "commit": "f43aff2",
+    "run_id": "34650662603"
+  },
+  {
+    "run_number": "114",
+    "timestamp": "2026-09-12T21:27:33+00:00",
+    "profiles": 2,
+    "requests": 1513,
+    "max_p95_ms": 423,
+    "commit": "f43aff2",
+    "run_id": "34719936024"
+  },
+  {
+    "run_number": "115",
+    "timestamp": "2026-09-13T04:47:04+00:00",
+    "profiles": 9,
+    "requests": 77990,
+    "max_p95_ms": 394,
+    "commit": "318a191",
+    "run_id": "34738252501"
+  },
+  {
+    "run_number": "117",
+    "timestamp": "2026-09-14T22:32:00+00:00",
+    "profiles": 2,
+    "requests": 1511,
+    "max_p95_ms": 523,
+    "commit": "15cc7b7",
+    "run_id": "34904405552"
+  },
+  {
+    "run_number": "118",
+    "timestamp": "2026-09-15T22:14:53+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "max_p95_ms": 446,
+    "commit": "15cc7b7",
+    "run_id": "35029799037"
+  },
+  {
+    "run_number": "119",
+    "timestamp": "2026-09-16T22:11:36+00:00",
+    "profiles": 2,
+    "requests": 1513,
+    "max_p95_ms": 346,
+    "commit": "15cc7b7",
+    "run_id": "35156269652"
+  },
+  {
+    "run_number": "120",
+    "timestamp": "2026-09-17T05:16:48+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "failed_calls": 0,
+    "max_p95_ms": 371,
+    "commit": "974c9ab",
+    "run_id": "35184986124"
+  },
+  {
+    "run_number": "121",
+    "timestamp": "2026-09-17T21:08:41+00:00",
+    "profiles": 6,
+    "requests": 68091,
+    "failed_calls": 0,
+    "max_p95_ms": 525,
+    "commit": "e718b9f",
+    "run_id": "35273959887"
+  },
+  {
+    "run_number": "122",
+    "timestamp": "2026-09-17T22:10:26+00:00",
+    "profiles": 2,
+    "requests": 1511,
+    "failed_calls": 0,
+    "max_p95_ms": 387,
+    "commit": "92ef44e",
+    "run_id": "35280519960"
+  },
+  {
+    "run_number": "123",
+    "timestamp": "2026-09-18T05:02:04+00:00",
+    "profiles": 5,
+    "requests": 69797,
+    "failed_calls": 0,
+    "max_p95_ms": 471,
+    "commit": "254d20f",
+    "run_id": "35308586416"
+  },
+  {
+    "run_number": "124",
+    "timestamp": "2026-09-18T12:17:29+00:00",
+    "profiles": 2,
+    "requests": 1513,
+    "failed_calls": 0,
+    "max_p95_ms": 425,
+    "commit": "65105b4",
+    "run_id": "35343712541"
+  },
+  {
+    "run_number": "126",
+    "timestamp": "2026-09-19T11:58:40+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "failed_calls": 0,
+    "max_p95_ms": 452,
+    "commit": "65105b4",
+    "run_id": "35441483094"
+  },
+  {
+    "run_number": "128",
+    "timestamp": "2026-09-20T12:28:32+00:00",
+    "profiles": 2,
+    "requests": 1512,
+    "failed_calls": 0,
+    "max_p95_ms": 347,
+    "commit": "65105b4",
+    "run_id": "35510627265"
+  }
+]
