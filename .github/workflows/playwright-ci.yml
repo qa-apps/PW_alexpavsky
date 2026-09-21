@@ -151,6 +151,11 @@ jobs:
 
       - name: Notify Slack
         if: always()
+        # Reporting, not verification. Dependabot pull requests are not given
+        # repository secrets, so this step can never succeed on one — without
+        # this it fails the job and the required check blocks every dependency
+        # update even though the tests passed.
+        continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -163,6 +168,7 @@ jobs:
             --results-pattern "results-pure.json"
 
       - name: Send failure email (severity-tagged)
+        continue-on-error: true
         if: failure()
         env:
           MAIL_TO: ${{ secrets.MAIL_TO }}
@@ -187,6 +193,7 @@ jobs:
 
       - name: Post bug report to Slack
         if: failure()
+        continue-on-error: true
         env:
           SLACK_BOT_TOKEN:    ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_RUN_URL:     ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
