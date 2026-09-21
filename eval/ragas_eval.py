@@ -26,6 +26,7 @@ Environment variables:
 from __future__ import annotations
 
 import json
+import math
 import os
 import sys
 import time
@@ -70,6 +71,32 @@ def log(msg: str) -> None:
 def fail(msg: str, code: int = 1) -> None:
     log(f"ERROR: {msg}")
     sys.exit(code)
+
+
+def merge_metric_rows(records: list[dict], scored_samples: list[dict], rows: list[dict]) -> None:
+    """Merge successful metric values while preserving earlier retry results."""
+    for i, sample in enumerate(scored_samples):
+        row = rows[i] if i < len(rows) else {}
+        record = records[sample["_idx"]]
+        for source, destination in (
+            ("faithfulness", "faithfulness"),
+            ("answer_relevancy", "relevancy"),
+        ):
+            try:
+                value = float(row.get(source))
+            except (TypeError, ValueError):
+                continue
+            if not math.isnan(value):
+                record[destination] = value
+
+
+def samples_missing_metrics(records: list[dict], samples: list[dict]) -> list[dict]:
+    """Return only samples that still lack either required judge metric."""
+    return [
+        sample for sample in samples
+        if math.isnan(records[sample["_idx"]]["faithfulness"])
+        or math.isnan(records[sample["_idx"]]["relevancy"])
+    ]
 
 
 def query_rag_api(question: str, max_retries: int = 3) -> dict[str, Any]:
@@ -343,9 +370,21 @@ def main() -> int:
     dataset = EvaluationDataset(samples=samples)
 
     log(f"  Evaluating {len(samples)} samples (this takes ~{len(samples) * 3}s)...")
-    try:
-        result = evaluate(
-            dataset=dataset,
+    for sample in samples_for_ragas:
+        records[sample["_idx"]]["faithfulness"] = float("nan")
+        records[sample["_idx"]]["relevancy"] = float("nan")
+
+    def run_metrics(samples_to_score, *, show_progress):
+        retry_dataset = EvaluationDataset(samples=[
+            SingleTurnSample(
+                user_input=s["user_input"],
+                response=s["response"],
+                retrieved_contexts=s["retrieved_contexts"],
+            )
+            for s in samples_to_score
+        ])
+        return evaluate(
+            dataset=retry_dataset,
             metrics=[Faithfulness(), ResponseRelevancy()],
             llm=ragas_llm,
             embeddings=ragas_embeds,
@@ -355,33 +394,40 @@ def main() -> int:
                 max_workers=1,
             ),
             raise_exceptions=False,
-            show_progress=True,
+            show_progress=show_progress,
+        ).to_pandas().to_dict("records")
+
+    try:
+        merge_metric_rows(
+            records,
+            samples_for_ragas,
+            run_metrics(samples_for_ragas, show_progress=True),
         )
     except Exception as e:
         fail(f"Ragas evaluation failed: {e}")
 
-    # Convert to DataFrame and merge back into records.
-    # NaN values mean the judge couldn't parse the answer — treat as missing,
-    # not as zero, so they don't unfairly tank the average.
-    import math
-    df = result.to_pandas()
-    for i, sample in enumerate(samples_for_ragas):
-        idx = sample["_idx"]
+    # Ragas returns NaN when a local judge call times out or its JSON cannot be
+    # parsed. Retry only those samples so one transient generation cannot leave
+    # a superficially green report with missing verdicts.
+    metric_retry_limit = max(0, int(os.environ.get("RAGAS_METRIC_RETRIES", "2")))
+    metric_retry_attempts = 0
+    for attempt in range(1, metric_retry_limit + 1):
+        missing = samples_missing_metrics(records, samples_for_ragas)
+        if not missing:
+            break
+        metric_retry_attempts = attempt
+        log(
+            f"  Retrying missing judge metrics for {len(missing)} sample(s) "
+            f"(attempt {attempt}/{metric_retry_limit})..."
+        )
         try:
-            f_val = df.iloc[i].get("faithfulness", None)
-            r_val = df.iloc[i].get("answer_relevancy", None)
-            f_val = float(f_val) if f_val is not None else float("nan")
-            r_val = float(r_val) if r_val is not None else float("nan")
-            records[idx]["faithfulness"] = f_val
-            records[idx]["relevancy"] = r_val
-        except (IndexError, KeyError, ValueError, TypeError):
-            records[idx]["faithfulness"] = float("nan")
-            records[idx]["relevancy"] = float("nan")
+            merge_metric_rows(records, missing, run_metrics(missing, show_progress=False))
+        except Exception as e:
+            log(f"  Judge metric retry {attempt} failed: {type(e).__name__}: {e}")
 
     # Step 3: Summary + Report
     log("\nStep 3/3: Building report...")
     log("-" * 72)
-    import math
     # Average only over non-NaN values (judge parsing failures excluded).
     f_vals = [r["faithfulness"] for r in records if not math.isnan(r["faithfulness"])]
     r_vals = [r["relevancy"] for r in records if not math.isnan(r["relevancy"])]
@@ -402,6 +448,7 @@ def main() -> int:
         "r_parsed": len(r_vals),
         "f_failures": parse_failures_f,
         "r_failures": parse_failures_r,
+        "metric_retry_attempts": metric_retry_attempts,
         "judge_model": f"{primary_name}/{primary_model} (+{len(fallbacks)} fallbacks)",
     }
 
@@ -501,6 +548,11 @@ def main() -> int:
 
     failed_count = len(records) - passed_count
     failed_checks: list[str] = []
+    if parse_failures_f or parse_failures_r:
+        failed_checks.append(
+            "incomplete judge metrics "
+            f"(faithfulness={parse_failures_f}, relevancy={parse_failures_r})"
+        )
     if avg_f < MIN_FAITHFULNESS:
         failed_checks.append(f"avg faithfulness {avg_f:.3f} < {MIN_FAITHFULNESS}")
     if avg_r < MIN_RELEVANCY:
