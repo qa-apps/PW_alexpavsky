@@ -84,7 +84,7 @@ the owner. Route to the DESIGN escalation in step 3 (report to Slack
    - Console errors
    - Screenshot description
    - Likely cause
-   - Suggested fix location in `/Users/alexp/Projects/alexpavsky`
+   - Suggested fix location in [`qa-apps/alexpavsky`](https://github.com/qa-apps/alexpavsky)
 4. Print a summary to stdout: "🔴 SITE BUG: [test name] — [one-line description]"
 
 **For TEST ISSUE:**
@@ -120,12 +120,12 @@ After processing all failures, append a summary block to `judge-verdicts/triage-
 - Page objects: `pages/`
 - Playwright report: `playwright-report/index.html`
 - LLM judge verdicts: `judge-verdicts/`
-- Site source (do NOT edit from here): `/Users/alexp/Projects/alexpavsky`
+- Site source (do NOT edit from here): [`qa-apps/alexpavsky`](https://github.com/qa-apps/alexpavsky)
 - Env file: `.env` (never print key values)
 
 ## Rules
 
-- Never edit files in `/Users/alexp/Projects/alexpavsky` — only report bugs there.
+- Never edit files in [`qa-apps/alexpavsky`](https://github.com/qa-apps/alexpavsky) — only report bugs there.
 - Never print `.env` key values in output.
 - If a test is marked `test.fixme()`, skip it — it is already known to be broken.
 - Fix one test at a time and re-run before moving to the next.

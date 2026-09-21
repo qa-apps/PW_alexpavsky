@@ -1,7 +1,9 @@
 import { test, expect } from '../utils/fixtures';
 
-// Manual diagnostic suite for DOM discovery. Keep it out of the default test run.
-test.describe.skip('Inspect alexpavsky.com DOM @manual', () => {
+// Manual diagnostic suite for DOM discovery. Excluded from the default run by
+// `testIgnore` in playwright.config.ts, so it stays runnable on demand rather
+// than being a permanently skipped block.
+test.describe('Inspect alexpavsky.com DOM @manual', () => {
   test('capture homepage structure', async ({ page }) => {
     await page.goto('https://alexpavsky.com');
     await page.waitForLoadState('networkidle');

@@ -10,6 +10,10 @@ export default defineConfig({
   testIgnore: [
     '**/voice/**/*.test.ts',
     '**/observability/**/*.test.ts',
+    // Manual DOM-discovery suite: run it explicitly with
+    // `npx playwright test tests/inspect-site.spec.ts --config=/dev/null`
+    // or by temporarily removing this entry.
+    '**/inspect-site.spec.ts',
   ],
   outputDir: 'test-results/recordings',
   timeout: 60_000,

@@ -1,7 +1,7 @@
 # PW_alexpavsky — Claude Code instructions
 
 End-to-end Playwright suite for the live site **https://www.alexpavsky.com**.
-The site source lives in a **separate** repo: `/Users/alexp/Projects/alexpavsky`.
+The site source lives in a **separate** repo: [`qa-apps/alexpavsky`](https://github.com/qa-apps/alexpavsky).
 This repo contains tests only — never edit application code from here.
 
 ## Stack
@@ -100,7 +100,7 @@ Run `npm run providers:ping` to verify keys before a judge run.
 
 ## When changing application behavior
 
-If a test fails because the site changed, fix the test here. If the site itself is broken, the fix belongs in `/Users/alexp/Projects/alexpavsky` — flag it, don't try to patch it from this repo.
+If a test fails because the site changed, fix the test here. If the site itself is broken, the fix belongs in [`qa-apps/alexpavsky`](https://github.com/qa-apps/alexpavsky) — flag it, don't try to patch it from this repo.
 
 
 ## Agent fix workflow — MANDATORY

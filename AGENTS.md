@@ -5,12 +5,12 @@ This file is the **contract for the daily live-site QA loop** on
 and applies functional fixes; Codex signs off. Both agents speak to the report
 through **one library** so the schema never drifts.
 
-> Site source is a **separate** repo (`/Users/alexp/Projects/alexpavsky`). This
+> Site source is a **separate** repo ([`qa-apps/alexpavsky`](https://github.com/qa-apps/alexpavsky)). This
 > repo is tests + the QA loop only — never edit application code from here.
 
 ## Where reports live now (NOT the Desktop)
 
-Daily reports are **no longer written to the Desktop** (`/Users/alexp/Desktop/REPORTS/...`).
+Daily reports are **no longer written to the Desktop** (a local Desktop folder).
 The Codex runner sandbox blocks that write with `EPERM` anyway. Instead, each day
 is one JSON file under `qa-report-ui/reports/<YYYY-MM-DD>.json`, surfaced in a tiny
 local web UI:
