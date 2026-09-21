@@ -1,0 +1,85 @@
+name: Pages retention
+
+# Five workflows publish into gh-pages with keep_files: true, so nothing on
+# that branch is ever removed by a publish. Retention therefore has to be its
+# own job: none of the publishers can safely delete, because with keep_files
+# disabled each one would wipe the sections the others had just written.
+
+on:
+  schedule:
+    # Daily at 05:20 UTC. Housekeeping, so the exact local hour does not matter
+    # and this does not need the DST gate the reporting workflows use.
+    - cron: "20 5 * * *"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Retention window in days"
+        required: false
+        default: "3"
+        type: string
+      dry_run:
+        description: "Report what would be removed without deleting"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-retention
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    name: Age out failure attachments
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout the scripts from the default branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: scripts/prune_pages_media.py
+          sparse-checkout-cone-mode: false
+          path: tools
+
+      - name: Checkout the published branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: gh-pages
+          path: site
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.11"
+
+      - name: Prune attachments older than the window
+        id: prune
+        shell: bash
+        run: |
+          python3 tools/scripts/prune_pages_media.py site \
+            --days "${{ inputs.days || '3' }}" \
+            ${{ inputs.dry_run && '--dry-run' || '' }} | tee prune.log
+          echo "summary=$(tail -1 prune.log)" >> "$GITHUB_OUTPUT"
+
+      - name: Commit the removals
+        if: ${{ !inputs.dry_run }}
+        shell: bash
+        working-directory: site
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Nothing aged out of the window today."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: age out failure attachments past the retention window
+
+          ${{ steps.prune.outputs.summary }}"
+          git push
+
+      - name: Report
+        if: always()
+        run: echo "${{ steps.prune.outputs.summary }}" >> "$GITHUB_STEP_SUMMARY"
