@@ -344,10 +344,12 @@ jobs:
     needs: schedule-gate
     if: needs.schedule-gate.outputs.should_run == 'true' && (github.event_name != 'workflow_dispatch' || inputs.review_sha == '')
     runs-on: [self-hosted, Linux, X64, bosgame]
-    timeout-minutes: 30
+    # Scheduled runs may wait behind an interactive GPU lease. Keep the wait
+    # below the six-hour GitHub job cap so the actual checks still have time.
+    timeout-minutes: 360
     env:
-      LOCAL_LLM_BASE_URL: ${{ github.event_name == 'schedule' && 'http://127.0.0.1:11445/v1' || 'http://127.0.0.1:11434/v1' }}
-      LOCAL_LLM_MODEL: ${{ github.event_name == 'schedule' && 'scheduled/gpt-oss:120b' || 'gpt-oss:120b' }}
+      LOCAL_LLM_BASE_URL: http://127.0.0.1:11445/v1
+      LOCAL_LLM_MODEL: gpt-oss:120b
       LOCAL_LLM_UPSTREAM_MODEL: gpt-oss:120b
       LOCAL_LLM_API_KEY: ${{ secrets.LOCAL_LLM_API_KEY }}
     outputs:
@@ -370,9 +372,11 @@ jobs:
         run: npm ci
 
       - name: Wait for local evaluator
+        id: local_evaluator
         env:
-          LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '21600' || '900' }}
+          LOCAL_LLM_PRIORITY_MAX_WAIT_SEC: ${{ github.event_name == 'schedule' && '18000' || '3600' }}
         run: |
+          echo "lease_acquired=false" >> "$GITHUB_OUTPUT"
           deadline=$((SECONDS + LOCAL_LLM_PRIORITY_MAX_WAIT_SEC))
           while true; do
             if models=$(curl --connect-timeout 5 --max-time 15 --fail --silent --show-error \
@@ -381,6 +385,7 @@ jobs:
               -H "X-LLM-Model: $LOCAL_LLM_UPSTREAM_MODEL" \
               "${LOCAL_LLM_BASE_URL%/v1}/v1/models") && \
               python3 -c 'import json,sys; wanted=sys.argv[1]; ids=[m.get("id") for m in json.load(sys.stdin).get("data", [])]; raise SystemExit(0 if wanted in ids or "gpt-oss:120b" in ids else 1)' "$LOCAL_LLM_MODEL" <<<"$models"; then
+              echo "lease_acquired=true" >> "$GITHUB_OUTPUT"
               break
             fi
             if [ "$SECONDS" -ge "$deadline" ]; then
@@ -432,7 +437,7 @@ jobs:
         run: npx vitest run tests/observability
 
       - name: Release background model lease
-        if: always() && github.event_name == 'schedule'
+        if: always() && steps.local_evaluator.outputs.lease_acquired == 'true'
         run: |
           curl -fsS -X POST \
             -H "X-LLM-Job-ID: $GITHUB_RUN_ID" \
