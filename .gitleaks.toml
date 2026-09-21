@@ -1,0 +1,8 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Revoked maintenance fallback retained only as a regression fixture"
+regexTarget = "secret"
+regexes = ['''alexpavsky-maint-2026''']
+paths = ['''tests/security-ssrf-xss[.]spec[.]ts''']
